@@ -1,0 +1,245 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Launch-command",
+    "contact": {},
+    "version": "1.0"
+  },
+  "host": "localhost:8000",
+  "basePath": "/",
+  "paths": {
+    "/all-commands": {
+      "get": {
+        "description": "get all commands from database",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "all-commands"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/command": {
+      "post": {
+        "description": "Add new command to DB",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "command"
+        ],
+        "parameters": [
+          {
+            "description": "Script and description for script",
+            "name": "command",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/entity.CreateCommandReq"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/entity.CreateCommandRes"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/command/{id}": {
+      "get": {
+        "description": "get and start command by id",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "command"
+        ],
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "Command ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "stop execution command by id",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "command"
+        ],
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "Command ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "delete": {
+        "description": "get command id in path",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "command"
+        ],
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "Command ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/commands": {
+      "get": {
+        "description": "get and start some command by ids",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "commands"
+        ],
+        "parameters": [
+          {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "collectionFormat": "csv",
+            "description": "Command IDs",
+            "name": "ids",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "entity.CreateCommandReq": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "script": {
+          "type": "string"
+        }
+      }
+    },
+    "entity.CreateCommandRes": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "script": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

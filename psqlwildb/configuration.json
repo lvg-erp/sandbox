@@ -1,0 +1,9 @@
+{
+  "port":5432,
+  "endpoint":"api",
+  "host":"localhost",
+  "user":"root",
+  "password":"password",
+  "schema":"test",
+  "dbname":"testdb"
+}
