@@ -2,9 +2,13 @@
 go-kafka-example
 Data processing with Apache Kafka, REST API and Redis.
 
-This project involves processing on-chain blockchain data using Apache Kafka, REST API, and Redis. There are three topics: "address", "label" and "transaction". These topics are handled by a single producer and consumer.
+This project involves processing on-chain blockchain data using Apache Kafka, REST API, and Redis. 
+There are three topics: "address", "label" and "transaction". 
+These topics are handled by a single producer and consumer.
 
-The producer, operating on port 8080, receives REST API requests from users, sending the respective messages to the consumer (port 8081). Redis is used as the in-memory database.
+The producer, operating on port 8080, receives REST API requests from users, 
+sending the respective messages to the consumer (port 8081). 
+Redis is used as the in-memory database.
 
 Prerequisites
 docker (install)
