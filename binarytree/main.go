@@ -14,6 +14,8 @@ func main() {
 	//Output: ["1->2->5","1->3"]
 
 	data := "[1,2,3,null,null,4,5]"
+	//из пакета гита
+	//чтобы использовать сиой пакет меняем путь
 	root, err := tn.NewTreeNode(data)
 	if err != nil {
 		log.Fatal(err)
