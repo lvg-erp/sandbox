@@ -1,7 +1,7 @@
 package main
 
 import (
-	"arrayworkwith/alg"
+	"arrayworkwith/one/alg"
 	"fmt"
 )
 
