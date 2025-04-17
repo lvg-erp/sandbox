@@ -1,0 +1,1 @@
+https://blog.cubed.run/the-cards-of-concurrency-in-go-0d7582cecb79

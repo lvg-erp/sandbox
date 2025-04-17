@@ -3,7 +3,8 @@ package alg
 import "math/rand"
 
 func CreateArr() (arr []int) {
-	size := 50000
+	//size := 5000
+	size := 5
 	arr = make([]int, size)
 	for i := 0; i < size; i++ {
 		arr[i] = rand.Intn(size)
