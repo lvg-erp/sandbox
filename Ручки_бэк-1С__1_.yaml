@@ -1,0 +1,628 @@
+openapi: 3.0.3
+info:
+  title: ЦКР Ценовой Контроль Ремонтов ИТЕКО
+  version: 2.1.0
+  description: Реализация ручек для взаимодействия с 1С
+servers:
+  - url: https://ckr.iteco.com/
+security:
+  - AuthToken: []
+tags:
+  - name: backend
+    description: Бэкэнд Методы получения статусов
+  - name: users
+    description: 1С Методы пользователя
+  - name: carservices
+    description: 1С Методы автосервисов
+paths:
+  /status/{WorkorderGUID}/{Status}:
+    post:
+      summary: Прием статуса от 1С с комментарием 
+      description: Для передачи из 1С на Бекэнд информации о статусе заказ-наряда. Должна быть организована гарантированная доставка статусов от 1С до Бекэнду. 
+              confirm - согласован;
+              refused - отклонен;
+              acrefused - отклонен бухгалтерией;
+              payment - принят и ожидает оплаты;
+              paid - оплачен
+      tags:
+        - backend
+      parameters:
+        - name: WorkorderGUID
+          in: path
+          required: true
+          description: "GUID Заказ-наряда"
+          schema:
+            type: string
+            example: 77104204-5664-455c-9f96-1313b887c177
+        - name: Status
+          in: path
+          required: true
+          schema:
+            type: string
+            example: confirm
+            enum:
+              - confirm
+              - refused
+              - acrefused
+              - payment
+              - paid
+
+      responses:
+        '200':
+          description: OK
+        '404':
+          description:  Not Found
+          
+  /users/{hash}:
+    get:
+      summary: Получение информации о пользователях
+      description: Возвращает информацию о профилях всех активных пользователей автосервисов.
+      tags:
+        - users
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          schema:
+            type: string
+            example: fc104204-5664-455c-9f96-1313b887c177
+            description: "HASH SHA256 от текущих записей таблицы users"
+
+      responses:
+        '204':
+          description: OK (Данные не изменились)
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  TableHash: 
+                    type: string
+                    example: fc1042045664455c9f96131sadkjsdfgjdghf3643b887c177
+                    description: "HASH таблицы пользователей"
+                  RecordCount: 
+                    type: number
+                    example: 495
+                    description: "Количество записей"                    
+                  CarServices:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        UserGUID:
+                          type: string
+                          example: 33333333-2222-1111-0000-98f2b3136b67
+                          description: "GUID пользователя автосервиса"
+                        CarServiceGUID:
+                          type: string
+                          example: 99333333-2222-1111-0000-98f2b3136b67
+                          description: "GUID автосервиса"
+                        Name:
+                          type: string
+                          example: Петров Вячеслав
+                          description: "Имя пользователя  автосервиса"
+                        Mobile:
+                          type: number
+                          example: 79999999999
+                          description: "Номер мобильного телефона, должен начинаться либо на 7 либо на 8"
+                        ChangerGuid:
+                          type: string
+                          example: 45333333-2222-1111-0000-98f2b3136b67
+                          description: "GUID пользователя 1С создавшего/изменившего пользователя"
+                        ChangeTime:
+                          type: number
+                          example: 1727772600
+                          description: "Дата и время создания/изменения записи в 1С в UNIX UTC"
+  /carservices/{hash}:
+    get:
+      summary: Получение информации об автосервисах
+      description: Возвращает информацию о профилях всех автосервисов.
+      tags:
+        - carservices
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          schema:
+            type: string
+            example: fc104204-5664-455c-9f96-1313b887c177
+            description: "HASH SHA256 от текущих записей таблицы auto_services"
+      responses:
+        '204':
+          description: OK (Данные не изменились)
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  TableHash: 
+                    type: string
+                    example: fc1042045664455c9f96131sadkjsdfgjdghf3643b887c177
+                    description: "HASH таблицы автосервисов"
+                  RecordCount: 
+                    type: number
+                    example: 495
+                    description: "Количество записей"                    
+                  CarServices:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        CarServiceGUID:
+                          type: string
+                          example: 99333333-2222-1111-0000-98f2b3136b67
+                          description: "GUID филиала автосервиса"
+                        Name:
+                          type: string
+                          example: Петров Вячеслав
+                          description: "Наименование юрлица автосервиса"
+                        Address:
+                          type: string
+                          example: Н.Новгород, Невзоровых 10
+                          description: "Адресс филиала автосервиса"
+                        Region:
+                          type: number
+                          example: 52
+                          description: "Регион для проценки запчастей. Обсудить."
+                        ChangerGuid:
+                          type: string
+                          example: 45333333-2222-1111-0000-98f2b3136b67
+                          description: "GUID пользователя 1С создавшего/изменившего запись"
+                        ChangeTime:
+                          type: number
+                          example: 1727772600
+                          description: "Дата и время создания/изменения записи в 1С в UNIX UTC"
+                        MaxWorkOrders:
+                          type: number
+                          example: 2
+                          description: "Максимальное кол-во заказ-нарядов на один документ ремонт"
+                        MaxPrice:
+                          type: number
+                          example: 2160
+                          description: "Максимальная стоимость нормочаса по договору"
+                        MaxAddCost:
+                          type: number
+                          example: 20
+                          description: "Максимальный процент наценки на запчасть"
+                          
+  /carservice/{CarServiceGUID}/repairs:
+    get:
+      summary: 1С Получения списка ремонтов
+      description: Возвращает список ремонтов в соответствии с запросом. Порядок сортировки - по дате создания - по убыванию. Пагинация 30 записей.
+      tags:
+        - carservices
+      parameters:
+        - name: CarServiceGUID
+          in: path
+          required: true
+          schema:
+            type: string
+            example: fc104204-5664-455c-9f96-1313b887c177
+            description: "GUID Автосервиса"
+        - name: Page
+          in: query
+          required: true
+          description: "Номер страницы для пагинации"
+          schema:
+            type: integer
+            example: 1
+        - name: Search
+          in: query
+          description: "Поиск ведётся по вхождению в номер ремонта или номер ТС или ответственному лицу"
+          required: false
+          schema:
+            type: string
+            example: Иванов
+        - name: Status
+          in: query
+          required: false
+          description: "Статус документа ремонт"
+          schema:
+            type: string
+            enum:
+              - exist
+              - cancel
+              - close
+            example: close
+        - name: From
+          in: query
+          required: false
+          description: "По дате создания От включительно"
+          schema:
+            type: number
+            example: 1726722600
+        - name: To
+          in: query
+          required: false
+          description: "По дате создания До включительно"
+          schema:
+            type: number
+            example: 1727772600
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    RepairGUID:
+                      type: string
+                      example: 11111-11111-22222-bba6-98f2b3136b65
+                      description: "GUID Документа ремонт"
+                    RepairNumber:
+                      type: string
+                      example: 1234567890
+                      description: "Номер документа ремонт"
+                    RepairCreateDate:
+                      type: string
+                      example: 2025-05-19
+                      description: "Дата документа ремонт как в 1С"
+                    CarNumber:
+                      type: string
+                      example: У111ММ-52
+                      description: "Номер транспортного средства"
+                    EmployeeName:
+                      type: string
+                      example: Петров Петр Петрович
+                      description: "ФИО пользователя 1С ответственного за документ/ремонт"
+                    EmployeeMobile:
+                      type: string
+                      example: 79109992233
+                      description: "Телефон пользователя 1С ответственного за документ/ремонт"
+                    ArrivalDate:
+                      type: number
+                      example: 1727772600
+                      description: "Дата/время плановго прибытия машины на ремонт UNIX UTC"
+                    RepairStatus:
+                      type: string
+                      enum:
+                        - exist
+                        - cancel
+                      example: exist
+                    RepairStatusDate:
+                      type: number
+                      example: 1727772600
+                      description: "Дата/время изменения статуса UNIX UTC"
+  /carservice/{CarServiceGUID}/repair/{RepairGUID}:
+    get:
+      summary: Запрос информации по документу Ремонт
+      description: Возвращает полные данные по указанному ремонту (RepairGUID) для данного сервиса.
+      tags:
+        - carservices
+      parameters:
+        - name: CarServiceGUID
+          in: path
+          required: true
+          description: "GUID Автосервиса"
+          schema:
+            type: string
+            example: fc104204-5664-455c-9f96-1313b887c177
+        - name: RepairGUID
+          in: path
+          required: true
+          description: "GUID Документа ремонт"
+          schema:
+            type: string
+            example: 11111-11111-22222-bba6-98f2b3136b65
+      responses:
+        '404':
+          description:  Not Found
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  
+                  RepairGUID:
+                      type: string
+                      example: 11111-11111-22222-bba6-98f2b3136b65
+                      description: "GUID Документа ремонт"
+                  RepairNumber:
+                    type: string
+                    example: 1234567890
+                    description: "Номер документа ремонт"
+                  RepairCreateDate:
+                    type: string
+                    example: 2025-05-19
+                    description: "Дата документа ремонт как в 1С"
+                  ArrivalDate:
+                    type: number
+                    example: 1727772600
+                    description: "Дата/время плановго прибытия машины на ремонт UNIX UTC"
+                  CarNumber:
+                    type: string
+                    example: У111ММ-52
+                    description: "Номер транспортного средства"
+                  DriverName:
+                    type: string
+                    example: Иванов Иван Иванович
+                  DriverPhone:
+                    type: string
+                    example: 79999999999
+                  EmployeeName:
+                    type: string
+                    example: Петров Петр Петрович
+                    description: "ФИО пользователя 1С ответственного за документ/ремонт"
+                  EmployeeMobile:
+                    type: string
+                    example: 79109992233
+                    description: "Телефон пользователя 1С ответственного за документ/ремонт"
+                  RepairReason:
+                    type: string
+                    example: 1) МАХА - диагностика колодок 2) Неустойчивая работа ДВС, хлопки в глушитель 3) Не горит подсветка номера, маркера 4) Не открывается пассажирское окно 5) Не работает горный тормоз.
+                    description: "Комментарий к документу ремонт"
+                  RepairStatus:
+                    type: string
+                    enum:
+                      - exist
+                      - cancel
+                      - close
+                    example: close
+                  RepairStatusDate:
+                    type: number
+                    example: 1727772600
+                    description: "Дата/время изменения статуса UNIX UTC"
+  /carservice/{CarServiceGUID}/repair/{RepairGUID}/workorder/{WorkorderGUID}/cancel:
+    post:
+      summary: 1C Отзыв Заказ-Наряда
+      description: Отзыв проставленного статуса заказ-наряда (согласован/откланен) по причине редактирования заказ-наряда со стороны автосервиса
+      tags:
+        - carservices
+      parameters:
+        - name: CarServiceGUID
+          in: path
+          required: true
+          description: "GUID Автосервиса"
+          schema:
+            type: string
+            example: fc104204-5664-455c-9f96-1313b887c177
+        - name: RepairGUID
+          in: path
+          required: true
+          description: "Идентификатор документа Ремонт"
+          schema:
+            type: string
+            example: 11111-11111-22222-bba6-98f2b3136b65 
+        - name: WorkorderGUID
+          in: path
+          required: true
+          description: "GUID Заказ-наряда"
+          schema:
+            type: string
+            example: 77104204-5664-455c-9f96-1313b887c177
+      responses:
+        '200':
+          description: OK
+        '400':
+          description:  Bad Request
+        '404':
+          description:  Not Found
+  /carservice/{CarServiceGUID}/repair/{RepairGUID}/workorder/{WorkorderGUID}/send:
+    post:
+      summary: Запрос списка документов Ремонт автосервиса
+      description: Отправляет заказ наряд на согласование
+      tags:
+        - carservices
+      parameters:
+        - name: CarServiceGUID
+          in: path
+          required: true
+          description: "GUID Автосервиса"
+          schema:
+            type: string
+            example: fc104204-5664-455c-9f96-1313b887c177
+        - name: RepairGUID
+          in: path
+          required: true
+          description: "Идентификатор документа Ремонт"
+          schema:
+            type: string
+            example: 11111-11111-22222-bba6-98f2b3136b65        
+        - name: WorkorderGUID
+          in: path
+          required: true
+          description: "GUID Заказ-наряда"
+          schema:
+            type: string
+            example: 77104204-5664-455c-9f96-1313b887c177
+      requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  CreateTime:
+                    type: number
+                    example: 1234567890
+                    description: "Дата/время изменения записи ЗН в UNIX UTC"
+                  GUID:
+                    type: string
+                    example: 11111-11111-22222-bba6-98f2b3136b65
+                    description: "GUID заказ наряда"
+                  Number:
+                    type: string
+                    example: 1234567890
+                    description: "Номер заказ-наряда"
+                  Date:
+                    type: string
+                    example: 2025-05-19
+                    description: "Дата заказ-наряда НЕ UTC"
+                  RepairGUID:
+                    type: string
+                    example: 11111-11111-22222-bba6-98f2b3136b65
+                    description: "Идентификатор документа Ремонт"
+                  VehiclePlate:
+                    type: string
+                    example: Х234ТУ-152
+                    description: "Гос. регистрационный номер транспортного средства"
+                  VehicleModel:
+                    type: string
+                    example: КАМАЗ 5490
+                    description: "Модель транспортного средства"
+                  VehicleYear:
+                    type: number
+                    example: 2020
+                    description: "Год выпуска (год модели) транспортного средства"
+                  VehicleMileage:
+                    type: number
+                    example: 250000
+                    description: "Пробег транспортного средства"
+                  VehicleVIN:
+                    type: string
+                    example: XTC549005L2543343
+                    description: "VIN номер транспортного средства"
+                  Reason:
+                    type: string
+                    example: 1) МАХА - диагностика колодок 2) Неустойчивая работа ДВС, хлопки в глушитель 3) Не горит подсветка номера, маркера  4) Не открывается пассажирское окно 5) Не работает горный тормоз.
+                    description: "Причина обращения (заполняется автосервисом)"
+                  Comment:
+                    type: string
+                    nullable: true
+                    example: Наблюдается существенный износ топливной системы
+                    description: "Комментарий автосервиса к заказ-наряду"
+                  Master:
+                    type: string
+                    example: Иванов Иван Иванович 79999999999
+                    description: "Мастер приемщик"
+                  Summ:
+                    type: number
+                    format: float
+                    example: 1234.09
+                    description: "Сумма заказ-наряда, в том числе НДС, дополнительно проверять"
+                  Works:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        Guid:
+                          type: string
+                          example: 21111-11111-22222-bba6-98f2b3136b65
+                          description: "GUID работы"
+                        Sn:
+                          type: number
+                          example: 1
+                          description: "Порядковый номер (строка)"
+                        CatalogArticle:
+                          type: string
+                          example: ЦБ00004230
+                          description: "Артикул работ в соответствии с каталогом заказчика"
+                        Name:
+                          type: string
+                          example: Замена тормозных дисков передней оси
+                          description: "Указанное автосервисом наименование работ"
+                        Count:
+                          type: number
+                          example: 1
+                          description: "Кол-во работ"
+                        HourPrice:
+                          type: number
+                          format: float
+                          example: 2160.15
+                          description: "Указанная стоимость норм часа"
+                        HourCount:
+                          type: number
+                          format: float
+                          example: 1.5
+                          description: "Указанное кол-во норм часов"
+                        Comment:
+                          type: string
+                          example: Износ 75%
+                          description: "Короткий комментарий СЦ"
+                        CatalogName:
+                          type: string
+                          example: Замена тормозных дисков
+                          description: "Наименование работ по каталогу"
+                        CatalogHourPrice:
+                          type: number
+                          format: float
+                          example: 2160.00
+                          description: "Наименование работ по каталогу"
+                        CatalogHourCount:
+                          type: number
+                          format: float
+                          example: 1.5
+                          description: "Кол-во норм часов по каталогу"
+                  Parts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        Guid:
+                          type: string
+                          example: 31111-11111-22222-bba6-98f2b3136b65
+                          description: "GUID материала/автозапчасти"
+                        Sn:
+                          type: number
+                          example: 1
+                          description: "Порядковый номер (строка)"
+                        CatalogArticle:
+                          type: string
+                          example: ИР0035225
+                          description: "Артикул работ в соответствии с каталогом производителя"
+                        Manufacturer:
+                          type: string
+                          example: Ликви
+                          description: "Производитель материала"
+                        Name:
+                          type: string
+                          example: Моторное масло 5W-40
+                          description: "Указанное наименование материала"
+                        CatalogName:
+                          type: string
+                          example: Моторное масло 5W-40 Молибден
+                          description: "Наименование материала по катал. производителя"
+                        Count:
+                          type: number
+                          format: float
+                          example: 9.503
+                          description: "Кол-во материала"
+                        CountType:
+                          type: string
+                          enum:
+                            - шт
+                            - л
+                            - кг
+                            - уп
+                          example: л
+                          description: "тип кол-ва материала"
+                        Price:
+                          type: number
+                          format: float
+                          example: 1100.80
+                          description: "Указанная стоимость еденицы материала"
+                        Comment:
+                          type: string
+                          example: Износ 75%
+                          description: "Короткий комментарий СЦ"
+                        CatalogPrice:
+                          type: number
+                          format: float
+                          example: 1100.80
+                          description: "Cтоимость еденицы материала по каталогу с учетом наценки"
+                        PricingGuid:
+                          type: string
+                          example: 31111-11111-22222-bba6-98f2b3136b65
+                          description: "GUID проценки (потом можно получить базовую стоимость)"
+      responses:
+        '200':
+          description: OK
+        '400':
+          description:  Bad Request
+        '404':
+          description:  Not Found
+components:
+  securitySchemes:
+    AuthToken:
+      type: apiKey
+      name: Authorization
+      in: header

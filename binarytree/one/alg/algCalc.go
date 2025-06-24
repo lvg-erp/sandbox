@@ -2,7 +2,8 @@ package alg
 
 import (
 	"fmt"
-	"github.com/egregors/TreeNode"
+	_ "github.com/egregors/TreeNode"
+	treenode "github.com/egregors/TreeNode"
 )
 
 func constructorPath(root *treenode.TreeNode, path string, paths *[]string) {
