@@ -39,6 +39,11 @@ func countSymbolsRuneOnString(sts []string) map[rune]int {
 }
 
 func countFrequency(sts []string, workers int) map[rune]int {
+
+	if workers <= 0 {
+		workers = 1
+	}
+
 	resultCh := make(chan map[rune]int, workers)
 	finalFreq := make(map[rune]int)
 	var wg sync.WaitGroup
@@ -53,7 +58,7 @@ func countFrequency(sts []string, workers int) map[rune]int {
 			wg.Add(1)
 			go func(chunk []string) {
 				defer wg.Done()
-				freg := countSymbolsRuneOnString(sts)
+				freg := countSymbolsRuneOnString(chunk) // убрал sts иначе каждая горутина обрабатывает весь слайс, а не свою часть. Это приводит к дублированию результатов.
 				resultCh <- freg
 			}(sts[start:end])
 		}
@@ -67,7 +72,7 @@ func countFrequency(sts []string, workers int) map[rune]int {
 
 	for ch := range resultCh {
 		for r, count := range ch {
-			finalFreq[r] = count
+			finalFreq[r] += count
 		}
 	}
 

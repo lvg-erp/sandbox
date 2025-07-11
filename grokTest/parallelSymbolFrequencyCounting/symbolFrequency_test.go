@@ -30,7 +30,7 @@ func TestSymbolFrequency(t *testing.T) {
 				{Key: "a", Value: 1},
 			},
 		},
-		// Твой код: добавь другие тестовые случаи
+		// TODO: добавить другие тестовые случаи
 	}
 
 	for _, tt := range tests {
