@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"math/rand"
+	"golang.org/x/exp/rand"
 	"sync"
 	"time"
 )
@@ -18,7 +18,7 @@ func generateUniqueRandomNumbers(n, min, max int, seed int64) ([]int, error) {
 		numbers[i] = min + i
 	}
 
-	rng := rand.New(rand.NewSource(seed))
+	rng := rand.New(rand.NewSource(uint64(seed)))
 	for i := len(numbers) - 1; i > 0; i-- {
 		j := rng.Intn(i + 1)
 		numbers[i], numbers[j] = numbers[j], numbers[i]
