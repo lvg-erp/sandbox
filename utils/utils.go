@@ -1,9 +1,19 @@
 package utils
 
 import (
+	rand_m "crypto/rand"
 	"errors"
+	"fmt"
 	"golang.org/x/exp/rand"
+	"log"
+	"math/big"
 	"time"
+)
+
+const (
+	low    = "03"
+	medium = "02"
+	high   = "01"
 )
 
 func GenerateString() string {
@@ -53,4 +63,33 @@ func GenerateUniqueRandomNumbers(n, min, max int, seed int64) ([]int, error) {
 	}
 
 	return numbers[:n], nil
+}
+
+func RandomFomConstants() {
+	rand.Seed(uint64(time.Now().UnixNano()))
+
+	// Срез с константами
+	priorities := []string{low, medium, high}
+
+	// Случайный выбор
+	randomPriority := priorities[rand.Intn(len(priorities))]
+
+	fmt.Printf("Random priority: %s\n", randomPriority)
+}
+
+func GenRandP() int {
+	randomIndex, err := rand_m.Int(rand_m.Reader, big.NewInt(100))
+	if err != nil {
+		log.Fatalf("Failed to generate random number: %v", err)
+	}
+	return int(randomIndex.Int64())
+}
+
+func Contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }
