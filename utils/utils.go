@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"golang.org/x/exp/rand"
+	"hash/fnv"
 	"log"
 	"math/big"
 	"time"
@@ -92,4 +93,10 @@ func Contains(slice []string, item string) bool {
 		}
 	}
 	return false
+}
+
+func StringHash(s string) uint32 {
+	h := fnv.New32a()
+	h.Write([]byte(s))
+	return h.Sum32()
 }
