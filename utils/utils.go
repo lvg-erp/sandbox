@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	rand_m "crypto/rand"
 	"errors"
 	"fmt"
@@ -99,4 +100,33 @@ func StringHash(s string) uint32 {
 	h := fnv.New32a()
 	h.Write([]byte(s))
 	return h.Sum32()
+}
+
+// факториал числа
+func factorialInt(n int) *big.Int {
+	result := big.NewInt(1)
+	for i := 2; i <= n; i++ {
+		result.Mul(result, big.NewInt(int64(i)))
+	}
+	return result
+}
+
+// факториал с контекстом
+func factorialInt_(n int, ctx context.Context) (*big.Int, error) {
+	if n < 0 {
+		return nil, fmt.Errorf("negative number %d", n)
+	}
+	result := big.NewInt(1)
+	for i := 2; i <= n; i++ {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+			result.Mul(result, big.NewInt(int64(i)))
+		}
+	}
+	if !result.IsInt64() {
+		return nil, fmt.Errorf("factorial %d too large for int64", n)
+	}
+	return result, nil
 }
