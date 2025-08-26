@@ -144,10 +144,10 @@ const file_proto_exchange_proto_rawDesc = "" +
 	"\x0fMessageResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\breceived\x18\x02 \x01(\tR\breceived\x12!\n" +
-	"\fprocessed_at\x18\x03 \x01(\tR\vprocessedAt2\xa6\x01\n" +
+	"\fprocessed_at\x18\x03 \x01(\tR\vprocessedAt2\xa7\x01\n" +
 	"\x16MessageExchangeService\x12B\n" +
-	"\vSendMessage\x12\x18.exchange.MessageRequest\x1a\x19.exchange.MessageResponse\x12H\n" +
-	"\rStreamMessage\x12\x18.exchange.MessageRequest\x1a\x19.exchange.MessageResponse(\x010\x01B\tZ\a./protob\x06proto3"
+	"\vSendMessage\x12\x18.exchange.MessageRequest\x1a\x19.exchange.MessageResponse\x12I\n" +
+	"\x0eStreamMessages\x12\x18.exchange.MessageRequest\x1a\x19.exchange.MessageResponse(\x010\x01B\tZ\a./protob\x06proto3"
 
 var (
 	file_proto_exchange_proto_rawDescOnce sync.Once
@@ -168,9 +168,9 @@ var file_proto_exchange_proto_goTypes = []any{
 }
 var file_proto_exchange_proto_depIdxs = []int32{
 	0, // 0: exchange.MessageExchangeService.SendMessage:input_type -> exchange.MessageRequest
-	0, // 1: exchange.MessageExchangeService.StreamMessage:input_type -> exchange.MessageRequest
+	0, // 1: exchange.MessageExchangeService.StreamMessages:input_type -> exchange.MessageRequest
 	1, // 2: exchange.MessageExchangeService.SendMessage:output_type -> exchange.MessageResponse
-	1, // 3: exchange.MessageExchangeService.StreamMessage:output_type -> exchange.MessageResponse
+	1, // 3: exchange.MessageExchangeService.StreamMessages:output_type -> exchange.MessageResponse
 	2, // [2:4] is the sub-list for method output_type
 	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name

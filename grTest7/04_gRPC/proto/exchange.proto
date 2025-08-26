@@ -6,7 +6,7 @@ package exchange;
 
 service MessageExchangeService {
   rpc SendMessage (MessageRequest) returns(MessageResponse);
-  rpc StreamMessage (stream MessageRequest) returns (stream MessageResponse);
+  rpc StreamMessages (stream MessageRequest) returns (stream MessageResponse);
 }
 
 message MessageRequest{

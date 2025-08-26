@@ -7,7 +7,6 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o server ./server
-RUN go build -o client ./client
+RUN go build -o app .
 
-CMD ["/app/server"]
+CMD ["/app/app"]

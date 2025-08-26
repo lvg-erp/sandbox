@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MessageExchangeService_SendMessage_FullMethodName   = "/exchange.MessageExchangeService/SendMessage"
-	MessageExchangeService_StreamMessage_FullMethodName = "/exchange.MessageExchangeService/StreamMessage"
+	MessageExchangeService_SendMessage_FullMethodName    = "/exchange.MessageExchangeService/SendMessage"
+	MessageExchangeService_StreamMessages_FullMethodName = "/exchange.MessageExchangeService/StreamMessages"
 )
 
 // MessageExchangeServiceClient is the client API for MessageExchangeService service.
@@ -28,7 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MessageExchangeServiceClient interface {
 	SendMessage(ctx context.Context, in *MessageRequest, opts ...grpc.CallOption) (*MessageResponse, error)
-	StreamMessage(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[MessageRequest, MessageResponse], error)
+	StreamMessages(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[MessageRequest, MessageResponse], error)
 }
 
 type messageExchangeServiceClient struct {
@@ -49,9 +49,9 @@ func (c *messageExchangeServiceClient) SendMessage(ctx context.Context, in *Mess
 	return out, nil
 }
 
-func (c *messageExchangeServiceClient) StreamMessage(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[MessageRequest, MessageResponse], error) {
+func (c *messageExchangeServiceClient) StreamMessages(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[MessageRequest, MessageResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &MessageExchangeService_ServiceDesc.Streams[0], MessageExchangeService_StreamMessage_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &MessageExchangeService_ServiceDesc.Streams[0], MessageExchangeService_StreamMessages_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -60,14 +60,14 @@ func (c *messageExchangeServiceClient) StreamMessage(ctx context.Context, opts .
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MessageExchangeService_StreamMessageClient = grpc.BidiStreamingClient[MessageRequest, MessageResponse]
+type MessageExchangeService_StreamMessagesClient = grpc.BidiStreamingClient[MessageRequest, MessageResponse]
 
 // MessageExchangeServiceServer is the server API for MessageExchangeService service.
 // All implementations must embed UnimplementedMessageExchangeServiceServer
 // for forward compatibility.
 type MessageExchangeServiceServer interface {
 	SendMessage(context.Context, *MessageRequest) (*MessageResponse, error)
-	StreamMessage(grpc.BidiStreamingServer[MessageRequest, MessageResponse]) error
+	StreamMessages(grpc.BidiStreamingServer[MessageRequest, MessageResponse]) error
 	mustEmbedUnimplementedMessageExchangeServiceServer()
 }
 
@@ -81,8 +81,8 @@ type UnimplementedMessageExchangeServiceServer struct{}
 func (UnimplementedMessageExchangeServiceServer) SendMessage(context.Context, *MessageRequest) (*MessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendMessage not implemented")
 }
-func (UnimplementedMessageExchangeServiceServer) StreamMessage(grpc.BidiStreamingServer[MessageRequest, MessageResponse]) error {
-	return status.Errorf(codes.Unimplemented, "method StreamMessage not implemented")
+func (UnimplementedMessageExchangeServiceServer) StreamMessages(grpc.BidiStreamingServer[MessageRequest, MessageResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method StreamMessages not implemented")
 }
 func (UnimplementedMessageExchangeServiceServer) mustEmbedUnimplementedMessageExchangeServiceServer() {
 }
@@ -124,12 +124,12 @@ func _MessageExchangeService_SendMessage_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MessageExchangeService_StreamMessage_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MessageExchangeServiceServer).StreamMessage(&grpc.GenericServerStream[MessageRequest, MessageResponse]{ServerStream: stream})
+func _MessageExchangeService_StreamMessages_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(MessageExchangeServiceServer).StreamMessages(&grpc.GenericServerStream[MessageRequest, MessageResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MessageExchangeService_StreamMessageServer = grpc.BidiStreamingServer[MessageRequest, MessageResponse]
+type MessageExchangeService_StreamMessagesServer = grpc.BidiStreamingServer[MessageRequest, MessageResponse]
 
 // MessageExchangeService_ServiceDesc is the grpc.ServiceDesc for MessageExchangeService service.
 // It's only intended for direct use with grpc.RegisterService,
@@ -145,8 +145,8 @@ var MessageExchangeService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "StreamMessage",
-			Handler:       _MessageExchangeService_StreamMessage_Handler,
+			StreamName:    "StreamMessages",
+			Handler:       _MessageExchangeService_StreamMessages_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},

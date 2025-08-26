@@ -1,27 +1,44 @@
 version: "3.8"
 services:
-  server:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: grpc-server
-    command: /app/server
+    container_name: grpc-app
+    command: /app/app
     ports:
-      - "50051:50051"
-    networks:
-      - grpc-network
-
-  client:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: grpc-client
-    command: /app/client
-    depends_on:
-      - server
+      - "50052:50051"
     networks:
       - grpc-network
 
 networks:
   grpc-network:
     driver: bridge
+
+#version: "3.8"
+#services:
+#  server:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    container_name: grpc-server
+#    command: /app/server
+#    ports:
+#      - "50051:50051"
+#    networks:
+#      - grpc-network
+#
+#  client:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    container_name: grpc-client
+#    command: /app/client
+#    depends_on:
+#      - server
+#    networks:
+#      - grpc-network
+#
+#networks:
+#  grpc-network:
+#    driver: bridge
