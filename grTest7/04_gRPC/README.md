@@ -9,4 +9,7 @@ protoc --go_out=. --go-grpc_out=. proto/exchange.proto
 Указываем нужные типы данных
 Для правильной компиляции файл go.mod
 должен быть указан так
-module github.com/lvg-erp/sandbox/grTest7/04_gRPC
+!!!!module github.com/lvg-erp/sandbox/grTest7/04_gRPC!!!
+обязательно запускаем
+go mod edit -module github.com/lvg-erp/sandbox/grTest7/04_gRPC
+go mod tidy
