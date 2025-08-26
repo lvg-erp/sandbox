@@ -21,7 +21,6 @@ type Error struct {
 	Error    error
 }
 
-// connectToRabbitMQ подключается к RabbitMQ, создаёт канал и объявляет очередь.
 func connectToRabbitMQ(url, queueName string) (*amqp091.Connection, *amqp091.Channel, amqp091.Queue, error) {
 	log.Printf("Connecting to RabbitMQ at %s", url)
 	for i := 0; i < 10; i++ {
@@ -56,7 +55,7 @@ func connectToRabbitMQ(url, queueName string) (*amqp091.Connection, *amqp091.Cha
 }
 
 func main() {
-	// Получаем параметры из переменных окружения
+
 	url := os.Getenv("RABBITMQ_URL")
 	if url == "" {
 		url = "amqp://guest:guest@localhost:5672/" // Для локального запуска
@@ -66,7 +65,6 @@ func main() {
 		queueName = "task_queue"
 	}
 
-	// Подключение к RabbitMQ
 	conn, ch, q, err := connectToRabbitMQ(url, queueName)
 	if err != nil {
 		log.Fatalf("Failed to initialize RabbitMQ: %v", err)
@@ -74,7 +72,6 @@ func main() {
 	defer conn.Close()
 	defer ch.Close()
 
-	// Отправляем тестовое сообщение
 	err = ch.Publish(
 		"amq.direct", // Используем amq.direct
 		q.Name,       // Routing key = имя очереди
@@ -99,15 +96,12 @@ func main() {
 	resultCh := make(chan Result, 100)
 	errCh := make(chan Error, 100)
 	var wg sync.WaitGroup
-
-	// Запускаем пул воркеров
 	workers := 5
 	for i := 0; i < workers; i++ {
 		wg.Add(1)
 		go worker(ctx, i, ch, q.Name, resultCh, errCh, &wg)
 	}
 
-	// Собираем результаты и ошибки
 	var results []Result
 	var errResults []Error
 
@@ -117,7 +111,6 @@ func main() {
 		close(errCh)
 	}()
 
-	// Читаем результаты и ошибки конкурентно
 	done := make(chan struct{})
 	go func() {
 		for {
@@ -144,8 +137,7 @@ func main() {
 		}
 	}()
 
-	// Бесконечный цикл для ожидания сообщений
-	<-ctx.Done() // Заменяем select { case <-done: ... } на ожидание отмены контекста
+	<-ctx.Done()
 }
 
 func worker(ctx context.Context, id int, ch *amqp091.Channel, queueName string, resultCh chan<- Result, errCh chan<- Error, wg *sync.WaitGroup) {
@@ -173,7 +165,7 @@ func worker(ctx context.Context, id int, ch *amqp091.Channel, queueName string, 
 			if !ok {
 				return
 			}
-			// Обработка сообщения
+
 			result := Result{
 				MessageID: msg.MessageId,
 				Processed: fmt.Sprintf("Processed: %s", string(msg.Body)),
