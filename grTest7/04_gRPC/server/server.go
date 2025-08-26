@@ -1,7 +1,7 @@
 package server
 
 //import (
-//	pb "github.com/lvg-erp/sandbox/grTest7/05_grpc_exchange/proto"
+//	pb "github.com/lvg-erp/sandbox/grTest7/04_gRPC/proto"
 //	"sync"
 //)
 //
