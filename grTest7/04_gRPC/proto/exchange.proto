@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option go_package ="./proto";
+
+package exchange;
+
+service MessageExchangeService {
+  rpc SendMessage (MessageRequest) returns(MessageResponse);
+  rpc StreamMessage (stream MessageRequest) returns (stream MessageResponse);
+}
+
+message MessageRequest{
+  string id = 1;
+  string content = 2;
+}
+
+message MessageResponse {
+  string id = 1;
+  string received = 2;
+  string processed_at = 3;
+}
