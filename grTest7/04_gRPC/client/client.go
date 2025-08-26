@@ -26,7 +26,7 @@ func RunClient(ctx context.Context, wg *sync.WaitGroup, result chan<- string) {
 
 	client := pb.NewMessageExchangeServiceClient(conn)
 
-	stream, err := client.StreamMessage(ctx)
+	stream, err := client.StreamMessages(ctx)
 	if err != nil {
 		result <- fmt.Sprintf("Failed to create stream: %v", err)
 		return
