@@ -33,7 +33,7 @@ func (s *messageExchangeServer) SendMessage(ctx context.Context, req *pb.Message
 	}, nil
 }
 
-func (s *messageExchangeServer) StreamMessages(stream pb.MessageExchangeService_StreamMessageServer) error {
+func (s *messageExchangeServer) StreamMessages(stream pb.MessageExchangeService_StreamMessagesServer) error {
 	var wg sync.WaitGroup
 	resultCh := make(chan *pb.MessageResponse, 10)
 
