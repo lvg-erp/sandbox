@@ -1,0 +1,42 @@
+version: "3.8"
+services:
+  redis:
+    image: redis:7.4
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - redis-network
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: redis-server
+    command: /app/server
+    environment:
+      - REDIS_ADDR=redis:6379
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+    networks:
+      - redis-network
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: redis-client
+    command: /app/client
+    environment:
+      - REDIS_ADDR=redis:6379
+    depends_on:
+      - redis
+      - server
+    networks:
+      - redis-network
+
+networks:
+  redis-network:
+    driver: bridge
