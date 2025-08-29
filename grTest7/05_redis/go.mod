@@ -1,4 +1,4 @@
-module 05_redis
+module github.com/lvg-erp/sandbox/grTest7/05_redis
 
 go 1.24.3
 

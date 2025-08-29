@@ -5,9 +5,10 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY . .
+COPY server/ ./server/
+COPY client/ ./client/
 
-RUN go build -o server ./server
-RUN go build -o client ./client
+RUN go build -o /app/redis-server ./server/server.go
+RUN go build -o /app/redis-client ./client/client.go
 
-CMD ["/app/server"]
+CMD ["/app/redis-server"]

@@ -13,7 +13,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: redis-server
-    command: /app/server
+    command: /app/redis-server
     environment:
       - REDIS_ADDR=redis:6379
     ports:
@@ -28,7 +28,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: redis-client
-    command: /app/client
+    command: /app/redis-client
     environment:
       - REDIS_ADDR=redis:6379
     depends_on:
