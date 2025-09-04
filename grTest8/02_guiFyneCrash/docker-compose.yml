@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fyne-app
+    ports:
+      - "6080:6080" # noVNC работает на порту 6080
+    environment:
+      - DISPLAY=:99
