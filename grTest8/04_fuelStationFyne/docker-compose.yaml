@@ -1,0 +1,29 @@
+
+version: '3.8'
+
+services:
+  postgres:
+    # Строим образ из локального Dockerfile
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fuelstation-postgres
+    ports:
+      - "5454:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=fuelstation
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+# Определение именованных томов для хранения данных
+volumes:
+  postgres_data:
+    name: postgres_data

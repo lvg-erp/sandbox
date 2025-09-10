@@ -1,0 +1,6 @@
+get "golang.org/x/crypto": found meta tag vcs.metaImport{Prefix:"golang.org/x/crypto", VCS:"git", RepoRoot:"https://go.googlesource.com/crypto"} at //golang.org/x/crypto?go-get=1
+get "golang.org/x/text": found meta tag vcs.metaImport{Prefix:"golang.org/x/text", VCS:"git", RepoRoot:"https://go.googlesource.com/text"} at //golang.org/x/text?go-get=1
+get "golang.org/x/sys": found meta tag vcs.metaImport{Prefix:"golang.org/x/sys", VCS:"git", RepoRoot:"https://go.googlesource.com/sys"} at //golang.org/x/sys?go-get=1
+get "golang.org/x/image": found meta tag vcs.metaImport{Prefix:"golang.org/x/image", VCS:"git", RepoRoot:"https://go.googlesource.com/image"} at //golang.org/x/image?go-get=1
+get "golang.org/x/net": found meta tag vcs.metaImport{Prefix:"golang.org/x/net", VCS:"git", RepoRoot:"https://go.googlesource.com/net"} at //golang.org/x/net?go-get=1
+command-line-arguments

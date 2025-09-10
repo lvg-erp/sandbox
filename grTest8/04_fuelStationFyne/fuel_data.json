@@ -1,0 +1,4 @@
+[
+  {"action": "fill", "fuel_type": "petrol", "liters": 50, "timestamp": 1697059200},
+  {"action": "drain", "fuel_type": "diesel", "liters": 100, "timestamp": 1697059200}
+]
