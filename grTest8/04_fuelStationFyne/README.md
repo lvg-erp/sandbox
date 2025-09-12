@@ -6,3 +6,6 @@ vladimir@vladimir-VirtualBox:~/Project/go/sandbox/grTest8/04_fuelStationFyne$ go
 vladimir@vladimir-VirtualBox:~/Project/go/sandbox/grTest8/04_fuelStationFyne$ go vet ./internal/db
 vladimir@vladimir-VirtualBox:~/Project/go/sandbox/grTest8/04_fuelStationFyne$ go vet ./internal/processor
 vladimir@vladimir-VirtualBox:~/Project/go/sandbox/grTest8/04_fuelStationFyne$ 
+
+проверка валидности кода
+go vet ./...

@@ -2,45 +2,51 @@ package main
 
 import (
 	"database/sql"
-	"fuelstation/internal/db"
+	"log"
+
 	"fuelstation/internal/gui"
 	"fuelstation/internal/processor"
-	"log"
-	"os"
 
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 )
 
-func main() {
-	// Настройка логирования в run.log и консоль
-	logFile, err := os.OpenFile("run.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+func applyMigrations(dsn string) error {
+	log.Println("applyMigrations: Применение миграций из file://migrations с DSN:", dsn)
+	m, err := migrate.New("file://migrations", dsn)
 	if err != nil {
-		log.Printf("Ошибка открытия файла логов: %v", err)
-		os.Exit(1)
+		return err
 	}
-	defer logFile.Close()
-	log.SetOutput(logFile)
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return err
+	}
+	log.Println("applyMigrations: Миграции успешно применены")
+	return nil
+}
+
+func main() {
 	log.Println("main: Начало работы приложения")
 
 	// Подключение к базе данных
 	dsn := "postgres://postgres:password@localhost:5454/fuelstation?sslmode=disable"
 	log.Println("main: Попытка подключения к базе данных")
-	dbConn, err := db.ConnectDB(dsn)
+	dbConn, err := sql.Open("postgres", dsn)
 	if err != nil {
-		log.Printf("Ошибка подключения к базе данных: %v", err)
-		os.Exit(1)
+		log.Fatalf("main: Ошибка подключения к базе данных: %v", err)
 	}
 	defer dbConn.Close()
+	log.Println("main: Проверка подключения к базе данных")
+	if err := dbConn.Ping(); err != nil {
+		log.Fatalf("main: Не удалось подключиться к базе данных: %v", err)
+	}
 	log.Println("main: Подключение к базе данных успешно")
 
 	// Применение миграций
 	log.Println("main: Применение миграций")
-	if err := applyMigrations(dbConn, dsn); err != nil {
-		log.Printf("Ошибка применения миграций: %v", err)
-		os.Exit(1)
+	if err := applyMigrations(dsn); err != nil {
+		log.Fatalf("main: Ошибка применения миграций: %v", err)
 	}
 	log.Println("main: Миграции применены")
 
@@ -48,41 +54,19 @@ func main() {
 	log.Println("main: Создание приложения Fyne")
 	app := gui.NewFyneApp()
 
-	// Создание GUI
+	// Создание объекта GUI
 	log.Println("main: Создание объекта Gui")
-	guiInstance := gui.NewGui()
+	g := gui.NewGui()
 
-	// Канал для синхронизации
+	// Установка ProcessorFunc
+	g.SetProcessorFunc(processor.ProcessJSONFile)
+
+	// Создание канала ready
 	ready := make(chan struct{})
 
-	// Запуск обработки JSON файла
-	log.Println("main: Запуск обработки JSON файла")
-	go processor.ProcessJSONFile(dbConn, guiInstance, "fuel_data.json", ready)
-
-	// Запуск GUI с передачей БД
+	// Запуск GUI
 	log.Println("main: Запуск GUI")
-	if err := guiInstance.RunGui(app, ready, dbConn); err != nil {
-		log.Printf("main: Ошибка запуска GUI: %v", err)
-		os.Exit(1)
+	if err := g.RunGui(app, ready, dbConn, processor.ProcessJSONFile); err != nil {
+		log.Fatalf("main: Ошибка запуска GUI: %v", err)
 	}
-}
-
-func applyMigrations(db *sql.DB, dsn string) error {
-	log.Printf("applyMigrations: Применение миграций из file://migrations с DSN: %s", dsn)
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
-	if err != nil {
-		log.Printf("Ошибка создания драйвера миграций: %v", err)
-		return err
-	}
-	m, err := migrate.NewWithDatabaseInstance("file://migrations", "postgres", driver)
-	if err != nil {
-		log.Printf("Ошибка инициализации миграций: %v", err)
-		return err
-	}
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Printf("Ошибка выполнения миграций: %v", err)
-		return err
-	}
-	log.Println("applyMigrations: Миграции успешно применены")
-	return nil
 }

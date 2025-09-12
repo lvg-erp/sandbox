@@ -1,0 +1,38 @@
+[
+  {
+    "column_id": "123e4567-e89b-12d3-a456-426614174000",
+    "fuel_type": "Petrol",
+    "liters": 50.0,
+    "action": "fill",
+    "fill_timestamp": {"Int64": 1694352000000, "Valid": true},
+    "drain_timestamp": {"Int64": 0, "Valid": false},
+    "timestamp": 1694352000000
+  },
+  {
+    "column_id": "123e4567-e89b-12d3-a456-426614174000",
+    "fuel_type": "Petrol",
+    "liters": 50.0,
+    "action": "drain",
+    "fill_timestamp": {"Int64": 0, "Valid": false},
+    "drain_timestamp": {"Int64": 1694352060000, "Valid": true},
+    "timestamp": 1694352060000
+  },
+  {
+    "column_id": "987fcdeb-51a2-437b-9f3d-8a7b3c2d1e45",
+    "fuel_type": "Diesel",
+    "liters": 100.0,
+    "action": "fill",
+    "fill_timestamp": {"Int64": 1694352000000, "Valid": true},
+    "drain_timestamp": {"Int64": 0, "Valid": false},
+    "timestamp": 1694352000000
+  },
+  {
+    "column_id": "987fcdeb-51a2-437b-9f3d-8a7b3c2d1e45",
+    "fuel_type": "Diesel",
+    "liters": 100.0,
+    "action": "drain",
+    "fill_timestamp": {"Int64": 0, "Valid": false},
+    "drain_timestamp": {"Int64": 1694352060000, "Valid": true},
+    "timestamp": 1694352060000
+  }
+]
