@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"fuelstation/internal/gui"
-	"fuelstation/internal/model"
+	"fuelstation/internal/models"
 	"log"
 	"os"
 	"time"
@@ -25,7 +25,7 @@ var jarNumberToColumnID = map[string]string{
 }
 
 // insertOperation вставляет операцию в базу данных
-func insertOperation(db *sql.DB, op model.FuelOperation) error {
+func insertOperation(db *sql.DB, op models.FuelOperation) error {
 	query := `
 		INSERT INTO fuel_operations (column_id, fuel_type, liters, action, fill_timestamp, drain_timestamp)
 		VALUES ($1, $2, $3, $4, $5, $6)
@@ -59,7 +59,7 @@ func ProcessJSONFile(ctx context.Context, g *gui.Gui, db *sql.DB, filePath strin
 		return fmt.Errorf("неизвестный jarNumber %s", jarNumber)
 	}
 
-	var selectedOp *model.FuelOperation
+	var selectedOp *models.FuelOperation
 	for _, op := range operations {
 		if op.ColumnID == columnID && op.Action == action {
 			selectedOp = &op
@@ -88,32 +88,37 @@ func ProcessJSONFile(ctx context.Context, g *gui.Gui, db *sql.DB, filePath strin
 	if err := insertOperation(db, *selectedOp); err != nil {
 		return fmt.Errorf("ошибка записи операции в базу данных: %w", err)
 	}
-
+	//p.gui.CreateFuelGiveCompleteScreen(selectedOp.JarNumber, selectedOp.Liters, selectedOp.FuelType)
 	// Обновляем GUI
 	if action == "fill" {
 		g.CreateFuelGiveStartScreen(jarNumber, float32(selectedOp.Liters), selectedOp.FuelType, 30)
 		time.Sleep(time.Second)
 		g.CreateFuelGiveInProgressScreen(jarNumber, selectedOp.FuelType, float32(selectedOp.Liters), float32(selectedOp.Liters))
 		time.Sleep(time.Second)
-		g.CreateFuelGiveCompleteScreen(jarNumber, selectedOp.FuelType, "DOC123", float32(selectedOp.Liters), float32(selectedOp.Liters), selectedOp.FillTimestamp.Int64, now)
+		g.CreateFuelGiveCompleteScreen(selectedOp.JarNumber, selectedOp.Liters, selectedOp.FuelType)
 	} else if action == "drain" {
-		g.CreateFuelGetStartScreen(jarNumber, selectedOp.FuelType, 100, 200, float32(selectedOp.Liters), 30)
+		g.CreateFuelGiveStartScreen(selectedOp.JarNumber, selectedOp.Liters, selectedOp.FuelType, 30)
 		time.Sleep(time.Second)
-		g.CreateFuelGetInProgressScreen(jarNumber, selectedOp.FuelType, float32(selectedOp.Liters), float32(selectedOp.Liters), 100, 300, 5)
+		expectedAmount := selectedOp.Liters
+		drainedAmount := float32(0) // Примерное значение, замените на реальное
+		fuelVolume := selectedOp.Liters
+		jarVolume := float32(100) // Примерное значение, замените на реальное
+		getTimer := 5
+		g.CreateFuelGetInProgressScreen(selectedOp.JarNumber, expectedAmount, drainedAmount, fuelVolume, jarVolume, getTimer)
 		time.Sleep(time.Second)
-		g.CreateFuelGetCompleteScreen(jarNumber, selectedOp.FuelType, "DOC124", 100, 200, float32(selectedOp.Liters), float32(selectedOp.Liters), selectedOp.DrainTimestamp.Int64, now, 10)
+		g.CreateFuelGiveCompleteScreen(selectedOp.JarNumber, selectedOp.Liters, selectedOp.FuelType)
 	}
 
 	log.Printf("ProcessJSONFile: Завершение обработки для action=%s, jarNumber=%s", action, jarNumber)
 	return nil
 }
 
-func readJSONFile(filePath string) ([]model.FuelOperation, error) {
+func readJSONFile(filePath string) ([]models.FuelOperation, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("не удалось прочитать файл %s: %w", filePath, err)
 	}
-	var operations []model.FuelOperation
+	var operations []models.FuelOperation
 	if err := json.Unmarshal(data, &operations); err != nil {
 		return nil, err
 	}

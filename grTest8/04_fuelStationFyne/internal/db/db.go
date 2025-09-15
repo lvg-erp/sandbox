@@ -2,7 +2,7 @@ package db
 
 import (
 	"database/sql"
-	"fuelstation/internal/model"
+	"fuelstation/internal/models"
 )
 
 func ConnectDB(dsn string) (*sql.DB, error) {
@@ -16,12 +16,12 @@ func ConnectDB(dsn string) (*sql.DB, error) {
 	return db, nil
 }
 
-func InsertOperation(db *sql.DB, op model.FuelOperation) error {
+func InsertOperation(db *sql.DB, op models.FuelOperation) error {
 	query := `
 		INSERT INTO fuel_operations (column_id, fuel_type, liters, action, fill_timestamp, drain_timestamp)
 		VALUES ($1, $2, $3, $4, $5, $6)
 	`
-	_, err := db.Exec(query, op.ColumnID, op.FuelType, op.Liters, op.Action, op.FillTimestamp, op.DrainTimestamp)
+	_, err := db.Exec(query, op.ColumnID, op.FuelType, op.Liters, op.Action, 0, 0)
 	return err
 }
 

@@ -1,0 +1,12 @@
+USECASE: 2025/09/12 16:25:53 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/12 16:25:53 Selected jarNumber=1
+USECASE: 2025/09/12 16:26:02 FuelGive: TID=TEST1, oneJarActive=true, twoJarActive=false
+USECASE: 2025/09/12 16:26:02 Selected jarNumber=2
+USECASE: 2025/09/12 16:37:37 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/12 16:37:37 Selected jarNumber=1
+USECASE: 2025/09/12 16:37:44 FuelGive: TID=TEST1, oneJarActive=true, twoJarActive=false
+USECASE: 2025/09/12 16:37:44 Selected jarNumber=2
+USECASE: 2025/09/15 08:53:46 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 08:53:46 Selected jarNumber=1
+USECASE: 2025/09/15 08:54:39 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 08:54:39 Selected jarNumber=1
