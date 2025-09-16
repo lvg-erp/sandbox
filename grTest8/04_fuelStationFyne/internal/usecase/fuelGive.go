@@ -19,29 +19,6 @@ const (
 	StatusAuthorized        = "32"
 )
 
-type Processing struct {
-	gui            gui.SectionInterface
-	oneJarActive   bool
-	twoJarActive   bool
-	fuelGiveConfig struct {
-		FuelGiveStartScreenTimeout int
-		FuelGiveTimeout            int
-	}
-}
-
-func NewProcessing(g gui.SectionInterface) *Processing {
-	return &Processing{
-		gui: g,
-		fuelGiveConfig: struct {
-			FuelGiveStartScreenTimeout int
-			FuelGiveTimeout            int
-		}{
-			FuelGiveStartScreenTimeout: 30,
-			FuelGiveTimeout:            300,
-		},
-	}
-}
-
 func (p *Processing) FuelGive(qrInfo models.ScannerResponse) error {
 	logFile, err := os.OpenFile("fuelstation.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {

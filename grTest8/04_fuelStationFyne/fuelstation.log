@@ -10,3 +10,139 @@ USECASE: 2025/09/15 08:53:46 FuelGive: TID=TEST1, oneJarActive=false, twoJarActi
 USECASE: 2025/09/15 08:53:46 Selected jarNumber=1
 USECASE: 2025/09/15 08:54:39 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
 USECASE: 2025/09/15 08:54:39 Selected jarNumber=1
+USECASE: 2025/09/15 08:58:34 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 08:58:34 Selected jarNumber=1
+USECASE: 2025/09/15 09:14:10 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 09:14:10 Selected jarNumber=1
+USECASE: 2025/09/15 09:23:25 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 09:23:25 Selected jarNumber=1
+USECASE: 2025/09/15 09:30:45 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 09:30:45 Selected jarNumber=1
+USECASE: 2025/09/15 09:31:06 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 09:31:06 Selected jarNumber=1
+USECASE: 2025/09/15 09:46:42 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 09:46:42 Selected jarNumber=1
+USECASE: 2025/09/15 09:51:23 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 09:51:23 Selected jarNumber=1
+USECASE: 2025/09/15 09:52:52 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 09:52:52 Selected jarNumber=1
+USECASE: 2025/09/15 09:58:12 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 09:58:12 Selected jarNumber=1
+USECASE: 2025/09/15 09:58:46 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 09:58:46 Selected jarNumber=1
+USECASE: 2025/09/15 10:00:55 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:00:55 Selected jarNumber=1
+USECASE: 2025/09/15 10:01:16 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:01:16 Selected jarNumber=1
+USECASE: 2025/09/15 10:02:20 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:02:20 Selected jarNumber=1
+USECASE: 2025/09/15 10:02:59 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:02:59 Selected jarNumber=1
+USECASE: 2025/09/15 10:03:29 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:03:29 Selected jarNumber=1
+USECASE: 2025/09/15 10:03:43 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:03:43 Selected jarNumber=1
+USECASE: 2025/09/15 10:04:25 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:04:25 Selected jarNumber=1
+USECASE: 2025/09/15 10:13:16 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:13:16 Selected jarNumber=1
+USECASE: 2025/09/15 10:13:37 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:13:37 Selected jarNumber=1
+USECASE: 2025/09/15 10:14:10 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:14:10 Selected jarNumber=1
+USECASE: 2025/09/15 10:17:13 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:17:13 Selected jarNumber=1
+USECASE: 2025/09/15 10:17:39 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:17:39 Selected jarNumber=1
+USECASE: 2025/09/15 10:18:27 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:18:27 Selected jarNumber=1
+USECASE: 2025/09/15 10:19:01 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:19:01 Selected jarNumber=1
+USECASE: 2025/09/15 10:23:57 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:23:57 Selected jarNumber=1
+USECASE: 2025/09/15 10:29:21 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:29:21 Selected jarNumber=1
+USECASE: 2025/09/15 10:29:48 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:29:48 Selected jarNumber=1
+USECASE: 2025/09/15 10:30:18 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:30:18 Selected jarNumber=1
+USECASE: 2025/09/15 10:30:44 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:30:44 Selected jarNumber=1
+USECASE: 2025/09/15 10:31:14 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:31:14 Selected jarNumber=1
+USECASE: 2025/09/15 10:32:09 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:32:09 Selected jarNumber=1
+USECASE: 2025/09/15 10:33:02 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:33:02 Selected jarNumber=1
+USECASE: 2025/09/15 10:33:39 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:33:39 Selected jarNumber=1
+USECASE: 2025/09/15 10:34:05 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:34:05 Selected jarNumber=1
+USECASE: 2025/09/15 10:34:51 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:34:51 Selected jarNumber=1
+USECASE: 2025/09/15 10:35:18 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:35:18 Selected jarNumber=1
+USECASE: 2025/09/15 10:35:44 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:35:44 Selected jarNumber=1
+USECASE: 2025/09/15 10:36:04 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:36:04 Selected jarNumber=1
+USECASE: 2025/09/15 10:41:14 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:41:14 Selected jarNumber=1
+USECASE: 2025/09/15 10:47:53 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:47:53 Selected jarNumber=1
+USECASE: 2025/09/15 10:48:45 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:48:45 Selected jarNumber=1
+USECASE: 2025/09/15 10:50:26 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:50:26 Selected jarNumber=1
+USECASE: 2025/09/15 10:51:10 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:51:10 Selected jarNumber=1
+USECASE: 2025/09/15 10:52:14 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:52:14 Selected jarNumber=1
+USECASE: 2025/09/15 10:53:27 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 10:53:27 Selected jarNumber=1
+USECASE: 2025/09/15 11:07:00 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:07:00 Selected jarNumber=1
+USECASE: 2025/09/15 11:11:13 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:11:13 Selected jarNumber=1
+USECASE: 2025/09/15 11:17:17 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:17:17 Selected jarNumber=1
+USECASE: 2025/09/15 11:17:50 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:17:50 Selected jarNumber=1
+USECASE: 2025/09/15 11:18:16 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:18:16 Selected jarNumber=1
+USECASE: 2025/09/15 11:21:03 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:21:03 Selected jarNumber=1
+USECASE: 2025/09/15 11:21:32 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:21:32 Selected jarNumber=1
+USECASE: 2025/09/15 11:21:53 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:21:53 Selected jarNumber=1
+USECASE: 2025/09/15 11:22:16 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:22:16 Selected jarNumber=1
+USECASE: 2025/09/15 11:22:58 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:22:58 Selected jarNumber=1
+USECASE: 2025/09/15 11:23:24 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:23:24 Selected jarNumber=1
+USECASE: 2025/09/15 11:23:46 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:23:46 Selected jarNumber=1
+USECASE: 2025/09/15 11:24:42 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:24:42 Selected jarNumber=1
+USECASE: 2025/09/15 11:25:23 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:25:23 Selected jarNumber=1
+USECASE: 2025/09/15 11:27:27 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:27:27 Selected jarNumber=1
+USECASE: 2025/09/15 11:30:33 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:30:33 Selected jarNumber=1
+USECASE: 2025/09/15 11:31:21 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:31:21 Selected jarNumber=1
+USECASE: 2025/09/15 11:32:07 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:32:07 Selected jarNumber=1
+USECASE: 2025/09/15 11:32:30 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:32:30 Selected jarNumber=1
+USECASE: 2025/09/15 11:33:52 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:33:52 Selected jarNumber=1
+USECASE: 2025/09/15 11:34:22 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:34:22 Selected jarNumber=1
+USECASE: 2025/09/15 11:36:37 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:36:37 Selected jarNumber=1
+USECASE: 2025/09/15 11:37:03 FuelGive: TID=TEST1, oneJarActive=false, twoJarActive=false
+USECASE: 2025/09/15 11:37:03 Selected jarNumber=1
