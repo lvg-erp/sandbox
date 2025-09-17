@@ -2,8 +2,6 @@ package usecase
 
 import (
 	"context"
-	_ "fmt"
-	_ "fuelstation/internal/gui"
 	"fuelstation/internal/models"
 	"fyne.io/fyne/v2"
 	"log"
@@ -18,9 +16,9 @@ func (p *Processing) FuelGive(qrInfo models.ScannerResponse) error {
 	}
 	defer logFile.Close()
 	logger := log.New(logFile, "USECASE: ", log.LstdFlags)
-	logger.Printf("FuelGive: TID=%s, oneJarActive=%v, twoJarActive=%v", qrInfo.TID, p.oneJarActive, p.twoJarActive)
+	logger.Printf("FuelGive: TID=%s, OneJarActive=%v, TwoJarActive=%v", qrInfo.TID, p.OneJarActive, p.TwoJarActive)
 
-	if p.oneJarActive && p.twoJarActive {
+	if p.OneJarActive && p.TwoJarActive {
 		logger.Println("Все пистолеты заняты")
 		section := p.getAvailableSection()
 		if section != nil {
@@ -40,7 +38,7 @@ func (p *Processing) FuelGive(qrInfo models.ScannerResponse) error {
 	}
 
 	jarNumber := "1"
-	if p.oneJarActive {
+	if !p.OneJarActive && p.TwoJarActive {
 		jarNumber = "2"
 	}
 	logger.Printf("Selected jarNumber=%s", jarNumber)
@@ -165,6 +163,12 @@ func (p *Processing) startFuelGiveInProgress(dep startFuelGiveInProgressDep, log
 	fyne.Do(func() {
 		p.gui.CreateFuelGiveCompleteScreen(dep.jarNumber, dep.liters, dep.fuelType)
 		p.UpdateJarStatus(dep.jarNumber, false)
+	})
+	// Добавление задержки в 5 секунд перед возвратом к экрану по умолчанию
+	time.AfterFunc(5*time.Second, func() {
+		fyne.Do(func() {
+			p.gui.CreateDefaultScreen(dep.jarNumber)
+		})
 	})
 	logger.Println("Заправка завершена")
 }

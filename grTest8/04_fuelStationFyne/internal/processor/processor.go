@@ -52,10 +52,10 @@ type Processor struct {
 	processing *usecase.Processing
 }
 
-func NewProcessor(g gui.SectionInterface) *Processor {
+func NewProcessor(gui gui.SectionInterface) *Processor {
 	return &Processor{
-		gui:        g,
-		processing: usecase.NewProcessing(g),
+		gui:        gui,
+		processing: usecase.NewProcessing(gui),
 	}
 }
 
@@ -140,15 +140,22 @@ func (p *Processor) ProcessJSONFile(ctx context.Context, db *sql.DB, filePath st
 }
 
 // EmulateQRScan эмулирует сканирование QR-кода
-func (p *Processor) EmulateQRScan(action, fuelType string, liters float64, jarNumber string) error {
-	log.Printf("EmulateQRScan: Эмуляция QR-кода для action=%s, fuelType=%s, liters=%.2f, jarNumber=%s", action, fuelType, liters, jarNumber)
+func (p *Processor) EmulateQRScan(action, fuelType string, liters float32, jarNumber string) error {
 	qrInfo := models.ScannerResponse{
-		TID:      fmt.Sprintf("TID_%d", time.Now().UnixNano()), // Уникальный TID
-		Action:   action,
+		TID:      "TID_" + time.Now().Format("20060102150405"),
 		FuelType: fuelType,
-		Liters:   liters,
+		Liters:   float64(liters),
 	}
-	return p.ProcessQRCode(qrInfo)
+	if action == "FuelGive" {
+		p.processing.OneJarActive = jarNumber == "1"
+		p.processing.TwoJarActive = jarNumber == "2"
+		return p.processing.FuelGive(qrInfo)
+	} else if action == "FuelGet" {
+		p.processing.OneJarActive = jarNumber == "1"
+		p.processing.TwoJarActive = jarNumber == "2"
+		return p.processing.FuelGet(qrInfo)
+	}
+	return nil
 }
 
 func readJSONFile(filePath string) ([]models.FuelOperation, error) {
@@ -161,4 +168,13 @@ func readJSONFile(filePath string) ([]models.FuelOperation, error) {
 		return nil, err
 	}
 	return operations, nil
+}
+
+func (p *Processor) IsJarActive(jarNumber string) bool {
+	if jarNumber == "1" {
+		return p.processing.OneJarActive
+	} else if jarNumber == "2" {
+		return p.processing.TwoJarActive
+	}
+	return false
 }

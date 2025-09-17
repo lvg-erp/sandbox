@@ -20,6 +20,7 @@ var (
 	Black = color.RGBA{0, 0, 0, 255}
 	Gray  = color.RGBA{128, 128, 128, 255}
 	Green = color.RGBA{0, 128, 0, 255}
+	White = color.RGBA{255, 255, 255, 255}
 )
 
 var logo = "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="
@@ -47,7 +48,7 @@ type Section struct {
 
 type Gui struct {
 	app           fyne.App
-	window        fyne.Window
+	Window        fyne.Window
 	TopSection    *TopSection
 	LeftSection   *Section
 	RightSection  *Section
@@ -71,13 +72,15 @@ func NewGui(a fyne.App) *Gui {
 	topSection := newTopSection()
 	leftSection := newSection("1")
 	rightSection := newSection("2")
-	bottomSection := container.NewGridWithColumns(2,
-		container.NewBorder(nil, nil, nil, newFixedVSeparator(), leftSection.Content),
-		rightSection.Content,
+	// Убрал сепаратор
+	bottomSection := container.NewHBox(
+		container.NewVBox(leftSection.Content),
+		container.NewVBox(rightSection.Content),
 	)
 	mainContent := container.NewVBox(topSection.Content, bottomSection)
 	return &Gui{
 		app:           a,
+		Window:        a.NewWindow("Fuel Station"),
 		TopSection:    topSection,
 		LeftSection:   leftSection,
 		RightSection:  rightSection,
@@ -87,11 +90,10 @@ func NewGui(a fyne.App) *Gui {
 }
 
 func (g *Gui) RunGui() {
-	g.window = g.app.NewWindow("Fuel Station")
-	g.window.SetContent(g.MainContent)
-	g.window.Resize(fyne.NewSize(1024, 768))
+	g.Window.SetContent(g.MainContent)
+	g.Window.Resize(fyne.NewSize(800, 800)) // Вернул размер окна 800x600
 	go g.updateTime()
-	g.window.ShowAndRun()
+	g.Window.ShowAndRun()
 }
 
 func (g *Gui) updateTime() {
@@ -193,11 +195,11 @@ func createDefaultScreen(jarNumber string) *fyne.Container {
 		qrText2,
 	)
 	sectionWithLeftPadding := container.NewHBox(
-		newCustomSpacer(fyne.NewSize(60, 0)), // Отступ слева 20px
+		newCustomSpacer(fyne.NewSize(0, 0)), // Отступ слева 20px
 		sectionVBox,
 	)
 	sectionCenter := container.NewCenter(sectionWithLeftPadding)                                   // Центрирование содержимого
-	sectionCenter = container.New(layout.NewGridWrapLayout(fyne.NewSize(800, 600)), sectionCenter) // Фиксированный размер
+	sectionCenter = container.New(layout.NewGridWrapLayout(fyne.NewSize(800, 800)), sectionCenter) // Фиксированный размер
 	return sectionCenter
 }
 
@@ -475,7 +477,7 @@ func (g *Gui) CreateFuelGiveInProgressScreen(jarNumber string, liters, expectedL
 		topContent,
 		buttonAreaContainer,
 	)
-	columnContent = container.New(layout.NewGridWrapLayout(fyne.NewSize(800, 700)), columnContent)
+	columnContent = container.New(layout.NewGridWrapLayout(fyne.NewSize(800, 800)), columnContent)
 	fyne.Do(func() {
 		section.Content.RemoveAll()
 		section.Content.Add(columnContent)
@@ -614,7 +616,7 @@ func (g *Gui) CreateFuelGetInProgressScreen(jarNumber string, expectedAmount, dr
 		topContent,
 		buttonAreaContainer,
 	)
-	columnContent = container.New(layout.NewGridWrapLayout(fyne.NewSize(800, 700)), columnContent)
+	columnContent = container.New(layout.NewGridWrapLayout(fyne.NewSize(800, 800)), columnContent)
 	fyne.Do(func() {
 		section.Content.RemoveAll()
 		section.Content.Add(columnContent)
@@ -812,13 +814,7 @@ func newCustomSpacer(size fyne.Size) *canvas.Rectangle {
 
 func newFixedHSeparator() *canvas.Rectangle {
 	rect := canvas.NewRectangle(Gray)
-	rect.SetMinSize(fyne.NewSize(1024, 2))
-	return rect
-}
-
-func newFixedVSeparator() *canvas.Rectangle {
-	rect := canvas.NewRectangle(Gray)
-	rect.SetMinSize(fyne.NewSize(2, 600))
+	rect.SetMinSize(fyne.NewSize(800, 2)) // Обновлено для ширины 800
 	return rect
 }
 

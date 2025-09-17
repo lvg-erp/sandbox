@@ -2,8 +2,6 @@ package usecase
 
 import (
 	"context"
-	_ "fmt"
-	_ "fuelstation/internal/gui"
 	"fuelstation/internal/models"
 	"fyne.io/fyne/v2"
 	"log"
@@ -18,9 +16,9 @@ func (p *Processing) FuelGet(qrInfo models.ScannerResponse) error {
 	}
 	defer logFile.Close()
 	logger := log.New(logFile, "USECASE: ", log.LstdFlags)
-	logger.Printf("FuelGet: TID=%s, oneJarActive=%v, twoJarActive=%v", qrInfo.TID, p.oneJarActive, p.twoJarActive)
+	logger.Printf("FuelGet: TID=%s, OneJarActive=%v, TwoJarActive=%v", qrInfo.TID, p.OneJarActive, p.TwoJarActive)
 
-	if p.oneJarActive && p.twoJarActive {
+	if p.OneJarActive && p.TwoJarActive {
 		logger.Println("Все емкости заняты")
 		section := p.getAvailableSection()
 		if section != nil {
@@ -39,8 +37,9 @@ func (p *Processing) FuelGet(qrInfo models.ScannerResponse) error {
 		return nil
 	}
 
+	// Используем переданный jarNumber из processor (должен быть "1" или "2")
 	jarNumber := "1"
-	if p.oneJarActive {
+	if !p.OneJarActive && p.TwoJarActive {
 		jarNumber = "2"
 	}
 	logger.Printf("Selected jarNumber=%s", jarNumber)
@@ -49,14 +48,14 @@ func (p *Processing) FuelGet(qrInfo models.ScannerResponse) error {
 	p.gui.CreateDownloadScreen(jarNumber)
 
 	fuelType := qrInfo.FuelType
-	liters := float32(qrInfo.Liters)
+	_ = float32(qrInfo.Liters)
 	maxLiters := float32(qrInfo.Liters)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(30)*time.Second)
 	go p.setFuelGetStartScreen(ctx, setFuelGetStartScreenDep{
 		jarNumber:      jarNumber,
 		fuelType:       fuelType,
-		expectedAmount: liters,
+		expectedAmount: maxLiters,
 	}, logger)
 	go p.monitoringFuelGetStart(ctx, cancel, monitoringFuelGetStartDep{
 		fuelGetID:     qrInfo.TID,

@@ -1,158 +1,32 @@
-USECASE: 2025/09/16 11:10:54 FuelGive: TID=TID_1758010254503382988, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 11:10:54 Selected jarNumber=1
-USECASE: 2025/09/16 11:16:06 FuelGive: TID=TID_1758010566401939361, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 11:16:06 Selected jarNumber=1
-USECASE: 2025/09/16 11:48:42 FuelGet: TID=TID_1758012522250570959, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 11:48:42 Selected jarNumber=1
-USECASE: 2025/09/16 11:48:48 FuelGive: TID=TID_1758012528602756738, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/16 11:48:48 Selected jarNumber=2
-USECASE: 2025/09/16 13:28:04 FuelGet: TID=TID_1758018484332435124, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 13:28:04 Selected jarNumber=1
-USECASE: 2025/09/16 13:45:17 FuelGet: TID=TID_1758019517851485879, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 13:45:17 Selected jarNumber=1
-USECASE: 2025/09/16 13:45:35 FuelGive: TID=TID_1758019535350974570, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/16 13:45:35 Selected jarNumber=2
-USECASE: 2025/09/16 13:50:19 FuelGet: TID=TID_1758019819246006143, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 13:50:19 Selected jarNumber=1
-USECASE: 2025/09/16 13:54:58 FuelGet: TID=TID_1758020098835576018, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 13:54:58 Selected jarNumber=1
-USECASE: 2025/09/16 13:55:49 FuelGet: TID=TID_1758020149916771227, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 13:55:49 Selected jarNumber=1
-USECASE: 2025/09/16 13:56:14 FuelGet: TID=TID_1758020174047680247, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 13:56:14 Selected jarNumber=1
-USECASE: 2025/09/16 13:56:37 FuelGive: TID=TID_1758020197931529621, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 13:56:37 Selected jarNumber=1
-USECASE: 2025/09/16 13:56:39 FuelGet: TID=TID_1758020199414438825, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/16 13:56:39 Selected jarNumber=2
-USECASE: 2025/09/16 13:57:01 FuelGet: TID=TID_1758020221642607708, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 13:57:01 Selected jarNumber=1
-USECASE: 2025/09/16 13:58:59 FuelGet: TID=TID_1758020339304235051, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 13:58:59 Selected jarNumber=1
-USECASE: 2025/09/16 13:59:02 FuelGive: TID=TID_1758020342582755506, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/16 13:59:02 Selected jarNumber=2
-USECASE: 2025/09/16 14:00:10 FuelGet: TID=TID_1758020410800106937, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:00:10 Selected jarNumber=1
-USECASE: 2025/09/16 14:22:05 FuelGet: TID=TID_1758021725573672377, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:22:05 Selected jarNumber=1
-USECASE: 2025/09/16 14:22:16 FuelGive: TID=TID_1758021736990371532, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/16 14:22:16 Selected jarNumber=2
-USECASE: 2025/09/16 14:23:10 FuelGet: TID=TID_1758021790181445740, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:23:10 Selected jarNumber=1
-USECASE: 2025/09/16 14:23:40 FuelGet: TID=TID_1758021820123035886, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:23:40 Selected jarNumber=1
-USECASE: 2025/09/16 14:23:59 FuelGet: TID=TID_1758021839289960687, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:23:59 Selected jarNumber=1
-USECASE: 2025/09/16 14:24:22 FuelGet: TID=TID_1758021862020069971, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:24:22 Selected jarNumber=1
-USECASE: 2025/09/16 14:24:53 FuelGet: TID=TID_1758021893932601104, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:24:53 Selected jarNumber=1
-USECASE: 2025/09/16 14:25:12 FuelGive: TID=TID_1758021912803155896, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/16 14:25:12 Selected jarNumber=2
-USECASE: 2025/09/16 14:25:59 FuelGet: TID=TID_1758021959449046831, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:25:59 Selected jarNumber=1
-USECASE: 2025/09/16 14:26:09 FuelGive: TID=TID_1758021969097887576, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/16 14:26:09 Selected jarNumber=2
-USECASE: 2025/09/16 14:27:30 FuelGet: TID=TID_1758022050586008640, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:27:30 Selected jarNumber=1
-USECASE: 2025/09/16 14:28:06 FuelGet: TID=TID_1758022086391610050, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:28:06 Selected jarNumber=1
-USECASE: 2025/09/16 14:28:50 FuelGet: TID=TID_1758022130945927317, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:28:50 Selected jarNumber=1
-USECASE: 2025/09/16 14:29:08 FuelGive: TID=TID_1758022148408353640, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/16 14:29:08 Selected jarNumber=2
-USECASE: 2025/09/16 14:30:17 FuelGet: TID=TID_1758022217730891228, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:30:17 Selected jarNumber=1
-USECASE: 2025/09/16 14:30:32 FuelGive: TID=TID_1758022232030228033, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/16 14:30:32 Selected jarNumber=2
-USECASE: 2025/09/16 14:47:06 FuelGet: TID=TID_1758023226530776469, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:47:06 Selected jarNumber=1
-USECASE: 2025/09/16 14:47:48 FuelGet: TID=TID_1758023268396628078, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:47:48 Selected jarNumber=1
-USECASE: 2025/09/16 14:48:28 FuelGet: TID=TID_1758023308314391240, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:48:28 Selected jarNumber=1
-USECASE: 2025/09/16 14:49:21 FuelGet: TID=TID_1758023361990349654, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:49:21 Selected jarNumber=1
-USECASE: 2025/09/16 14:49:56 FuelGet: TID=TID_1758023396476178903, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:49:56 Selected jarNumber=1
-USECASE: 2025/09/16 14:52:34 FuelGet: TID=TID_1758023554985006198, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:52:34 Selected jarNumber=1
-USECASE: 2025/09/16 14:52:45 FuelGive: TID=TID_1758023565218448913, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/16 14:52:45 Selected jarNumber=2
-USECASE: 2025/09/16 14:53:11 FuelGet: TID=TID_1758023591120492819, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:53:11 Selected jarNumber=1
-USECASE: 2025/09/16 14:53:31 FuelGet: TID=TID_1758023611902655187, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:53:31 Selected jarNumber=1
-USECASE: 2025/09/16 14:54:24 FuelGet: TID=TID_1758023664111726216, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:54:24 Selected jarNumber=1
-USECASE: 2025/09/16 14:54:45 FuelGet: TID=TID_1758023685087301501, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:54:45 Selected jarNumber=1
-USECASE: 2025/09/16 14:54:56 FuelGive: TID=TID_1758023696687405972, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/16 14:54:56 Selected jarNumber=2
-USECASE: 2025/09/16 14:56:25 FuelGet: TID=TID_1758023785285029710, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:56:25 Selected jarNumber=1
-USECASE: 2025/09/16 14:56:45 FuelGet: TID=TID_1758023805648762526, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:56:45 Selected jarNumber=1
-USECASE: 2025/09/16 14:56:57 FuelGet: TID=TID_1758023817854858280, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:56:57 Selected jarNumber=1
-USECASE: 2025/09/16 14:57:15 FuelGet: TID=TID_1758023835236450515, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:57:15 Selected jarNumber=1
-USECASE: 2025/09/16 14:57:31 FuelGet: TID=TID_1758023851704596416, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:57:31 Selected jarNumber=1
-USECASE: 2025/09/16 14:57:54 FuelGet: TID=TID_1758023874992156127, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:57:54 Selected jarNumber=1
-USECASE: 2025/09/16 14:58:03 FuelGive: TID=TID_1758023883226786011, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/16 14:58:03 Selected jarNumber=2
-USECASE: 2025/09/16 14:58:43 FuelGet: TID=TID_1758023923216868361, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:58:43 Selected jarNumber=1
-USECASE: 2025/09/16 14:59:11 FuelGet: TID=TID_1758023951795441731, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:59:11 Selected jarNumber=1
-USECASE: 2025/09/16 14:59:34 FuelGet: TID=TID_1758023974546224546, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 14:59:34 Selected jarNumber=1
-USECASE: 2025/09/16 14:59:36 FuelGive: TID=TID_1758023976412406294, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/16 14:59:36 Selected jarNumber=2
-USECASE: 2025/09/16 15:00:38 FuelGet: TID=TID_1758024038334958431, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 15:00:38 Selected jarNumber=1
-USECASE: 2025/09/16 15:00:49 FuelGive: TID=TID_1758024049618551485, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/16 15:00:49 Selected jarNumber=2
-USECASE: 2025/09/16 15:12:24 FuelGet: TID=TID_1758024744753497177, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 15:12:24 Selected jarNumber=1
-USECASE: 2025/09/16 15:13:52 FuelGet: TID=TID_1758024832074673209, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 15:13:52 Selected jarNumber=1
-USECASE: 2025/09/16 15:15:01 FuelGet: TID=TID_1758024901743827999, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 15:15:01 Selected jarNumber=1
-USECASE: 2025/09/16 15:20:13 FuelGet: TID=TID_1758025213276262953, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 15:20:13 Selected jarNumber=1
-USECASE: 2025/09/16 15:20:39 FuelGet: TID=TID_1758025239144312939, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 15:20:39 Selected jarNumber=1
-USECASE: 2025/09/16 15:21:22 FuelGet: TID=TID_1758025282263661625, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 15:21:22 Selected jarNumber=1
-USECASE: 2025/09/16 15:21:53 FuelGet: TID=TID_1758025313313980578, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 15:21:53 Selected jarNumber=1
-USECASE: 2025/09/16 15:22:25 FuelGet: TID=TID_1758025345061437491, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 15:22:25 Selected jarNumber=1
-USECASE: 2025/09/16 15:22:31 FuelGive: TID=TID_1758025351961546256, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/16 15:22:31 Selected jarNumber=2
-USECASE: 2025/09/16 15:38:49 FuelGet: TID=TID_1758026329998141641, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 15:38:49 Selected jarNumber=1
-USECASE: 2025/09/16 15:39:05 FuelGive: TID=TID_1758026345864860572, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/16 15:39:05 Selected jarNumber=2
-USECASE: 2025/09/16 16:25:42 FuelGet: TID=TID_1758029142243349722, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/16 16:25:42 Selected jarNumber=1
-USECASE: 2025/09/17 08:41:50 FuelGive: TID=TID_1758087710510040252, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/17 08:41:50 Selected jarNumber=1
-USECASE: 2025/09/17 08:41:57 FuelGet: TID=TID_1758087717926338595, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/17 08:41:57 Selected jarNumber=2
-USECASE: 2025/09/17 08:43:24 FuelGive: TID=TID_1758087804069214748, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/17 08:43:24 Selected jarNumber=1
-USECASE: 2025/09/17 08:43:25 FuelGet: TID=TID_1758087805601671784, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/17 08:43:25 Selected jarNumber=2
-USECASE: 2025/09/17 08:43:45 FuelGive: TID=TID_1758087825121980879, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/17 08:43:45 Selected jarNumber=1
-USECASE: 2025/09/17 08:43:46 FuelGet: TID=TID_1758087826288123555, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/17 08:43:46 Selected jarNumber=2
-USECASE: 2025/09/17 08:44:04 FuelGet: TID=TID_1758087844592166792, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/17 08:44:04 Selected jarNumber=1
-USECASE: 2025/09/17 08:44:10 FuelGive: TID=TID_1758087850408350999, oneJarActive=true, twoJarActive=false
-USECASE: 2025/09/17 08:44:10 Selected jarNumber=2
-USECASE: 2025/09/17 08:52:47 FuelGive: TID=TID_1758088367635089796, oneJarActive=false, twoJarActive=false
-USECASE: 2025/09/17 08:52:47 Selected jarNumber=1
+USECASE: 2025/09/17 10:44:08 FuelGive: TID=TID_20250917104408, OneJarActive=true, TwoJarActive=false
+USECASE: 2025/09/17 10:44:08 Selected jarNumber=1
+USECASE: 2025/09/17 10:55:22 FuelGet: TID=TID_20250917105522, OneJarActive=false, TwoJarActive=true
+USECASE: 2025/09/17 10:55:22 Selected jarNumber=2
+USECASE: 2025/09/17 11:49:22 FuelGive: TID=TID_20250917114922, OneJarActive=true, TwoJarActive=false
+USECASE: 2025/09/17 11:49:22 Selected jarNumber=1
+USECASE: 2025/09/17 11:49:49 FuelGet: TID=TID_20250917114949, OneJarActive=false, TwoJarActive=true
+USECASE: 2025/09/17 11:49:49 Selected jarNumber=2
+USECASE: 2025/09/17 12:12:19 FuelGet: TID=TID_20250917121219, OneJarActive=true, TwoJarActive=false
+USECASE: 2025/09/17 12:12:19 Selected jarNumber=1
+USECASE: 2025/09/17 12:12:53 FuelGet: TID=TID_20250917121253, OneJarActive=false, TwoJarActive=true
+USECASE: 2025/09/17 12:12:53 Selected jarNumber=2
+USECASE: 2025/09/17 12:14:28 FuelGet: TID=TID_20250917121428, OneJarActive=true, TwoJarActive=false
+USECASE: 2025/09/17 12:14:28 Selected jarNumber=1
+USECASE: 2025/09/17 12:16:37 FuelGet: TID=TID_20250917121637, OneJarActive=false, TwoJarActive=true
+USECASE: 2025/09/17 12:16:37 Selected jarNumber=2
+USECASE: 2025/09/17 12:16:59 FuelGive: TID=TID_20250917121659, OneJarActive=true, TwoJarActive=false
+USECASE: 2025/09/17 12:16:59 Selected jarNumber=1
+USECASE: 2025/09/17 12:20:24 FuelGet: TID=TID_20250917122024, OneJarActive=true, TwoJarActive=false
+USECASE: 2025/09/17 12:20:24 Selected jarNumber=1
+USECASE: 2025/09/17 14:27:17 FuelGive: TID=TID_20250917142717, OneJarActive=false, TwoJarActive=true
+USECASE: 2025/09/17 14:27:17 Selected jarNumber=2
+USECASE: 2025/09/17 14:27:44 FuelGive: TID=TID_20250917142744, OneJarActive=true, TwoJarActive=false
+USECASE: 2025/09/17 14:27:44 Selected jarNumber=1
+USECASE: 2025/09/17 14:56:35 FuelGive: TID=TID_20250917145635, OneJarActive=true, TwoJarActive=false
+USECASE: 2025/09/17 14:56:35 Selected jarNumber=1
+USECASE: 2025/09/17 14:57:57 FuelGet: TID=TID_20250917145757, OneJarActive=false, TwoJarActive=true
+USECASE: 2025/09/17 14:57:57 Selected jarNumber=2
+USECASE: 2025/09/17 14:59:23 FuelGive: TID=TID_20250917145923, OneJarActive=false, TwoJarActive=true
+USECASE: 2025/09/17 14:59:23 Selected jarNumber=2
+USECASE: 2025/09/17 15:33:25 FuelGet: TID=TID_20250917153325, OneJarActive=false, TwoJarActive=true
+USECASE: 2025/09/17 15:33:25 Selected jarNumber=2

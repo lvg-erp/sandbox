@@ -8,8 +8,8 @@ import (
 
 type Processing struct {
 	gui            gui.SectionInterface
-	oneJarActive   bool
-	twoJarActive   bool
+	OneJarActive   bool
+	TwoJarActive   bool
 	fuelGiveConfig struct {
 		FuelGiveStartScreenTimeout int
 		FuelGiveTimeout            int
@@ -30,10 +30,10 @@ func NewProcessing(g gui.SectionInterface) *Processing {
 }
 
 func (p *Processing) getAvailableSection() *gui.Section {
-	if !p.oneJarActive {
+	if !p.OneJarActive {
 		return p.gui.GetSection("1")
 	}
-	if !p.twoJarActive {
+	if !p.TwoJarActive {
 		return p.gui.GetSection("2")
 	}
 	return nil
@@ -41,9 +41,9 @@ func (p *Processing) getAvailableSection() *gui.Section {
 
 func (p *Processing) UpdateJarStatus(jarNumber string, status bool) {
 	if jarNumber == "1" {
-		p.oneJarActive = status
+		p.OneJarActive = status
 	} else {
-		p.twoJarActive = status
+		p.TwoJarActive = status
 	}
 	log.Printf("UpdateJarStatus: jarNumber=%s, status=%v", jarNumber, status)
 }
