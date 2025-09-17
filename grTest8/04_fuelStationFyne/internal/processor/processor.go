@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"fuelstation/internal/gui"
 	"fuelstation/internal/models"
+	"fuelstation/internal/usecase"
 	"log"
 	"os"
 	"time"
@@ -46,7 +47,32 @@ func insertOperation(db *sql.DB, op models.FuelOperation) error {
 	return nil
 }
 
-func ProcessJSONFile(ctx context.Context, g *gui.Gui, db *sql.DB, filePath string, action string, jarNumber string) error {
+type Processor struct {
+	gui        gui.SectionInterface
+	processing *usecase.Processing
+}
+
+func NewProcessor(g gui.SectionInterface) *Processor {
+	return &Processor{
+		gui:        g,
+		processing: usecase.NewProcessing(g),
+	}
+}
+
+func (p *Processor) ProcessQRCode(qrInfo models.ScannerResponse) error {
+	log.Printf("Processing QR code: TID=%s, FuelType=%s, Liters=%v", qrInfo.TID, qrInfo.FuelType, qrInfo.Liters)
+
+	if qrInfo.Action == "FuelGive" {
+		return p.processing.FuelGive(qrInfo)
+	} else if qrInfo.Action == "FuelGet" {
+		return p.processing.FuelGet(qrInfo)
+	}
+
+	log.Printf("Unknown action: %s", qrInfo.Action)
+	return nil
+}
+
+func (p *Processor) ProcessJSONFile(ctx context.Context, db *sql.DB, filePath string, action string, jarNumber string) error {
 	log.Printf("ProcessJSONFile: Начало обработки JSON файла для action=%s, jarNumber=%s", action, jarNumber)
 	operations, err := readJSONFile(filePath)
 	if err != nil {
@@ -88,29 +114,41 @@ func ProcessJSONFile(ctx context.Context, g *gui.Gui, db *sql.DB, filePath strin
 	if err := insertOperation(db, *selectedOp); err != nil {
 		return fmt.Errorf("ошибка записи операции в базу данных: %w", err)
 	}
-	//p.gui.CreateFuelGiveCompleteScreen(selectedOp.JarNumber, selectedOp.Liters, selectedOp.FuelType)
+
 	// Обновляем GUI
 	if action == "fill" {
-		g.CreateFuelGiveStartScreen(jarNumber, float32(selectedOp.Liters), selectedOp.FuelType, 30)
+		p.gui.CreateFuelGiveStartScreen(jarNumber, float32(selectedOp.Liters), selectedOp.FuelType, 30)
 		time.Sleep(time.Second)
-		g.CreateFuelGiveInProgressScreen(jarNumber, selectedOp.FuelType, float32(selectedOp.Liters), float32(selectedOp.Liters))
+		p.gui.CreateFuelGiveInProgressScreen(jarNumber, 0, float32(selectedOp.Liters))
 		time.Sleep(time.Second)
-		g.CreateFuelGiveCompleteScreen(selectedOp.JarNumber, selectedOp.Liters, selectedOp.FuelType)
+		p.gui.CreateFuelGiveCompleteScreen(jarNumber, float32(selectedOp.Liters), selectedOp.FuelType)
 	} else if action == "drain" {
-		g.CreateFuelGiveStartScreen(selectedOp.JarNumber, selectedOp.Liters, selectedOp.FuelType, 30)
+		p.gui.CreateFuelGetStartScreen(jarNumber, float32(selectedOp.Liters), 0, 0, float32(selectedOp.Liters), 30)
 		time.Sleep(time.Second)
-		expectedAmount := selectedOp.Liters
+		expectedAmount := float32(selectedOp.Liters)
 		drainedAmount := float32(0) // Примерное значение, замените на реальное
-		fuelVolume := selectedOp.Liters
+		fuelVolume := float32(selectedOp.Liters)
 		jarVolume := float32(100) // Примерное значение, замените на реальное
 		getTimer := 5
-		g.CreateFuelGetInProgressScreen(selectedOp.JarNumber, expectedAmount, drainedAmount, fuelVolume, jarVolume, getTimer)
+		p.gui.CreateFuelGetInProgressScreen(jarNumber, expectedAmount, drainedAmount, fuelVolume, jarVolume, getTimer)
 		time.Sleep(time.Second)
-		g.CreateFuelGiveCompleteScreen(selectedOp.JarNumber, selectedOp.Liters, selectedOp.FuelType)
+		p.gui.CreateFuelGiveCompleteScreen(jarNumber, float32(selectedOp.Liters), selectedOp.FuelType)
 	}
 
 	log.Printf("ProcessJSONFile: Завершение обработки для action=%s, jarNumber=%s", action, jarNumber)
 	return nil
+}
+
+// EmulateQRScan эмулирует сканирование QR-кода
+func (p *Processor) EmulateQRScan(action, fuelType string, liters float64, jarNumber string) error {
+	log.Printf("EmulateQRScan: Эмуляция QR-кода для action=%s, fuelType=%s, liters=%.2f, jarNumber=%s", action, fuelType, liters, jarNumber)
+	qrInfo := models.ScannerResponse{
+		TID:      fmt.Sprintf("TID_%d", time.Now().UnixNano()), // Уникальный TID
+		Action:   action,
+		FuelType: fuelType,
+		Liters:   liters,
+	}
+	return p.ProcessQRCode(qrInfo)
 }
 
 func readJSONFile(filePath string) ([]models.FuelOperation, error) {

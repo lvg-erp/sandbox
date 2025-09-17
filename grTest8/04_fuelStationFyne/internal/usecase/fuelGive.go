@@ -2,21 +2,13 @@ package usecase
 
 import (
 	"context"
-	"fmt"
-	"fuelstation/internal/gui"
+	_ "fmt"
+	_ "fuelstation/internal/gui"
 	"fuelstation/internal/models"
 	"fyne.io/fyne/v2"
 	"log"
 	"os"
 	"time"
-)
-
-const (
-	StatusIdle              = "30"
-	StatusNozzleLifted      = "31"
-	StatusFuelingComplete   = "34"
-	StatusFuelingInProgress = "33"
-	StatusAuthorized        = "32"
 )
 
 func (p *Processing) FuelGive(qrInfo models.ScannerResponse) error {
@@ -29,7 +21,7 @@ func (p *Processing) FuelGive(qrInfo models.ScannerResponse) error {
 	logger.Printf("FuelGive: TID=%s, oneJarActive=%v, twoJarActive=%v", qrInfo.TID, p.oneJarActive, p.twoJarActive)
 
 	if p.oneJarActive && p.twoJarActive {
-		logger.Println("Все емкости заняты")
+		logger.Println("Все пистолеты заняты")
 		section := p.getAvailableSection()
 		if section != nil {
 			var jarNumber string
@@ -39,7 +31,7 @@ func (p *Processing) FuelGive(qrInfo models.ScannerResponse) error {
 				jarNumber = "2"
 			}
 			fyne.Do(func() {
-				p.gui.ShowSectionDialog(section.Content, "Ошибка", "Все емкости заняты", 10, func() {
+				p.gui.ShowSectionDialog(section.Content, "Ошибка", "Все пистолеты заняты", 10, func() {
 					p.gui.CreateDefaultScreen(jarNumber)
 				})
 			})
@@ -56,30 +48,29 @@ func (p *Processing) FuelGive(qrInfo models.ScannerResponse) error {
 	p.UpdateJarStatus(jarNumber, true)
 	p.gui.CreateDownloadScreen(jarNumber)
 
-	fuelType := "Petrol"
-	liters := float32(50)
-	maxLiters := float32(50)
+	fuelType := qrInfo.FuelType
+	liters := float32(qrInfo.Liters)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(p.fuelGiveConfig.FuelGiveStartScreenTimeout)*time.Second)
 	go p.setFuelGiveStartScreen(ctx, setFuelGiveStartScreenDep{
-		jarNumber:      jarNumber,
-		fuelType:       fuelType,
-		expectedAmount: liters,
+		jarNumber: jarNumber,
+		fuelType:  fuelType,
+		liters:    liters,
 	}, logger)
 	go p.monitoringFuelGiveStart(ctx, cancel, monitoringFuelGiveStartDep{
-		fuelGiveID:    qrInfo.TID,
-		jarNumber:     jarNumber,
-		fuelType:      fuelType,
-		expectedLiter: maxLiters,
+		fuelGiveID: qrInfo.TID,
+		jarNumber:  jarNumber,
+		fuelType:   fuelType,
+		liters:     liters,
 	}, logger)
 
 	return nil
 }
 
 type setFuelGiveStartScreenDep struct {
-	jarNumber      string
-	fuelType       string
-	expectedAmount float32
+	jarNumber string
+	fuelType  string
+	liters    float32
 }
 
 func (p *Processing) setFuelGiveStartScreen(ctx context.Context, dep setFuelGiveStartScreenDep, logger *log.Logger) {
@@ -89,7 +80,7 @@ func (p *Processing) setFuelGiveStartScreen(ctx context.Context, dep setFuelGive
 	if ok {
 		timeout = int(time.Until(deadline).Seconds())
 	}
-	p.gui.CreateFuelGiveStartScreen(dep.jarNumber, dep.expectedAmount, dep.fuelType, timeout)
+	p.gui.CreateFuelGiveStartScreen(dep.jarNumber, dep.liters, dep.fuelType, timeout)
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 	for i := timeout - 1; i >= 0; i-- {
@@ -98,17 +89,17 @@ func (p *Processing) setFuelGiveStartScreen(ctx context.Context, dep setFuelGive
 			return
 		case <-ticker.C:
 			fyne.Do(func() {
-				p.gui.CreateFuelGiveStartScreen(dep.jarNumber, dep.expectedAmount, dep.fuelType, i)
+				p.gui.CreateFuelGiveStartScreen(dep.jarNumber, dep.liters, dep.fuelType, i)
 			})
 		}
 	}
 }
 
 type monitoringFuelGiveStartDep struct {
-	fuelGiveID    string
-	jarNumber     string
-	fuelType      string
-	expectedLiter float32
+	fuelGiveID string
+	jarNumber  string
+	fuelType   string
+	liters     float32
 }
 
 func (p *Processing) monitoringFuelGiveStart(ctx context.Context, cancel context.CancelFunc, dep monitoringFuelGiveStartDep, logger *log.Logger) {
@@ -136,17 +127,17 @@ func (p *Processing) monitoringFuelGiveStart(ctx context.Context, cancel context
 				})
 				return
 			}
-			if trkStatus.ValueStr == StatusNozzleLifted {
+			if trkStatus.ValueStr == "NozzleLifted" {
 				logger.Println("Пистолет снят")
-				p.TRKRequest("SetFuelGive", dep.jarNumber, dep.expectedLiter)
+				p.TRKRequest("SetFuelGive", dep.jarNumber, dep.liters)
 				p.TRKRequest("ApprovalTRK", dep.jarNumber, 0)
 				fyne.Do(func() {
-					p.gui.CreateFuelGiveInProgressScreen(dep.jarNumber, dep.fuelType, 0, dep.expectedLiter)
+					p.gui.CreateFuelGiveInProgressScreen(dep.jarNumber, 0, dep.liters)
 				})
 				go p.startFuelGiveInProgress(startFuelGiveInProgressDep{
-					jarNumber:     dep.jarNumber,
-					fuelType:      dep.fuelType,
-					expectedLiter: dep.expectedLiter,
+					jarNumber: dep.jarNumber,
+					fuelType:  dep.fuelType,
+					liters:    dep.liters,
 				}, logger)
 				return
 			}
@@ -156,54 +147,24 @@ func (p *Processing) monitoringFuelGiveStart(ctx context.Context, cancel context
 }
 
 type startFuelGiveInProgressDep struct {
-	jarNumber     string
-	fuelType      string
-	expectedLiter float32
+	jarNumber string
+	fuelType  string
+	liters    float32
 }
 
 func (p *Processing) startFuelGiveInProgress(dep startFuelGiveInProgressDep, logger *log.Logger) {
 	logger.Printf("startFuelGiveInProgress: jarNumber=%s", dep.jarNumber)
 	liters := float32(0)
 	for i := 0; i < 20; i++ {
-		liters += dep.expectedLiter / 20
+		liters += dep.liters / 20
 		fyne.Do(func() {
-			p.gui.CreateFuelGiveInProgressScreen(dep.jarNumber, dep.fuelType, liters, dep.expectedLiter)
+			p.gui.CreateFuelGiveInProgressScreen(dep.jarNumber, liters, dep.liters)
 		})
 		time.Sleep(time.Second)
 	}
 	fyne.Do(func() {
-		p.gui.CreateDefaultScreen(dep.jarNumber)
+		p.gui.CreateFuelGiveCompleteScreen(dep.jarNumber, dep.liters, dep.fuelType)
 		p.UpdateJarStatus(dep.jarNumber, false)
 	})
 	logger.Println("Заправка завершена")
-}
-
-func (p *Processing) UpdateJarStatus(jarNumber string, status bool) {
-	if jarNumber == "1" {
-		p.oneJarActive = status
-	} else {
-		p.twoJarActive = status
-	}
-	log.Printf("UpdateJarStatus: jarNumber=%s, status=%v", jarNumber, status)
-}
-
-func (p *Processing) getAvailableSection() *gui.Section {
-	if !p.oneJarActive {
-		return p.gui.GetSection("1")
-	}
-	if !p.twoJarActive {
-		return p.gui.GetSection("2")
-	}
-	return nil
-}
-
-func (p *Processing) TRKRequest(requestType, jarNumber string, value float32) models.TRKResponse {
-	switch requestType {
-	case "GetTRKStatus":
-		return models.TRKResponse{ValueStr: StatusNozzleLifted}
-	case "SetFuelGive", "ApprovalTRK":
-		return models.TRKResponse{}
-	default:
-		return models.TRKResponse{Err: fmt.Errorf("unknown request type: %s", requestType)}
-	}
 }

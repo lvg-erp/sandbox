@@ -13,7 +13,6 @@ import (
 	"image"
 	"image/color"
 	"log"
-	_ "os"
 	"time"
 )
 
@@ -60,9 +59,10 @@ type SectionInterface interface {
 	CreateDefaultScreen(jarNumber string)
 	CreateDownloadScreen(jarNumber string)
 	CreateFuelGiveStartScreen(jarNumber string, liters float32, fuelType string, timer int)
-	CreateFuelGiveInProgressScreen(jarNumber, fuelType string, liters, expectedLiters float32)
+	CreateFuelGiveInProgressScreen(jarNumber string, liters, expectedLiters float32)
 	CreateFuelGetInProgressScreen(jarNumber string, expectedAmount, drainedAmount, fuelVolume, jarVolume float32, timer int)
 	CreateFuelGiveCompleteScreen(jarNumber string, liters float32, fuelType string)
+	CreateFuelGetStartScreen(jarNumber string, expectedAmount, drainedAmount, fuelVolume, jarVolume float32, timer int)
 	ShowSectionDialog(sectionStack *fyne.Container, title, message string, timerSeconds int, onClose func())
 	GetSection(jarNumber string) *Section
 }
@@ -112,7 +112,7 @@ func (g *Gui) updateTime() {
 }
 
 func newTopSection() *TopSection {
-	topSection, timeLabel, dateLabel, logoImage, phoneLabel, kazsLabel := createHeader(logo, "8-800-555-35-35", "12345")
+	topSection, timeLabel, dateLabel, logoImage, phoneLabel, kazsLabel := createHeader(logo, "8-111-555-11-1", "99699")
 	return &TopSection{
 		Content:            topSection,
 		TimeLabel:          timeLabel,
@@ -121,8 +121,8 @@ func newTopSection() *TopSection {
 		SupportNumberLabel: phoneLabel,
 		KazsNumberLabel:    kazsLabel,
 		Logo:               logo,
-		SupportNumber:      "8-800-555-35-35",
-		KazsNumber:         "12345",
+		SupportNumber:      "8-111-555-11-11",
+		KazsNumber:         "99699",
 		Timezone:           "UTC+3",
 	}
 }
@@ -332,6 +332,10 @@ func (g *Gui) CreateFuelGiveStartScreen(jarNumber string, liters float32, fuelTy
 	paddedButtonText := container.NewBorder(newCustomSpacer(fyne.NewSize(0, 2)), newCustomSpacer(fyne.NewSize(0, 2)), newCustomSpacer(fyne.NewSize(20, 0)), newCustomSpacer(fyne.NewSize(20, 0)), buttonText)
 	buttonArea := container.NewStack(borderRect, paddedButtonText)
 	buttonAreaContainer := container.NewCenter(buttonArea)
+	paddedButtonArea := container.NewHBox(
+		newCustomSpacer(fyne.NewSize(20, 0)), // Отступ 20px слева
+		buttonAreaContainer,
+	)
 	topCenterContent := container.NewVBox(
 		newCustomSpacer(fyne.NewSize(0, 20)),
 		insertText,
@@ -341,11 +345,10 @@ func (g *Gui) CreateFuelGiveStartScreen(jarNumber string, liters float32, fuelTy
 		newCustomSpacer(fyne.NewSize(0, 15)),
 		maxVolumeAndLitersContainer,
 	)
-	columnContent := container.NewCenter(topCenterContent)
-	columnContent = container.New(layout.NewBorderLayout(topCenterContent, buttonAreaContainer, nil, nil),
+	columnContent := container.New(layout.NewBorderLayout(topCenterContent, paddedButtonArea, nil, nil),
 		topCenterContent,
 		newCustomSpacer(fyne.NewSize(0, 225)),
-		buttonAreaContainer,
+		paddedButtonArea,
 	)
 	columnContent = container.New(layout.NewGridWrapLayout(fyne.NewSize(400, 600)), columnContent)
 	fyne.Do(func() {
@@ -356,7 +359,7 @@ func (g *Gui) CreateFuelGiveStartScreen(jarNumber string, liters float32, fuelTy
 	})
 }
 
-func (g *Gui) CreateFuelGiveInProgressScreen(jarNumber, fuelType string, liters, expectedLiters float32) {
+func (g *Gui) CreateFuelGiveInProgressScreen(jarNumber string, liters, expectedLiters float32) {
 	section := g.getSection(jarNumber)
 	ifProgressText := canvas.NewText("Заправка в процессе", Black)
 	ifProgressText.Alignment = fyne.TextAlignCenter
@@ -365,7 +368,7 @@ func (g *Gui) CreateFuelGiveInProgressScreen(jarNumber, fuelType string, liters,
 	gunText.Alignment = fyne.TextAlignCenter
 	gunText.TextStyle = fyne.TextStyle{Bold: true}
 	gunText.TextSize = 40
-	fuelTypeText := widget.NewLabel(fuelType)
+	fuelTypeText := widget.NewLabel("Petrol") // Пример значения, замените на динамическое
 	fuelTypeText.Alignment = fyne.TextAlignCenter
 	fuelTypeText.Wrapping = fyne.TextWrapWord
 	maxVolumeText := canvas.NewText("Максимальный объем", Gray)
@@ -414,7 +417,7 @@ func (g *Gui) CreateFuelGiveInProgressScreen(jarNumber, fuelType string, liters,
 	progressBarBackground.SetMinSize(fyne.NewSize(progressBarWidth, progressBarHeight))
 	innerBarHeight := progressBarHeight - 2*borderThickness
 	innerBarWidth := progressBarWidth - 2*borderThickness
-	percentage := int(liters / expectedLiters * 100.0)
+	percentage := int((liters / expectedLiters) * 100.0)
 	if percentage > 99 {
 		percentage = 99
 	}
@@ -440,13 +443,6 @@ func (g *Gui) CreateFuelGiveInProgressScreen(jarNumber, fuelType string, liters,
 		progressBarBackground,
 		filledBarContent,
 	)
-	// Сдвиг прогресс-бара вправо с помощью HBox и Spacer
-	progressBarWithPadding := container.NewHBox(
-		layout.NewSpacer(), // Пустое пространство слева для сдвига
-		progressBarArea,
-		newCustomSpacer(fyne.NewSize(0, 0)), // Отступ справа
-	)
-
 	percentageText := canvas.NewText(fmt.Sprintf("%v%%", percentage), Black)
 	percentageText.Alignment = fyne.TextAlignLeading
 	percentageText.TextSize = 40
@@ -456,14 +452,12 @@ func (g *Gui) CreateFuelGiveInProgressScreen(jarNumber, fuelType string, liters,
 		percentageText,
 		newCustomSpacer(fyne.NewSize(400, 0)), // Отступ справа
 	)
-	//--------------------------
 	amountBarPercentRow := container.NewHBox(
 		newCustomSpacer(fyne.NewSize(400, 0)),
 		container.NewVBox(amountText, litersText),
-		progressBarWithPadding, // Используем новый контейнер с сдвигом
+		progressBarArea,
 		newCustomSpacer(fyne.NewSize(25, 0)),
 	)
-	// Верхний контент с прогресс-баром и процентами
 	topContent := container.NewVBox(
 		newCustomSpacer(fyne.NewSize(0, 20)),
 		ifProgressText,
@@ -472,32 +466,26 @@ func (g *Gui) CreateFuelGiveInProgressScreen(jarNumber, fuelType string, liters,
 		fuelTypeText,
 		newCustomSpacer(fyne.NewSize(0, 10)),
 		maxVolumeAndVolumeContainer,
-		newCustomSpacer(fyne.NewSize(0, 20)), // проценты
+		newCustomSpacer(fyne.NewSize(0, 20)),
 		percentageContainer,
 		newCustomSpacer(fyne.NewSize(0, -60)),
 		amountBarPercentRow,
 	)
-	// Финальная компоновка с кнопкой внизу
 	columnContent := container.New(layout.NewBorderLayout(topContent, buttonAreaContainer, nil, nil),
 		topContent,
 		buttonAreaContainer,
 	)
-	// Учитываем новый размер окна (800x700)
 	columnContent = container.New(layout.NewGridWrapLayout(fyne.NewSize(800, 700)), columnContent)
 	fyne.Do(func() {
 		section.Content.RemoveAll()
 		section.Content.Add(columnContent)
 		section.Content.Refresh()
-		//log.Printf("CreateFuelGiveInProgressScreen: jarNumber=%s, size=%v, progressBarArea=%v", jarNumber, section.Content.Size(), progressBarArea.Size())
+		log.Printf("CreateFuelGiveInProgressScreen: jarNumber=%s, liters=%.2f, expectedLiters=%.2f, size=%v", jarNumber, liters, expectedLiters, section.Content.Size())
 	})
 }
 
 func (g *Gui) CreateFuelGetInProgressScreen(jarNumber string, expectedAmount, drainedAmount, fuelVolume, jarVolume float32, timer int) {
 	section := g.getSection(jarNumber)
-	percentage := int(fuelVolume / jarVolume * 100.0)
-	if percentage >= 100 {
-		percentage = 99
-	}
 	drainText := canvas.NewText("Слив бензовоза", Black)
 	drainText.Alignment = fyne.TextAlignCenter
 	drainText.TextSize = 32
@@ -505,7 +493,7 @@ func (g *Gui) CreateFuelGetInProgressScreen(jarNumber string, expectedAmount, dr
 	jarText.Alignment = fyne.TextAlignCenter
 	jarText.TextStyle = fyne.TextStyle{Bold: true}
 	jarText.TextSize = 40
-	fuelTypeText := widget.NewLabel("Diesel")
+	fuelTypeText := widget.NewLabel("Diesel") // Пример значения
 	fuelTypeText.Alignment = fyne.TextAlignCenter
 	fuelTypeText.Wrapping = fyne.TextWrapWord
 	expectedText := canvas.NewText("Ожидаемый слив", Gray)
@@ -524,7 +512,7 @@ func (g *Gui) CreateFuelGetInProgressScreen(jarNumber string, expectedAmount, dr
 	drainedText := canvas.NewText("литров слито", Gray)
 	drainedText.Alignment = fyne.TextAlignCenter
 	drainedText.TextSize = 40
-	amountAndLiters := container.NewVBox(newCustomSpacer(fyne.NewSize(0, 100)), drainedValueText, drainedText)
+	amountAndLiters := container.NewVBox(newCustomSpacer(fyne.NewSize(0, -150)), drainedValueText, drainedText)
 	amountAndLitersAligned := container.NewCenter(amountAndLiters)
 	progressBarHeight := float32(329)
 	progressBarWidth := float32(85)
@@ -536,6 +524,10 @@ func (g *Gui) CreateFuelGetInProgressScreen(jarNumber string, expectedAmount, dr
 	progressBarBackground.SetMinSize(fyne.NewSize(progressBarWidth, progressBarHeight))
 	innerBarHeight := progressBarHeight - 2*borderThickness
 	innerBarWidth := progressBarWidth - 2*borderThickness
+	percentage := int(fuelVolume / jarVolume * 100.0)
+	if percentage >= 100 {
+		percentage = 99
+	}
 	filledHeight := float32(percentage) * innerBarHeight / 100.0
 	if filledHeight < 0 {
 		filledHeight = 0
@@ -562,57 +554,72 @@ func (g *Gui) CreateFuelGetInProgressScreen(jarNumber string, expectedAmount, dr
 	percentageText.Alignment = fyne.TextAlignCenter
 	percentageText.TextSize = 40
 	percentageText.TextStyle.Bold = true
-	percentageContainer := container.NewCenter(percentageText)
-	amountBarPercentRow := container.NewHBox(
-		newCustomSpacer(fyne.NewSize(25, 0)),
-		amountAndLitersAligned,
-		layout.NewSpacer(),
-		progressBarArea,
-		newCustomSpacer(fyne.NewSize(25, 0)),
+	percentageContainer := container.NewHBox(
+		newCustomSpacer(fyne.NewSize(20, 0)), // Отступ слева
+		percentageText,
+		newCustomSpacer(fyne.NewSize(400, 0)), // Отступ справа
 	)
+
 	buttonText1 := canvas.NewText("Для завершения слива", Black)
 	buttonText1.Alignment = fyne.TextAlignCenter
-	buttonText1.TextSize = 32
+	buttonText1.TextSize = 24
 	buttonText1.TextStyle = fyne.TextStyle{Bold: true}
 	buttonText2 := canvas.NewText("закройте люк. Слив должен", Black)
 	buttonText2.Alignment = fyne.TextAlignCenter
-	buttonText2.TextSize = 32
+	buttonText2.TextSize = 24
 	buttonText2.TextStyle = fyne.TextStyle{Bold: true}
 	buttonText3 := canvas.NewText(fmt.Sprintf("быть завершен через %v минут", timer), Black)
 	buttonText3.Alignment = fyne.TextAlignCenter
-	buttonText3.TextSize = 32
+	buttonText3.TextSize = 24
 	buttonText3.TextStyle = fyne.TextStyle{Bold: true}
-	buttonText := container.NewVBox(buttonText1, buttonText2, buttonText3)
+	buttonText := container.NewVBox(
+		newCustomSpacer(fyne.NewSize(0, 0)), // Отступ внутри контейнера
+		buttonText1,
+		buttonText2,
+		buttonText3,
+	)
 	borderRect := canvas.NewRectangle(color.Transparent)
 	borderRect.StrokeColor = Black
 	borderRect.CornerRadius = 10.0
 	borderRect.StrokeWidth = 2
 	paddedButtonText := container.NewBorder(newCustomSpacer(fyne.NewSize(0, 2)), newCustomSpacer(fyne.NewSize(0, 2)), newCustomSpacer(fyne.NewSize(20, 0)), newCustomSpacer(fyne.NewSize(20, 0)), buttonText)
 	buttonArea := container.NewStack(borderRect, paddedButtonText)
-	buttonAreaContainer := container.NewCenter(buttonArea)
-	topCenterContent := container.NewVBox(
-		newCustomSpacer(fyne.NewSize(0, 25)),
+	buttonAreaContainer := container.NewHBox(
+		newCustomSpacer(fyne.NewSize(200, 0)), // Отступ слева надписи для завершения слива....
+		buttonArea,
+	)
+	amountBarPercentRow := container.NewHBox(
+		newCustomSpacer(fyne.NewSize(400, 0)),
+		amountAndLitersAligned,
+		layout.NewSpacer(),
+		progressBarArea,
+		newCustomSpacer(fyne.NewSize(25, 0)),
+	)
+
+	topContent := container.NewVBox(
+		newCustomSpacer(fyne.NewSize(0, 20)),
 		drainText,
 		jarText,
-		newCustomSpacer(fyne.NewSize(0, 30)),
+		newCustomSpacer(fyne.NewSize(0, 45)),
+		fuelTypeText,
+		newCustomSpacer(fyne.NewSize(0, 10)),
 		expectedContainer,
 		expectedValueContainer,
-		layout.NewSpacer(),
+		newCustomSpacer(fyne.NewSize(0, 20)),
+		percentageContainer,
+		newCustomSpacer(fyne.NewSize(0, -60)),
 		amountBarPercentRow,
 	)
-	percentageContainerPadded := container.NewCenter(percentageContainer)
-	columnContent := container.New(layout.NewBorderLayout(topCenterContent, buttonAreaContainer, nil, nil),
-		topCenterContent,
-		percentageContainerPadded,
-		newCustomSpacer(fyne.NewSize(0, 70)),
+	columnContent := container.New(layout.NewBorderLayout(topContent, buttonAreaContainer, nil, nil),
+		topContent,
 		buttonAreaContainer,
 	)
-	columnContent = container.New(layout.NewGridWrapLayout(fyne.NewSize(400, 600)), columnContent)
+	columnContent = container.New(layout.NewGridWrapLayout(fyne.NewSize(800, 700)), columnContent)
 	fyne.Do(func() {
 		section.Content.RemoveAll()
 		section.Content.Add(columnContent)
 		section.Content.Refresh()
-		log.Printf("CreateFuelGetInProgressScreen: jarNumber=%s, size=%v, progressBarArea=%v", jarNumber, section.Content.Size(), progressBarArea.Size())
+		log.Printf("CreateFuelGetInProgressScreen: jarNumber=%s, size=%v", jarNumber, section.Content.Size())
 	})
 }
 
@@ -727,6 +734,74 @@ func (g *Gui) getSectionByStack(sectionStack *fyne.Container) *Section {
 		return g.RightSection
 	}
 	return nil
+}
+
+func (g *Gui) CreateFuelGetStartScreen(jarNumber string, expectedAmount, drainedAmount, fuelVolume, jarVolume float32, timer int) {
+	section := g.getSection(jarNumber)
+	insertText := canvas.NewText("Начните слив", Black)
+	insertText.Alignment = fyne.TextAlignCenter
+	insertText.TextSize = 32
+	jarText := canvas.NewText(fmt.Sprintf("ЁМКОСТЬ №%v", jarNumber), Black)
+	jarText.Alignment = fyne.TextAlignCenter
+	jarText.TextSize = 40
+	jarText.TextStyle = fyne.TextStyle{Bold: true}
+	fuelTypeText := widget.NewLabel("Diesel") // Пример значения
+	fuelTypeText.Alignment = fyne.TextAlignCenter
+	fuelTypeText.Wrapping = fyne.TextWrapWord
+	expectedText := canvas.NewText("Ожидаемый объем", Gray)
+	expectedText.Alignment = fyne.TextAlignCenter
+	expectedText.TextSize = 32
+	expectedValueText := canvas.NewText(fmt.Sprintf("%v литров", expectedAmount), Black)
+	expectedValueText.Alignment = fyne.TextAlignCenter
+	expectedValueText.TextStyle = fyne.TextStyle{Bold: true}
+	expectedValueText.TextSize = 40
+	expectedArea := container.NewVBox(expectedText, newCustomSpacer(fyne.NewSize(0, 5)), expectedValueText)
+	expectedContainer := container.NewCenter(expectedArea)
+	buttonText1 := canvas.NewText("Для начала слива снимите", Black)
+	buttonText1.Alignment = fyne.TextAlignCenter
+	buttonText1.TextSize = 32
+	buttonText1.TextStyle = fyne.TextStyle{Bold: true}
+	buttonText2 := canvas.NewText(fmt.Sprintf("пистолет №%v в течение", jarNumber), Black)
+	buttonText2.Alignment = fyne.TextAlignCenter
+	buttonText2.TextSize = 32
+	buttonText2.TextStyle = fyne.TextStyle{Bold: true}
+	buttonText3 := canvas.NewText(fmt.Sprintf("%v секунд", timer), Black)
+	buttonText3.Alignment = fyne.TextAlignCenter
+	buttonText3.TextSize = 32
+	buttonText3.TextStyle = fyne.TextStyle{Bold: true}
+	buttonText := container.NewVBox(buttonText1, buttonText2, buttonText3)
+	borderRect := canvas.NewRectangle(color.Transparent)
+	borderRect.CornerRadius = 10.0
+	borderRect.StrokeColor = Black
+	borderRect.StrokeWidth = 2
+	paddedButtonText := container.NewBorder(newCustomSpacer(fyne.NewSize(0, 2)), newCustomSpacer(fyne.NewSize(0, 2)), newCustomSpacer(fyne.NewSize(20, 0)), newCustomSpacer(fyne.NewSize(20, 0)), buttonText)
+	buttonArea := container.NewStack(borderRect, paddedButtonText)
+	buttonAreaContainer := container.NewCenter(buttonArea)
+	paddedButtonArea := container.NewHBox(
+		newCustomSpacer(fyne.NewSize(20, 0)), // Отступ 20px слева
+		buttonAreaContainer,
+	)
+	topCenterContent := container.NewVBox(
+		newCustomSpacer(fyne.NewSize(0, 20)),
+		insertText,
+		jarText,
+		newCustomSpacer(fyne.NewSize(0, 60)),
+		fuelTypeText,
+		newCustomSpacer(fyne.NewSize(0, 15)),
+		expectedContainer,
+	)
+	columnContent := container.New(layout.NewBorderLayout(topCenterContent, paddedButtonArea, nil, nil),
+		topCenterContent,
+		newCustomSpacer(fyne.NewSize(0, 225)),
+		paddedButtonArea,
+	)
+	columnContent = container.New(layout.NewGridWrapLayout(fyne.NewSize(400, 600)), columnContent)
+	fyne.Do(func() {
+		section.Content.RemoveAll()
+		section.Content.Add(columnContent)
+		section.Content.Refresh()
+		log.Printf("CreateFuelGetStartScreen: jarNumber=%s, size=%v", jarNumber, section.Content.Size())
+	})
 }
 
 func newCustomSpacer(size fyne.Size) *canvas.Rectangle {

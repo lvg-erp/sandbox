@@ -10,6 +10,8 @@ require (
 	golang.org/x/text v0.23.0 // indirect
 )
 
+require github.com/lib/pq v1.10.9
+
 require (
 	fyne.io/systray v1.11.0 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect

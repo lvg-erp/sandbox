@@ -1,31 +1,59 @@
 package main
 
 import (
+	"database/sql"
 	"fuelstation/internal/gui"
-	"fuelstation/internal/models"
-	"fuelstation/internal/usecase"
-	_ "fyne.io/fyne/v2"
+	"fuelstation/internal/processor"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
+	_ "github.com/lib/pq" // Драйвер PostgreSQL
+	"log"
+	"time"
 )
 
 func main() {
+	// Инициализация приложения Fyne
 	a := app.New()
 	g := gui.NewGui(a)
-	u := usecase.NewProcessing(g)
+	p := processor.NewProcessor(g)
 
-	// Добавляем тестовые кнопки
-	buttons := container.NewVBox(
-		widget.NewButton("Заправка (Пистолет 1)", func() {
-			u.FuelGive(models.ScannerResponse{TID: "TEST1"})
-		}),
-		widget.NewButton("Слив (Ёмкость 2)", func() {
-			g.CreateFuelGetInProgressScreen("2", 100, 50, 50, 300, 5)
-		}),
-	)
-	g.MainContent = container.NewVBox(buttons, g.MainContent)
+	// Подключение к PostgreSQL
+	connStr := "user=postgres password=password dbname=fuelstation sslmode=disable host=localhost port=5454"
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatalf("Ошибка подключения к базе данных: %v", err)
+	}
+	defer db.Close()
 
+	// Проверка подключения
+	err = db.Ping()
+	if err != nil {
+		log.Fatalf("Ошибка проверки подключения к базе данных: %v", err)
+	}
+	log.Printf("Успешное подключение к базе данных на %s", time.Now().Format("15:04:05"))
+
+	// Добавление кнопок для эмуляции QR-кода
+	fuelGiveButton := widget.NewButton("Заправка", func() {
+		err := p.EmulateQRScan("FuelGive", "Petrol", 50.0, "1")
+		if err != nil {
+			log.Printf("Ошибка эмуляции QR-кода (Заправка): %v", err)
+		}
+	})
+	fuelGetButton := widget.NewButton("Слив", func() {
+		err := p.EmulateQRScan("FuelGet", "Diesel", 30.0, "2")
+		if err != nil {
+			log.Printf("Ошибка эмуляции QR-кода (Слив): %v", err)
+		}
+	})
+
+	// Контейнер с кнопками
+	buttonContainer := container.NewHBox(fuelGiveButton, fuelGetButton)
+
+	// Обновление главного содержимого GUI
+	g.MainContent = container.NewVBox(g.TopSection.Content, g.BottomSection, buttonContainer)
+
+	// Запуск GUI
 	g.RunGui()
 }
 
