@@ -1,0 +1,102 @@
+KazsConfig:
+  FuelGetConfig:
+    # Таймаут ожидания начала пополнения (с.) 180
+    FuelGetStartScreenTimeout: 600
+    # Количество топлива для определния топливо пошло (л.) 10
+    FuelLiterStart: 10
+    # Таймаут ожидания процесса пополнения (с.) 3600
+    FuelGetInProgressScreenTimeout: 10800
+    # Таймаут окна завершения пополнения (с.) 600
+    FuelGetCompleteScreenTimeout: 600
+    # Таймаут окна завершения пополнения без начала налива (с.) 30
+    FuelGetCompleteScreenNoFuelTimeout: 30
+    # Единицы измерения (1 - литры, 1000 - кубы)
+    FuelGetUnits: 1
+    # Таймаут проверки незавершенных заправок (с.) 1800
+    CheckUnsentTransactions: 1800
+    # Таймаут ожидания закрытой двери (c.)
+    DoorCloseTimeout: 300
+    # Таймаут изменения количества топлива (с.) 1800
+    StallTimeout: 1800
+    # Погрешность изменения топлива (л.)
+    StallDeltaLiters: 10
+  Telemetry:
+    # Время сбора телеметрии (с.)
+    GetTelemetry: 10
+    # Время сбора статуса ТРК (с.)
+    GetTRKTelemetry: 5
+    # Время отправки телеметрии на сервер(с.)
+    SendTelemetry: 30
+    # Периодичность проверки неотправленной телеметрии (с.)
+    TelemetryHistory: 300
+    # Задержка сбора телеметрии между ёмкостями (c.)
+    GetTelemetryJarTimeout: 5
+    # Количество попыток на отправку телеметрии
+    MaxFailureCount: 5
+    # Единицы измерения (1 - литры, 1000 - кубы)
+    TelemetryUnits: 1
+    # Время актуальной телеметрии СЕНС (с.)
+    ActualTimeSENS: 15
+    # Время актуальной телеметрии ТРК (с.)
+    ActualTimeTRK: 15
+    # Время актуальной телеметрии температур (с.)
+    ActualTemp: 15
+
+  FuelGiveConfig:
+    # Таймаут ожидания начала заправки (с.) 120
+    FuelGiveStartScreenTimeout: 120
+    # Таймаут отображения экрана завершения заправки (с.)
+    FuelGiveCompleteScreenTimeout: 60
+    # Таймаут ожидания без налива (дополнительное время относительно настроек ТРК) (с.)
+    FuelGiveTimeout: 10
+    # Таймаут проверки незавершенных заправок (с.)
+    CheckUnsentTransactions: 300
+    # Время актуальной телеметрии СЕНС (с.)
+    ActualTimeSENS: 15
+    # Время ожидания завершения заправки
+    FuelGiveEndTimeout: 16
+    # Таймаут ошибок ТРК (c.)
+    FailedTRKResponse: 300
+    # Количество попыток закончить заправку
+    CountFuelGiveEnd: 10
+    # Таймаут автоматической остановки насоса, если не получили настройки ТРК. (с.).
+    StopPumpTimeout: 30
+    # Объем топлива для начала подсчета средней скорости (л.)
+    FuelGiveSpeedStart: 10
+    # Минимальный объем топлива для подсчета средней скорости (л.)
+    FuelGiveSpeedMin: 50
+
+
+AppConfig:
+  FuelGetInfoTimeout: 2
+  FuelGiveInfoTimeout: 2
+  FuelGetConfirmationTimeout: 2
+  FuelGiveConfirmationTimeout: 2
+  FuelGetReceiptTimeout: 2
+  FuelGiveReceiptTimeout: 2
+  TelemetryTimeout: 2
+  GetConfigTimeout: 2
+  # Максимальное допустимое расхождение между NTP и local временем (c.)
+  NTPOffset: 5
+  # Таймаут ожидания синхронизации (с.)
+  NTPFailedTimeout: 300
+
+DriverConfig:
+  # Таймаут получения основных параметров СЕНС (с.)
+  GetMainStatusTimeout: 10
+  # Таймаут получения статуса ТРК (с.)
+  GetTRKStatusTimeout: 5
+  # Таймаут задания количества топлива для заправки на ТРК (с.)
+  SetFuelGiveTimeout: 5
+  # Таймаут санкционирования ТРК (с.)
+  ApprovalTRKTimeout: 5
+  # Таймаут получения количества заправленных литров на ТРК (с.)
+  GetFuelGiveStatusTimeout: 5
+  # Таймаут получения отчета о заправке на ТРК (с.)
+  GetFullFuelGiveStatusTimeout: 5
+  # Таймаут завершения заправки на ТРК (с.)
+  FuelGiveSuccessTimeout: 5
+  # Таймаут ответа контроллера (с.)
+  ControllerTimeout: 5
+  # Количество попыток опроса драйверов с игнорированием ошибки
+  RetryAttempts: 3

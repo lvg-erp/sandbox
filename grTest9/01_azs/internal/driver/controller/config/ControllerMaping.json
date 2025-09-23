@@ -1,0 +1,56 @@
+{
+  "Controller": {
+    "Settings": {
+      "IsUSB": false,
+      "COMPort": 7,
+      "BaudRate": 115200,
+      "StopBits": 1,
+      "DataBits": 8,
+      "Parity": "None",
+      "ReadTimeout": 2,
+      "Token": "000000"
+    },
+    "Doors": {
+      "1": {
+        "Number": "8",
+        "Relay": "din",
+        "Close": "1",
+        "Open": "0"
+      },
+      "2": {
+        "Number": "2",
+        "Relay": "din",
+        "Close": "1",
+        "Open": "0"
+      }
+    },
+    "Lock": {
+      "1": {
+        "Number": "1",
+        "Relay": "dout",
+        "Close": "0",
+        "Open": "1"
+      },
+      "2": {
+        "Number": "2",
+        "Relay": "dout",
+        "Close": "0",
+        "Open": "1"
+      }
+    },
+    "Pump": {
+      "1": {
+        "Number": "3",
+        "Relay": "dout",
+        "Enable": "1",
+        "Disable": "0"
+      },
+      "2": {
+        "Number": "4",
+        "Relay": "dout",
+        "Enable": "1",
+        "Disable": "0"
+      }
+    }
+  }
+}
