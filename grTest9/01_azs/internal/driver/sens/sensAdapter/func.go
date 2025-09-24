@@ -5,13 +5,20 @@ import (
 	"fmt"
 	"go.bug.st/serial"
 	"os"
+	"path/filepath"
 	"runtime"
 )
 
+func getFilePath() string {
+	// Предполагаем, что корень проекта — две директории выше от sensAdapter
+	wd, _ := os.Getwd() // Текущая рабочая директория
+	return filepath.Join(wd, "internal", "driver", "sens", "SENSmaping.json")
+}
+
 // getSENSConnectionInfo Получаем информацию о подключении устройств SENS
 func getSENSConnectionInfo() (*SENSMaping, error) {
-	filePath := "SENSmaping.json"
-
+	//filePath := "SENSmaping.json"
+	filePath := getFilePath()
 	if !fileExists(filePath) {
 		return nil, fmt.Errorf("file " + filePath + " does not exist")
 	}

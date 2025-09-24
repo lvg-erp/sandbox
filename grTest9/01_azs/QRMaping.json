@@ -1,0 +1,15 @@
+{
+  "QR": {
+    "1": {
+      "IsUSB": false,
+      "IsACM": false,
+      "COMPort": 4,
+      "BaudRate": 115200,
+      "DataBits": 8,
+      "StopBits": 1,
+      "Parity": "None",
+      "ReadTimeout": 2
+    }
+  }
+}
+

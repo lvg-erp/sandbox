@@ -2,36 +2,50 @@ package sensAdapter
 
 import (
 	"bytes"
+	_ "encoding/json"
 	"fmt"
 	"fuelazs/internal/driver/sens"
 	"go.bug.st/serial"
+	_ "os"
+	_ "path/filepath"
 	"strconv"
 	"sync"
 	"time"
 )
 
-const (
-	SyncByte = 0xB5
-)
+// SyncByte константа для синхронизации
+const SyncByte = 0xB5
+
+// SerialPort интерфейс для работы с COM-портом
+type SerialPort interface {
+	Write([]byte) (int, error)
+	Read([]byte) (int, error)
+	Close() error
+	Drain() error
+	ResetInputBuffer() error
+	ResetOutputBuffer() error
+	SetReadTimeout(time.Duration) error
+}
 
 var (
-	openedPorts     = make(map[string]serial.Port)
+	openedPorts     = make(map[string]SerialPort)
 	openedPortsLock sync.Mutex
 )
 
-func getPortFromCache(comName string) (serial.Port, bool) {
+func getPortFromCache(comName string) (SerialPort, bool) {
 	openedPortsLock.Lock()
 	defer openedPortsLock.Unlock()
 	port, found := openedPorts[comName]
 	return port, found
 }
 
-func addPortToCache(comName string, port serial.Port) {
+func addPortToCache(comName string, port SerialPort) {
 	openedPortsLock.Lock()
 	defer openedPortsLock.Unlock()
 	openedPorts[comName] = port
 }
 
+// SensAdapterSettings настройки адаптера
 type SensAdapterSettings struct {
 	PortName    string
 	BaudRate    int
@@ -41,15 +55,39 @@ type SensAdapterSettings struct {
 	ReadTimeout int
 }
 
+// SensAdapter структура адаптера
 type SensAdapter struct {
-	Port                serial.Port
+	Port                SerialPort
 	SensAdapterSettings SensAdapterSettings
 	BK                  map[string]struct{}
 	LC                  map[string]struct{}
 	mutex               sync.Mutex
 }
 
-func NewSensAdapter() (map[string]*SensAdapter, error) {
+// getSENSConnectionInfo читает SENSmaping.json
+//func getSENSConnectionInfo() (*SENSMaping, error) {
+//	filePath := getFilePath()
+//	data, err := os.ReadFile(filePath)
+//	if err != nil {
+//		return nil, fmt.Errorf("failed to read SENSmaping.json: %w", err)
+//	}
+//
+//	var sensMaping SENSMaping
+//	err = json.Unmarshal(data, &sensMaping)
+//	if err != nil {
+//		return nil, fmt.Errorf("failed to unmarshal SENSmaping.json: %w", err)
+//	}
+//	return &sensMaping, nil
+//}
+
+// NewSensAdapter создает адаптеры
+func NewSensAdapter(portFactory func(string, *serial.Mode) (SerialPort, error)) (map[string]*SensAdapter, error) {
+	if portFactory == nil {
+		portFactory = func(name string, mode *serial.Mode) (SerialPort, error) {
+			return serial.Open(name, mode)
+		}
+	}
+
 	sensInfo, err := getSENSConnectionInfo()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get SENS connection info: %w", err)
@@ -59,21 +97,21 @@ func NewSensAdapter() (map[string]*SensAdapter, error) {
 
 	for sensKey, sensConfig := range sensInfo.LinAdapter {
 		comName := getOSPortName(sensConfig.COMPort, sensInfo.LinAdapter["1"].IsUSB)
-		var port serial.Port
+		var port SerialPort
 		var portErr error
 
 		cachedPort, found := getPortFromCache(comName)
 		if found {
 			port = cachedPort
 		} else {
-			port, portErr = serial.Open(comName, &serial.Mode{
+			port, portErr = portFactory(comName, &serial.Mode{
 				BaudRate: sensConfig.BaudRate,
 				DataBits: sensConfig.DataBits,
 				Parity:   parity(sensConfig.Parity),
 				StopBits: stopBits(sensConfig.StopBits),
 			})
 			if portErr != nil {
-				return nil, fmt.Errorf("failedo to open serial port %s for LIN %s: %w", comName, sensKey, portErr)
+				return nil, fmt.Errorf("failed to open serial port %s for LIN %s: %w", comName, sensKey, portErr)
 			}
 
 			portErr = port.SetReadTimeout(time.Duration(sensConfig.ReadTimeout) * time.Second)
@@ -111,6 +149,7 @@ func NewSensAdapter() (map[string]*SensAdapter, error) {
 			LC: lcList,
 		}
 	}
+
 	return sensAdapters, nil
 }
 

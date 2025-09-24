@@ -5,12 +5,20 @@ import (
 	"fmt"
 	"go.bug.st/serial"
 	"os"
+	"path/filepath"
 	"runtime"
 )
 
-func getControllerConnectionInfo() (*ControllerMaping, error) {
-	filePath := "ControllerMaping.json"
+func getFilePath() string {
+	// Предполагаем, что корень проекта — две директории выше от sensAdapter
+	wd, _ := os.Getwd() // Текущая рабочая директория
+	return filepath.Join(wd, "internal", "driver", "controller", "config", "ControllerMaping.json")
+}
 
+func getControllerConnectionInfo() (*ControllerMaping, error) {
+	//TODO
+	//filePath := "ControllerMaping.json"
+	filePath := getFilePath()
 	if !fileExists(filePath) {
 		return nil, fmt.Errorf("file " + filePath + " does not exist")
 	}

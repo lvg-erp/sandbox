@@ -1,5 +1,7 @@
 package integration
 
+import "fmt"
+
 type TelemetryRequest struct {
 	StatusTime     int64                     `json:"StatusTime"`
 	PowerStatus    int64                     `json:"PowerStatus"`
@@ -32,19 +34,19 @@ type KazsTelemetryNestedJars struct {
 	JarErrors     string  `json:"JarErrors"`
 }
 
-//func (o *KazsOperator) Telemetry(body *TelemetryRequest) error {
-//
-//	method := methods.Telemetry
-//	method.Path = fmt.Sprintf(method.Path, o.KazsID)
-//	err := o.sendRequestKazsOperator(sendRequestArgs{
-//		methodsKazsOperator: method,
-//		urlValues:           nil,
-//		requestBody:         body,
-//		resultStruct:        nil,
-//	})
-//	if err != nil {
-//		return err
-//	}
-//
-//	return nil
-//}
+func (o *KazsOperator) Telemetry(body *TelemetryRequest) error {
+
+	method := methods.Telemetry
+	method.Path = fmt.Sprintf(method.Path, o.KazsID)
+	err := o.sendRequestKazsOperator(sendRequestArgs{
+		methodsKazsOperator: method,
+		urlValues:           nil,
+		requestBody:         body,
+		resultStruct:        nil,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

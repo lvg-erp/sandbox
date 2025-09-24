@@ -9,6 +9,7 @@ import (
 	"fuelazs/internal/driver/sens/sensAdapter"
 	"fuelazs/internal/driver/topaz/topazAdapter"
 	"fuelazs/internal/driver/topaz/trk"
+	"go.bug.st/serial"
 	"sync"
 )
 
@@ -44,8 +45,14 @@ type QRDriver struct {
 }
 
 func NewSensDriver() (*SensDriver, error) {
+	// Используем MockSerialPort для эмуляции порта
+	portFactory := func(_ string, _ *serial.Mode) (sensAdapter.SerialPort, error) {
+		return sensAdapter.NewMockSerialPort([][]byte{
+			{0xB5, 0x01, 0x03, 0x00, 0x00, 0x00, 0xB5}, // Пример ответа с корректным CRC
+		}), nil
+	}
 
-	adapter, err := sensAdapter.NewSensAdapter()
+	adapter, err := sensAdapter.NewSensAdapter(portFactory)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +66,7 @@ func NewSensDriver() (*SensDriver, error) {
 }
 
 func NewTopazDriver() (*TopazDriver, error) {
-	adapter, err := topazAdapter.NewTopazAdapter()
+	adapter, err := topazAdapter.NewTopazAdapter(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +78,7 @@ func NewTopazDriver() (*TopazDriver, error) {
 }
 
 func NewControllerDriver() (*ControllerDriver, error) {
-	adapter, err := controller.NewControllerAdapter()
+	adapter, err := controller.NewControllerAdapter(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +89,7 @@ func NewControllerDriver() (*ControllerDriver, error) {
 }
 
 func NewQRDriver() (*QRDriver, error) {
-	adapter, err := qr.NewQRAdapter()
+	adapter, err := qr.NewQRAdapter(nil)
 	if err != nil {
 		return nil, err
 	}

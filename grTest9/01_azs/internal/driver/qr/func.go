@@ -2,44 +2,87 @@ package qr
 
 import (
 	"encoding/json"
-	"errors"
+	_ "errors"
 	"fmt"
 	"go.bug.st/serial"
 	"os"
+	"path/filepath"
 	"runtime"
 )
 
-func getConnectionInfo() (*QRMaping, error) {
-	filePath := "QRMaping.json"
+//// QRMaping структура для десериализации JSON
+//type QRMaping struct {
+//	QR map[string]struct {
+//		IsUSB       bool    `json:"IsUSB"`
+//		IsACM       bool    `json:"IsACM"`
+//		COMPort     int     `json:"COMPort"`
+//		BaudRate    int     `json:"BaudRate"`
+//		DataBits    int     `json:"DataBits"`
+//		Parity      string  `json:"Parity"`
+//		StopBits    float32 `json:"StopBits"`
+//		ReadTimeout int     `json:"ReadTimeout"`
+//	} `json:"QR"`
+//}
 
+func getFilePath() string {
+	// Получаем путь к корню проекта
+	_, filename, _, _ := runtime.Caller(0)
+	dir := filepath.Dir(filename)
+	// Предполагаем, что QRMaping.json находится в корне проекта
+	return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(dir))), "QRMaping.json")
+}
+
+func getConnectionInfo() (*QRMaping, error) {
+	filePath := getFilePath()
+	fmt.Println(filePath)
 	if !fileExists(filePath) {
-		return nil, errors.New("file " + filePath + " does not exist")
+		// Эмуляция данных, если файл не найден
+		data := []byte(`{
+			"QR": {
+				"1": {
+					"IsUSB": false,
+					"IsACM": false,
+					"COMPort": 4,
+					"BaudRate": 9600,
+					"DataBits": 8,
+					"Parity": "None",
+					"StopBits": 1,
+					"ReadTimeout": 2
+				}
+			}
+		}`)
+
+		var connectionInfo QRMaping
+		err := json.Unmarshal(data, &connectionInfo)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal default QRMaping.json: %w", err)
+		}
+		return &connectionInfo, nil
 	}
 
 	file, err := os.ReadFile(filePath)
 	if err != nil {
-		return nil, errors.New("file reading error " + filePath)
+		return nil, fmt.Errorf("failed to read file %s: %w", filePath, err)
 	}
 
-	var connectionInfo *QRMaping
+	var connectionInfo QRMaping
 	err = json.Unmarshal(file, &connectionInfo)
 	if err != nil {
-		return nil, errors.New("json unmarshalling error " + filePath)
+		return nil, fmt.Errorf("failed to unmarshal JSON from %s: %w", filePath, err)
 	}
 
-	// Парсим номер виртуального уровнемера/номер ком порта
-	return connectionInfo, nil
+	return &connectionInfo, nil
 }
 
 func fileExists(filename string) bool {
 	_, err := os.Stat(filename)
 	if err == nil {
-		return true // файл существует
+		return true
 	}
 	if os.IsNotExist(err) {
-		return false // файл не существует
+		return false
 	}
-	return false // произошла другая ошибка (например, нет прав доступа)
+	return false
 }
 
 // getOSPortName Преобразуем номер порта в имя, зависящее от ОС
@@ -57,7 +100,6 @@ func getOSPortName(comNumber int, isUSB bool, isACM bool) string {
 		default:
 			return fmt.Sprintf("/dev/ttyS%d", portIndex)
 		}
-
 	default:
 		return fmt.Sprintf("COM%d", comNumber)
 	}
@@ -79,7 +121,7 @@ func parity(parity string) serial.Parity {
 	}
 }
 
-// stopBits Метод для конвертации стоп битов
+// stopBits Метод для конвертации стоп-битов
 func stopBits(stopBits float32) serial.StopBits {
 	switch stopBits {
 	case 2:

@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"database/sql"
+
+	//"database/sql/driver"
 	"errors"
 	"fmt"
 	//"gl.iteco.com/technology/go_general/errproc"

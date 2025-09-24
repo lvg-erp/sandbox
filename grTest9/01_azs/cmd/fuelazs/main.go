@@ -11,7 +11,9 @@ import (
 )
 
 const Version = "v0.0.1"
-const DBPath = "fuelazs.db"
+
+// const DBPath = "fuelazs.db"
+const DBPath = "host=localhost port=5464 user=postgres password=password dbname=fuelazs sslmode=disable"
 
 func main() {
 

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"fuelazs/internal/logger"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type Registry struct {

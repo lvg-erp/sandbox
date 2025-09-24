@@ -8,5 +8,12 @@
       <jdbc-url>jdbc:postgresql://localhost:5454/fuelstation</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="fuelazs@localhost" uuid="a0d66087-64e9-472a-a6cc-f1b00350fac8">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://localhost:5464/fuelazs</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

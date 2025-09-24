@@ -1,0 +1,35 @@
+# docker-compose.yaml
+
+version: '3.8'
+
+services:
+#  app:
+#    build: .
+#    container_name: fuelazs_app
+#    ports:
+#      - "8080:8080"  # Укажите порт приложения, если есть
+#    depends_on:
+#      - postgres
+#    volumes:
+#      - .:/app  # Для разработки, если нужно
+#    environment:
+#      - DB_HOST=postgres
+#      - DB_PORT=5464
+#      - DB_USER=postgres  # Укажите credentials
+#      - DB_PASSWORD=password
+#      - DB_NAME=fuelsazs
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: fuelazs_postgres
+    ports:
+      - "5464:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: fuelazs
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

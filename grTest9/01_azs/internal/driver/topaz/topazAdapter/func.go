@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go.bug.st/serial"
 	"os"
+	"path/filepath"
 	"runtime"
 )
 
@@ -26,10 +27,17 @@ func TOPAZCalculateChecksum(data []byte) byte {
 	return checksum
 }
 
+func getFilePath() string {
+	// Предполагаем, что корень проекта — две директории выше от sensAdapter
+	wd, _ := os.Getwd() // Текущая рабочая директория
+	return filepath.Join(wd, "internal", "driver", "topaz", "TopazMaping.json")
+}
+
 // getTRKConnectionInfo Получаем информацию о подключение устройств ТРК
 func getTRKConnectionInfo() (*TRKMaping, error) {
-	filePath := "TopazMaping.json"
-
+	//TODO
+	//filePath := "TopazMaping.json"
+	filePath := getFilePath()
 	if !fileExists(filePath) {
 		return nil, fmt.Errorf("file " + filePath + " does not exist")
 	}

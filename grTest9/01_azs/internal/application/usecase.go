@@ -48,8 +48,8 @@ func NewUseCases(uc UseCasesDep) (*UseCases, error) {
 		DriverConfig: &uc.Config.DriverConfig,
 		Repository:   uc.Repository,
 		Logger:       uc.Logger,
-		ErrProc:      uc.ErrProc,
-		TRKSettings:  uc.TRKSettings,
+		//ErrProc:      uc.ErrProc,
+		TRKSettings: uc.TRKSettings,
 	})
 
 	return &UseCases{

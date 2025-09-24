@@ -13,7 +13,6 @@ import (
 	"fuelazs/internal/usecase/models"
 	myntp "fuelazs/pkg/ntp"
 	"github.com/beevik/ntp"
-	"go.bug.st/serial"
 	"log/slog"
 	"strconv"
 	"time"
@@ -350,7 +349,6 @@ func (p *Processing) StartProgram(ntpServer string) error {
 		} else {
 			logger.Info("настройки ТРК найдены.")
 		}
-
 	}
 
 	p.trkSettings = TRKSettings
@@ -590,63 +588,43 @@ func (p *Processing) StartProgram(ntpServer string) error {
 	}
 
 	return nil
-
 }
 
 func (c *Processing) ReadPort(cancel context.CancelFunc) {
 	logger := c.logger.BaseError("controller_read_port")
-	for {
-		if c.driver.ControllerDriver.Adapter.Port != nil {
-			if err := c.driver.ControllerDriver.Adapter.Port.Close(); err != nil {
-				logger.Error("не удалось закрыть порт.", "err", err)
-			}
-			c.driver.ControllerDriver.Adapter.Port = nil
-		}
 
-		// Попытка открыть порт
-		port, err := serial.Open(c.driver.ControllerDriver.Adapter.ControllerAdapterSettings.PortName, &serial.Mode{
-			BaudRate: c.driver.ControllerDriver.Adapter.ControllerAdapterSettings.BaudRate,
-			DataBits: c.driver.ControllerDriver.Adapter.ControllerAdapterSettings.DataBits,
-			Parity:   c.driver.ControllerDriver.Adapter.ControllerAdapterSettings.Parity,
-			StopBits: c.driver.ControllerDriver.Adapter.ControllerAdapterSettings.StopBits,
-		})
-		if err != nil {
-			logger.Error("не удалось открыть порт.", "err", err)
-			continue
-		}
+	// Используем порт из ControllerAdapter
+	port := c.driver.ControllerDriver.Adapter.Port
+	if port == nil {
+		logger.Error("последовательный порт не инициализирован")
+		return
+	}
 
-		c.driver.ControllerDriver.Adapter.Port = port
-
-		err = c.driver.ControllerDriver.Adapter.Verify()
-		if err != nil {
-			logger.Error("ошибка контроллера.", "err", err)
-			continue
-		}
-
-		// Создаем новый сканер для только что открытого порта
-		scanner := bufio.NewScanner(c.driver.ControllerDriver.Adapter.Port)
-		cancel()
-
-		// Внутренний цикл: читает строки из сканера
-		for scanner.Scan() {
-			message := bytes.TrimSpace(scanner.Bytes())
-			if len(message) > 0 {
-				c.saveMessage(message, logger)
-			}
-		}
-
-		// Если внутренний цикл завершается, это означает, что произошла ошибка или достигнут EOF
-		if err := scanner.Err(); err != nil {
-			continue
+	scanner := bufio.NewScanner(port)
+	for scanner.Scan() {
+		message := bytes.TrimSpace(scanner.Bytes())
+		if len(message) > 0 {
+			c.saveMessage(message, logger)
 		}
 	}
+
+	if err := scanner.Err(); err != nil {
+		logger.Error("ошибка чтения порта", "err", err)
+		// Пытаемся переоткрыть порт при ошибке
+		if err := c.driver.ControllerDriver.Adapter.Reopen(); err != nil {
+			logger.Error("не удалось переоткрыть порт", "err", err)
+		}
+	}
+
+	// Вызываем cancel, чтобы завершить контекст
+	cancel()
 }
 
 func (c *Processing) saveMessage(message []byte, logger *slog.Logger) {
 	var msg ComMessage
 	err := json.Unmarshal(message, &msg)
 	if err != nil {
-		c.logger.Error("ошибка json", "err", err)
+		c.logger.Error("ошибка десериализации JSON", "err", err)
 		return
 	}
 
@@ -678,7 +656,6 @@ func (c *Processing) saveMessage(message []byte, logger *slog.Logger) {
 			for i := 0; i < 8; i++ {
 				currentRelays[i] = "0"
 			}
-
 			for _, item := range relayItem {
 				idx, _ := strconv.Atoi(item.Index)
 				if idx >= 1 && idx <= 8 {
@@ -686,7 +663,6 @@ func (c *Processing) saveMessage(message []byte, logger *slog.Logger) {
 					c.UpdateLastControllerDoutTelemetry(idx, item.State)
 				}
 			}
-
 		case "din_set":
 			for _, item := range relayItem {
 				idx, _ := strconv.Atoi(item.Index)
@@ -703,9 +679,7 @@ func (c *Processing) saveMessage(message []byte, logger *slog.Logger) {
 			}
 		default:
 		}
-		return
 	}
-	return
 }
 
 func (p *Processing) SettingNTP(ctx context.Context, cancel context.CancelFunc, ntpServer string, logger *slog.Logger) {
@@ -722,7 +696,7 @@ func (p *Processing) SettingNTP(ctx context.Context, cancel context.CancelFunc, 
 			return
 		}
 
-		// === Получение текущего NTP сервера  ===
+		// === Получение текущего NTP сервера ===
 		currentNTP, err := myntp.GetNTPServer()
 		if err != nil {
 			logger.Error("не удалось получить NTP сервер.", "err", err)
