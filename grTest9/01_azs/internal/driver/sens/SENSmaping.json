@@ -1,25 +1,26 @@
 {
-    "LinAdapter":
-        {
-            "1": {
-                "IsUSB": false,
-                "COMPort": 1,
-                "BaudRate": 115200,
-                "StopBits": 0,
-                "DataBits": 8,
-                "Parity": "None",
-                "ReadTimeout": 2,
-                "Bk": [1, 2],
-                "LC": [1, 2]
-                }
-        },
-    "VirtualLevelControl":
-    {
+    "LinAdapter": {
         "1": {
+            "IsUSB": false,
+            "COMPort": 1,
+            "BaudRate": 115200,
+            "StopBits": 0,
+            "DataBits": 8,
+            "Parity": "None",
+            "ReadTimeout": 2,
+            "Bk": [1, 2],
             "LC": [1, 2]
         },
         "2": {
-            "LC": [3, 4]
+            "IsUSB": false,
+            "COMPort": 1,
+            "BaudRate": 115200,
+            "StopBits": 0,
+            "DataBits": 8,
+            "Parity": "None",
+            "ReadTimeout": 2,
+            "Bk": [1, 2],
+            "LC": [1, 2]
         }
     }
 }

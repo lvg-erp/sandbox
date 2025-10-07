@@ -2,9 +2,11 @@ package postgres
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"fuelazs/internal/usecase/models"
+	"os"
 	"strings"
 	"time"
 )
@@ -165,6 +167,65 @@ func (a *Activation) UpdateActivation(data models.UpdateActivationData) error {
 	rowsAffected, err := res.RowsAffected()
 	if err == nil && rowsAffected == 0 {
 		return fmt.Errorf("no Activation record found with KazsID %s", data.KazsID)
+	}
+
+	return nil
+}
+
+func (a *Activation) InsertTestActivation() error {
+
+	type Config struct {
+		LastModification time.Time `json:"last_modification"`
+		KazsAPIKey       string    `json:"kazs_api_key"`
+		ResetPassword    string    `json:"reset_password"`
+		KazsID           string    `json:"kazs_id"`
+		URL              string    `json:"url"`
+		ConfigHash       string    `json:"config_hash"`
+		KazsNumber       string    `json:"kazs_number"`
+		KazsTimezone     string    `json:"kazs_timezone"`
+		NTPServer        string    `json:"ntp_server"`
+		SupportNumber    string    `json:"support_number"`
+		Logo             string    `json:"logo"`
+	}
+
+	filePath := "./internal/usecase/config/kazs_start.json"
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		fmt.Printf("ошибка чтения файла: %v\n", err)
+		return nil
+	}
+
+	var configs []Config
+	if err := json.Unmarshal(data, &configs); err != nil {
+		fmt.Printf("ошибка десериализации JSON: %v\n", err)
+		return nil
+	}
+	fmt.Println(configs)
+	// SQL-запрос для вставки
+	const query = `
+	INSERT INTO Activation (
+		last_modification, kazs_api_key, reset_password, kazs_id, url,
+		config_hash, kazs_number, kazs_timezone, ntp_server, support_number, logo
+	) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+`
+
+	for _, config := range configs {
+		_, err := a.conn.Exec(query,
+			config.LastModification,
+			config.KazsAPIKey,
+			config.ResetPassword,
+			config.KazsID,
+			config.URL,
+			config.ConfigHash,
+			config.KazsNumber,
+			config.KazsTimezone,
+			config.NTPServer,
+			config.SupportNumber,
+			config.Logo,
+		)
+		if err != nil {
+			return fmt.Errorf("activation insert error: %w", err)
+		}
 	}
 
 	return nil

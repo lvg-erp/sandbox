@@ -112,6 +112,7 @@ func NewGui() *Gui {
 }
 
 func (gui *Gui) SetUI(logo string, supportNumber string, kazsNumber string, timezone string) {
+	//TODO:
 	gui.TopSection.Logo = logo
 	gui.TopSection.SupportNumber = supportNumber
 	gui.TopSection.KazsNumber = kazsNumber

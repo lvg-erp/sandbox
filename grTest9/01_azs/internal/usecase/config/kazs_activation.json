@@ -1,0 +1,27 @@
+{
+  "Error": false,
+  "Description": "Activation successful",
+  "Message": "OK",
+  "Result": {
+    "KazsApiKey": "test-api-key-123",
+    "ResetPass": "reset-pass-456",
+    "KazsID": "kazs-789",
+    "URL": "http://example.com/api",
+    "ConfigHash": "abc123",
+    "KazsNumber": "KAZS001",
+    "KazsTimezone": "Europe/Moscow",
+    "NtpServer": "pool.ntp.org",
+    "SupportNumber": "+1234567890",
+    "Logo": "logo.png",
+    "Jars": [
+      {
+        "JarId": "1",
+        "FuelType": "Petrol"
+      },
+      {
+        "JarId": "2",
+        "FuelType": "Diesel"
+      }
+    ]
+  }
+}

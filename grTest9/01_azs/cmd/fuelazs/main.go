@@ -22,6 +22,13 @@ func main() {
 
 	_ = ctx
 
+	//data := []byte{0xB5, 0x01, 0x04, 0x15, 0x00, 0x00, 0x64, 0x70}
+	//crc := sens.SENSCalculateCRC(data)
+	//fmt.Printf("CRC for %X: %02X\n", data, crc)
+	//data = []byte{0xB5, 0x02, 0x04, 0x15, 0x00, 0x00, 0x64, 0x70}
+	//crc = sens.SENSCalculateCRC(data)
+	//fmt.Printf("CRC for %X: %02X\n", data, crc)
+
 	// Инициализация логгера
 
 	logger := logger.NewSlog()

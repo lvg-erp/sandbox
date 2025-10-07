@@ -9,7 +9,7 @@ import (
 	"fuelazs/internal/driver/sens/sensAdapter"
 	"fuelazs/internal/driver/topaz/topazAdapter"
 	"fuelazs/internal/driver/topaz/trk"
-	"go.bug.st/serial"
+	_ "go.bug.st/serial"
 	"sync"
 )
 
@@ -45,14 +45,8 @@ type QRDriver struct {
 }
 
 func NewSensDriver() (*SensDriver, error) {
-	// Используем MockSerialPort для эмуляции порта
-	portFactory := func(_ string, _ *serial.Mode) (sensAdapter.SerialPort, error) {
-		return sensAdapter.NewMockSerialPort([][]byte{
-			{0xB5, 0x01, 0x03, 0x00, 0x00, 0x00, 0xB5}, // Пример ответа с корректным CRC
-		}), nil
-	}
 
-	adapter, err := sensAdapter.NewSensAdapter(portFactory)
+	adapter, err := sensAdapter.NewSensAdapter()
 	if err != nil {
 		return nil, err
 	}

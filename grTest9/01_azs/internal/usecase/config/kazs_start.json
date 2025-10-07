@@ -1,0 +1,28 @@
+[
+  {
+    "last_modification": "2025-09-30T09:50:00Z",
+    "kazs_api_key": "key123",
+    "reset_password": "pass123",
+    "kazs_id": "id001",
+    "url": "http://example.com",
+    "config_hash": "hash456",
+    "kazs_number": "001",
+    "kazs_timezone": "UTC",
+    "ntp_server": "pool.ntp.org",
+    "support_number": "+1234567890",
+    "logo": "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCABkAGQBAREA/8QAFQABAQAAAAAAAAAAAAAAAAAAAAf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAA/AL+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//9k="
+  },
+  {
+    "last_modification": "2025-09-30T09:51:00Z",
+    "kazs_api_key": "key789",
+    "reset_password": "pass789",
+    "kazs_id": "id002",
+    "url": "http://example2.com",
+    "config_hash": "hash789",
+    "kazs_number": "002",
+    "kazs_timezone": "Europe/Moscow",
+    "ntp_server": "ntp.example.com",
+    "support_number": "+0987654321",
+    "logo": "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCABkAGQBAREA/8QAFQABAQAAAAAAAAAAAAAAAAAAAAf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAA/AL+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//9k="
+  }
+]

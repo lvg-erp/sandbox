@@ -1,0 +1,23 @@
+{
+  "Address": "255",
+  "SettingsParameters": {
+    "0x40": {
+      "Comment": "Скорость передачи",
+      "Value": 10.0
+    },
+    "0x42": {
+      "Comment": "Адрес ModBus",
+      "Value": 1.0
+    },
+    "0x44": {
+      "Comment": "Переключатель протокола",
+      "Value": 0.0
+    },
+    "0xFB": {
+      "Comment": "Количество циклов линии",
+      "Value": 6.0
+    }
+  },
+  "DriverName": "sens_LIN_RS_USB_LAN",
+  "DevicePNumber": "2"
+}

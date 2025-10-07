@@ -7,6 +7,7 @@ import (
 	"fuelazs/internal/driver/sens"
 	"fuelazs/internal/driver/sens/lin/configLIN"
 	"fuelazs/internal/driver/sens/sensAdapter"
+	"path/filepath"
 )
 
 const (
@@ -49,8 +50,8 @@ func NewLinDriver(adapter *map[string]*sensAdapter.SensAdapter) *LinDriver {
 // SetSettings Метод для настройки ЛИН-АДАПТЕРА
 func (l *LinDriver) SetSettings(devicePNumber string, data []byte) error {
 
-	filePath := "lin/" + DriverName + "_" + devicePNumber + ".json"
-
+	//filePath := "lin/" + DriverName + "_" + devicePNumber + ".json"
+	filePath := filepath.Join("internal", "driver", "sens", "lin", "configLIN", fmt.Sprintf("sens_LIN_RS_USB_LAN_%s.json", devicePNumber))
 	// --- Сценарий 1: Применение новых настроек (data != nil) ---
 	if data != nil {
 		var dataJSON configLIN.SensLinRsUsbLan
@@ -447,7 +448,8 @@ func (l *LinDriver) GetSettings(devicePNumber string) ([]byte, error) {
 
 func (l *LinDriver) Ping(devicePNumber string) error {
 	// --- Шаг 1: Загрузить конфиг  ---
-	filePath := "lin/" + DriverName + "_" + devicePNumber + ".json"
+	//filePath := "lin/" + DriverName + "_" + devicePNumber + ".json"
+	filePath := filepath.Join("internal", "driver", "sens", "lin", "configLIN", fmt.Sprintf("sens_LIN_RS_USB_LAN_%s.json", devicePNumber))
 	deviceConfig, err := configLIN.ReadConfig(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to get settings for %s: configuration file %s not found or invalid: %w", devicePNumber, filePath, err)

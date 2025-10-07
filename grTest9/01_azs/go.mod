@@ -14,6 +14,7 @@ require (
 	github.com/beevik/ntp v1.4.3
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/jackc/pgx/v5 v5.7.6
+	github.com/lib/pq v1.10.9
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.21.0
 	go.bug.st/serial v1.6.4

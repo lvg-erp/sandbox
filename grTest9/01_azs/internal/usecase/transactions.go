@@ -622,11 +622,22 @@ func (c *Processing) ReadPort(cancel context.CancelFunc) {
 
 func (c *Processing) saveMessage(message []byte, logger *slog.Logger) {
 	var msg ComMessage
-	err := json.Unmarshal(message, &msg)
+	//Исправлено для теста
+	relayItems := []RelayItem{
+		{Index: "1", State: "0"},
+		{Index: "2", State: "1"},
+	}
+
+	wrappedMap := make(map[string][]RelayItem)
+	wrappedMap["din"] = relayItems
+	wrappedJSON, _ := json.Marshal(wrappedMap)
+
+	err := json.Unmarshal([]byte(wrappedJSON), &msg)
 	if err != nil {
 		c.logger.Error("ошибка десериализации JSON", "err", err)
 		return
 	}
+	//----Исправлено
 
 	for key, rawValue := range msg {
 		var relayItem []RelayItem

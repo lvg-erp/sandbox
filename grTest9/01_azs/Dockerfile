@@ -22,5 +22,6 @@ WORKDIR /app
 COPY --from=builder /fuelazs /app/fuelazs
 COPY config.yaml credentials.yaml /app/
 COPY ./internal/gui/*.ttf /app/internal/gui/
+COPY internal/usecase/config/kazs_activation.json /app/internal/usecase/config/
 
 CMD ["/app/fuelazs"]

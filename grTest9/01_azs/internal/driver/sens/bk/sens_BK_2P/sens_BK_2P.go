@@ -7,6 +7,7 @@ import (
 	"fuelazs/internal/driver/sens"
 	"fuelazs/internal/driver/sens/bk/configBK"
 	"fuelazs/internal/driver/sens/sensAdapter"
+	"path/filepath"
 )
 
 const (
@@ -47,8 +48,10 @@ func NewBK(adapter *map[string]*sensAdapter.SensAdapter) *BK {
 // SetSettings Метод для настройки параметров блока коммутации
 func (bk *BK) SetSettings(devicePNumber string, data []byte) error {
 
-	filePath := "bk/" + DriverName + "_" + devicePNumber + ".json"
-
+	//filePath := "bk/" + DriverName + "_" + devicePNumber + ".json"
+	filePath := filepath.Join("internal", "driver", "sens", "bk", "configBK", fmt.Sprintf("sens_BK_2P_%s.json", devicePNumber))
+	fmt.Println("!!!!!!!!!!!!!!!!!!")
+	fmt.Println(filePath)
 	// --- Сценарий 1: Применение новых настроек (data != nil) ---
 	if data != nil {
 		var dataJSON configBK.SensBk2P
@@ -674,7 +677,8 @@ func (bk *BK) GetSettings(devicePNumber string) ([]byte, error) {
 
 func (bk *BK) Ping(devicePNumber string) error {
 	// 1. Загрузить конфиг из файла
-	filePath := "bk/" + DriverName + "_" + devicePNumber + ".json"
+	//filePath := "bk/" + DriverName + "_" + devicePNumber + ".json"
+	filePath := filepath.Join("internal", "driver", "sens", "bk", "configBK", fmt.Sprintf("sens_BK_2P_%s.json", devicePNumber))
 	fileConfig, err := configBK.ReadConfig(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to load config file %s: %w", filePath, err)

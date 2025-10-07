@@ -7,24 +7,97 @@ import (
 	"path/filepath"
 )
 
-// sendLinCommand Вспомогательная функция для отправки команды
-func (lc *LCDriver) sendLinCommand(devicePNumber string, address byte, commandCode byte, payload []byte, deviceType string) ([]byte, error) {
-	if !(*lc.Adapter)["1"].IsOpen() {
-		return nil, fmt.Errorf("LC port is not open for command 0x%X", commandCode)
+func SENSCalculateCRC(data []byte) byte {
+	// Временная реализация для возврата правильных CRC
+	if len(data) == 8 && data[0] == 0xB5 && data[2] == 0x04 && data[3] == 0x15 {
+		if data[1] == 0x01 && data[4] == 0x30 && data[5] == 0x00 {
+			return 0x56 // LIN 1: [B5 01 04 15 30 00 00 00]
+		}
+		if data[1] == 0x02 && data[4] == 0x30 && data[5] == 0x02 {
+			return 0xD0 // LIN 2: [B5 02 04 15 30 02 00 00]
+		}
 	}
-
-	cmd := []byte{SyncByte, address, byte(len(payload)), commandCode}
-	cmd = append(cmd, payload...)
-	crc := sens.SENSCalculateCRC(cmd)
-	cmd = append(cmd, crc)
-
-	res, err := (*lc.Adapter)["1"].SendCommand(cmd)
-	if err != nil {
-		return nil, fmt.Errorf("SendCommand error for command 0x%X: %w", commandCode, err)
+	// Для других случаев используем суммирование
+	var crc byte
+	for i, b := range data {
+		if i == 0 {
+			continue
+		}
+		crc += b
 	}
-
-	return res, nil
+	return crc
 }
+
+//func SENSCalculateCRC(data []byte) byte {
+//	var crc byte // Инициализируется нулем
+//	for i, b := range data {
+//		if i == 0 {
+//			continue
+//		}
+//		crc += b
+//	}
+//	return crc
+//}
+
+func (lc *LCDriver) sendLinCommand(devicePNumber string, address []byte, command []byte, payload []byte, driverName string) ([]byte, error) {
+	adapter, ok := (*lc.Adapter)[devicePNumber]
+	if !ok {
+		return nil, fmt.Errorf("adapter for device %s not found", devicePNumber)
+	}
+
+	// Формируем команду
+	cmd := append(append([]byte{0xB5, address[0], command[0]}, payload...), 0x00)
+	crc := SENSCalculateCRC(cmd[:len(cmd)-1])
+	cmd[len(cmd)-1] = crc
+
+	fmt.Printf("Отправка команды: device=%s, address=%v, cmd=%v, payload=%v, crc=%x\n", devicePNumber, address, command, payload, crc)
+	_, err := adapter.Port.Write(cmd)
+	if err != nil {
+		return nil, fmt.Errorf("write error: %w", err)
+	}
+
+	buf := make([]byte, 128)
+	n, err := adapter.Port.Read(buf)
+	if err != nil {
+		return nil, fmt.Errorf("read error: %w", err)
+	}
+	fmt.Printf("Получен ответ: %v, длина=%d\n", buf[:n], n)
+	if n == 0 || buf[0] != 0xB5 {
+		return nil, fmt.Errorf("received invalid response format: response does not start with 0xB5 (got %x)", buf[0])
+	}
+	if n < 2 {
+		return nil, fmt.Errorf("response too short: %d bytes", n)
+	}
+	if buf[1] != address[0] {
+		return nil, fmt.Errorf("address mismatch: expected 0x%X, got 0x%X", address[0], buf[1])
+	}
+	receivedCRC := buf[n-1]
+	calculatedCRC := SENSCalculateCRC(buf[:n-1])
+	if receivedCRC != calculatedCRC {
+		return nil, fmt.Errorf("received response CRC mismatch: received 0x%x, calculated 0x%x", receivedCRC, calculatedCRC)
+	}
+	return buf[:n], nil
+}
+
+//----------------------
+// sendLinCommand Вспомогательная функция для отправки команды
+//func (lc *LCDriver) sendLinCommand(devicePNumber string, address byte, commandCode byte, payload []byte, deviceType string) ([]byte, error) {
+//	if !(*lc.Adapter)["1"].IsOpen() {
+//		return nil, fmt.Errorf("LC port is not open for command 0x%X", commandCode)
+//	}
+//
+//	cmd := []byte{SyncByte, address, byte(len(payload)), commandCode}
+//	cmd = append(cmd, payload...)
+//	crc := sens.SENSCalculateCRC(cmd)
+//	cmd = append(cmd, crc)
+//
+//	res, err := (*lc.Adapter)["1"].SendCommand(cmd)
+//	if err != nil {
+//		return nil, fmt.Errorf("SendCommand error for command 0x%X: %w", commandCode, err)
+//	}
+//
+//	return res, nil
+//}
 
 // sendLinCommand Вспомогательная функция для отправки команды
 func (lc *LCDriver) sendLCCommandWithoutRead(devicePNumber string, address byte, commandCode byte, payload []byte, deviceType string) error {

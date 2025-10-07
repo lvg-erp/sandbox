@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"fuelazs/internal/driver/topaz/topazAdapter"
 	"fuelazs/internal/driver/topaz/trk/config"
+	"path/filepath"
 	"time"
 )
 
@@ -93,7 +94,8 @@ func NewTRK(adapter *map[string]*topazAdapter.TopazAdapter) *TRK {
 // GetTRKStatus Метод получения статуса ТРК
 func (trk *TRK) GetTRKStatus(devicePNumber string) (string, error) {
 	// 1. Загрузить конфиг из файла
-	filePath := "trk/" + DriverName + "_" + devicePNumber + ".json"
+	//filePath := "trk/" + DriverName + "_" + devicePNumber + ".json"
+	filePath := filepath.Join("internal", "driver", "topaz", "trk", "config", fmt.Sprintf("trk_%s.json", devicePNumber))
 	fileConfig, err := config.ReadConfig(filePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to load config file %s: %w", filePath, err)
@@ -335,8 +337,8 @@ func (trk *TRK) SetFuelGive(devicePNumber string, literCount float32) error {
 
 // GetSettings Чтение параметров ТРК
 func (trk *TRK) GetSettings(devicePNumber string) ([]byte, error) {
-	filePath := "trk/" + DriverName + "_" + devicePNumber + ".json"
-
+	//filePath := "trk/" + DriverName + "_" + devicePNumber + ".json"
+	filePath := filepath.Join("internal", "driver", "topaz", "trk", "config", fmt.Sprintf("trk_%s.json", devicePNumber))
 	fileConfig, err := config.ReadConfig(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load config file %s: %w", filePath, err)

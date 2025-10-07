@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"database/sql"
-
 	//"database/sql/driver"
 	"errors"
 	"fmt"
@@ -15,6 +14,7 @@ import (
 	"fuelazs/internal/logger"
 	"fuelazs/internal/repository/postgres"
 	"fuelazs/internal/usecase/models"
+	_ "github.com/lib/pq"
 	"strconv"
 	"sync"
 	"time"
@@ -211,8 +211,12 @@ func (p *Processing) MainProcess() {
 	}
 
 	if activation == nil {
-		p.logger.Info("КАЗС деактивирована.")
-		p.appGui.CreateActivation()
+
+		_ = p.repository.Activation.InsertTestActivation()
+		activation, err = p.repository.Activation.GetActivation()
+		//
+		//p.logger.Info("КАЗС деактивирована.")
+		//p.appGui.CreateActivation()
 	}
 
 	if activation != nil {
