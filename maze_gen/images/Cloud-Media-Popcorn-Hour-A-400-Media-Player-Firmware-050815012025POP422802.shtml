@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="preconnect" href="https://cdnssl.softpedia.com/" />
+<!-- Google tag (gtag.js) -->
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('consent', 'default', { 
+	'ad_storage': 'denied',
+	'ad_user_data': 'denied',
+	'ad_personalization': 'denied',
+	'analytics_storage': 'denied',
+	'security_storage': 'granted',
+	'personalization_storage': 'granted',
+	'functionality_storage': 'granted',
+	'wait_for_update': 500
+});
+gtag('js', new Date());
+gtag('config', 'G-49KYDE8P1Z', { 'cookie_domain': 'softpedia.com', 'anonymize_ip': true });  //, 'send_page_view': false });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-49KYDE8P1Z"></script>
+<!-- InMobi Choice. Consent Manager Tag v3.0 (for TCF 2.2) -->
+<script type="text/javascript" async=true>
+(function() {
+  var host = window.location.hostname;
+  var element = document.createElement('script');
+  var firstScript = document.getElementsByTagName('script')[0];
+  var url = 'https://cmp.inmobi.com'
+    .concat('/choice/', 'ef319LWA1Q2Gu', '/', host, '/choice.js?tag_version=V3');
+  var uspTries = 0;
+  var uspTriesLimit = 3;
+  element.async = true;
+  element.type = 'text/javascript';
+  element.src = url;
+
+  firstScript.parentNode.insertBefore(element, firstScript);
+
+  function makeStub() {
+    var TCF_LOCATOR_NAME = '__tcfapiLocator';
+    var queue = [];
+    var win = window;
+    var cmpFrame;
+
+    function addFrame() {
+      var doc = win.document;
+      var otherCMP = !!(win.frames[TCF_LOCATOR_NAME]);
+
+      if (!otherCMP) {
+        if (doc.body) {
+          var iframe = doc.createElement('iframe');
+
+          iframe.style.cssText = 'display:none';
+          iframe.name = TCF_LOCATOR_NAME;
+          doc.body.appendChild(iframe);
+        } else {
+          setTimeout(addFrame, 5);
+        }
+      }
+      return !otherCMP;
+    }
+
+    function tcfAPIHandler() {
+      var gdprApplies;
+      var args = arguments;
+
+      if (!args.length) {
+        return queue;
+      } else if (args[0] === 'setGdprApplies') {
+        if (
+          args.length > 3 &&
+          args[2] === 2 &&
+          typeof args[3] === 'boolean'
+        ) {
+          gdprApplies = args[3];
+          if (typeof args[2] === 'function') {
+            args[2]('set', true);
+          }
+        }
+      } else if (args[0] === 'ping') {
+        var retr = {
+          gdprApplies: gdprApplies,
+          cmpLoaded: false,
+          cmpStatus: 'stub'
+        };
+
+        if (typeof args[2] === 'function') {
+          args[2](retr);
+        }
+      } else {
+        if(args[0] === 'init' && typeof args[3] === 'object') {
+          args[3] = Object.assign(args[3], { tag_version: 'V3' });
+        }
+        queue.push(args);
+      }
+    }
+
+    function postMessageEventHandler(event) {
+      var msgIsString = typeof event.data === 'string';
+      var json = {};
+
+      try {
+        if (msgIsString) {
+          json = JSON.parse(event.data);
+        } else {
+          json = event.data;
+        }
+      } catch (ignore) {}
+
+      var payload = json.__tcfapiCall;
+
+      if (payload) {
+        window.__tcfapi(
+          payload.command,
+          payload.version,
+          function(retValue, success) {
+            var returnMsg = {
+              __tcfapiReturn: {
+                returnValue: retValue,
+                success: success,
+                callId: payload.callId
+              }
+            };
+            if (msgIsString) {
+              returnMsg = JSON.stringify(returnMsg);
+            }
+            if (event && event.source && event.source.postMessage) {
+              event.source.postMessage(returnMsg, '*');
+            }
+          },
+          payload.parameter
+        );
+      }
+    }
+
+    while (win) {
+      try {
+        if (win.frames[TCF_LOCATOR_NAME]) {
+          cmpFrame = win;
+          break;
+        }
+      } catch (ignore) {}
+
+      if (win === window.top) {
+        break;
+      }
+      win = win.parent;
+    }
+    if (!cmpFrame) {
+      addFrame();
+      win.__tcfapi = tcfAPIHandler;
+      win.addEventListener('message', postMessageEventHandler, false);
+    }
+  };
+
+  makeStub();
+
+  function makeGppStub() {
+    const CMP_ID = 10;
+    const SUPPORTED_APIS = [
+      '2:tcfeuv2',
+      '6:uspv1',
+      '7:usnatv1',
+      '8:usca',
+      '9:usvav1',
+      '10:uscov1',
+      '11:usutv1',
+      '12:usctv1'
+    ];
+
+    window.__gpp_addFrame = function (n) {
+      if (!window.frames[n]) {
+        if (document.body) {
+          var i = document.createElement("iframe");
+          i.style.cssText = "display:none";
+          i.name = n;
+          document.body.appendChild(i);
+        } else {
+          window.setTimeout(window.__gpp_addFrame, 10, n);
+        }
+      }
+    };
+    window.__gpp_stub = function () {
+      var b = arguments;
+      __gpp.queue = __gpp.queue || [];
+      __gpp.events = __gpp.events || [];
+
+      if (!b.length || (b.length == 1 && b[0] == "queue")) {
+        return __gpp.queue;
+      }
+
+      if (b.length == 1 && b[0] == "events") {
+        return __gpp.events;
+      }
+
+      var cmd = b[0];
+      var clb = b.length > 1 ? b[1] : null;
+      var par = b.length > 2 ? b[2] : null;
+      if (cmd === "ping") {
+        clb(
+          {
+            gppVersion: "1.1", // must be “Version.Subversion”, current: “1.1”
+            cmpStatus: "stub", // possible values: stub, loading, loaded, error
+            cmpDisplayStatus: "hidden", // possible values: hidden, visible, disabled
+            signalStatus: "not ready", // possible values: not ready, ready
+            supportedAPIs: SUPPORTED_APIS, // list of supported APIs
+            cmpId: CMP_ID, // IAB assigned CMP ID, may be 0 during stub/loading
+            sectionList: [],
+            applicableSections: [-1],
+            gppString: "",
+            parsedSections: {},
+          },
+          true
+        );
+      } else if (cmd === "addEventListener") {
+        if (!("lastId" in __gpp)) {
+          __gpp.lastId = 0;
+        }
+        __gpp.lastId++;
+        var lnr = __gpp.lastId;
+        __gpp.events.push({
+          id: lnr,
+          callback: clb,
+          parameter: par,
+        });
+        clb(
+          {
+            eventName: "listenerRegistered",
+            listenerId: lnr, // Registered ID of the listener
+            data: true, // positive signal
+            pingData: {
+              gppVersion: "1.1", // must be “Version.Subversion”, current: “1.1”
+              cmpStatus: "stub", // possible values: stub, loading, loaded, error
+              cmpDisplayStatus: "hidden", // possible values: hidden, visible, disabled
+              signalStatus: "not ready", // possible values: not ready, ready
+              supportedAPIs: SUPPORTED_APIS, // list of supported APIs
+              cmpId: CMP_ID, // list of supported APIs
+              sectionList: [],
+              applicableSections: [-1],
+              gppString: "",
+              parsedSections: {},
+            },
+          },
+          true
+        );
+      } else if (cmd === "removeEventListener") {
+        var success = false;
+        for (var i = 0; i < __gpp.events.length; i++) {
+          if (__gpp.events[i].id == par) {
+            __gpp.events.splice(i, 1);
+            success = true;
+            break;
+          }
+        }
+        clb(
+          {
+            eventName: "listenerRemoved",
+            listenerId: par, // Registered ID of the listener
+            data: success, // status info
+            pingData: {
+              gppVersion: "1.1", // must be “Version.Subversion”, current: “1.1”
+              cmpStatus: "stub", // possible values: stub, loading, loaded, error
+              cmpDisplayStatus: "hidden", // possible values: hidden, visible, disabled
+              signalStatus: "not ready", // possible values: not ready, ready
+              supportedAPIs: SUPPORTED_APIS, // list of supported APIs
+              cmpId: CMP_ID, // CMP ID
+              sectionList: [],
+              applicableSections: [-1],
+              gppString: "",
+              parsedSections: {},
+            },
+          },
+          true
+        );
+      } else if (cmd === "hasSection") {
+        clb(false, true);
+      } else if (cmd === "getSection" || cmd === "getField") {
+        clb(null, true);
+      }
+      //queue all other commands
+      else {
+        __gpp.queue.push([].slice.apply(b));
+      }
+    };
+    window.__gpp_msghandler = function (event) {
+      var msgIsString = typeof event.data === "string";
+      try {
+        var json = msgIsString ? JSON.parse(event.data) : event.data;
+      } catch (e) {
+        var json = null;
+      }
+      if (typeof json === "object" && json !== null && "__gppCall" in json) {
+        var i = json.__gppCall;
+        window.__gpp(
+          i.command,
+          function (retValue, success) {
+            var returnMsg = {
+              __gppReturn: {
+                returnValue: retValue,
+                success: success,
+                callId: i.callId,
+              },
+            };
+            event.source.postMessage(msgIsString ? JSON.stringify(returnMsg) : returnMsg, "*");
+          },
+          "parameter" in i ? i.parameter : null,
+          "version" in i ? i.version : "1.1"
+        );
+      }
+    };
+    if (!("__gpp" in window) || typeof window.__gpp !== "function") {
+      window.__gpp = window.__gpp_stub;
+      window.addEventListener("message", window.__gpp_msghandler, false);
+      window.__gpp_addFrame("__gppLocator");
+    }
+  };
+
+  makeGppStub();
+
+  var uspStubFunction = function() {
+    var arg = arguments;
+    if (typeof window.__uspapi !== uspStubFunction) {
+      setTimeout(function() {
+        if (typeof window.__uspapi !== 'undefined') {
+          window.__uspapi.apply(window.__uspapi, arg);
+        }
+      }, 500);
+    }
+  };
+
+  var checkIfUspIsReady = function() {
+    uspTries++;
+    if (window.__uspapi === uspStubFunction && uspTries < uspTriesLimit) {
+      console.warn('USP is not accessible');
+    } else {
+      clearInterval(uspInterval);
+    }
+  };
+
+  if (typeof window.__uspapi === 'undefined') {
+    window.__uspapi = uspStubFunction;
+    var uspInterval = setInterval(checkIfUspIsReady, 6000);
+  }
+})();
+</script>
+<!-- End InMobi Choice. Consent Manager Tag v3.0 (for TCF 2.2) -->
+<style>
+@font-face { 
+	font-display: optional; 
+	font-family: 'museo_sans_cond'; 
+	font-weight: 700;
+	font-style: normal;
+	src: url('https://www.softpedia.com/_fonts/museosanscnd-700-webfont.eot?v=1x199'); 
+	src: url('https://www.softpedia.com/_fonts/museosanscnd-700-webfont.eot?#iefix') format('embedded-opentype'), 
+		url('https://www.softpedia.com/_fonts/museosanscnd-700-webfont.woff2?v=1x199') format('woff2'), 
+		url('https://www.softpedia.com/_fonts/museosanscnd-700-webfont.woff?v=1x199') format('woff'), 
+		url('https://www.softpedia.com/_fonts/museosanscnd-700-webfont.ttf?v=1x199') format('truetype');
+}
+
+@font-face { 
+	font-display: optional; 
+	font-family: 'museo_sans_cond'; 
+	font-weight: 500; 
+	font-style: normal;
+	src: url('https://www.softpedia.com/_fonts/museosanscnd-500-webfont.eot?v=1x199'); 
+	src: url('https://www.softpedia.com/_fonts/museosanscnd-500-webfont.eot?#iefix') format('embedded-opentype'), 
+		url('https://www.softpedia.com/_fonts/museosanscnd-500-webfont.woff2?v=1x199') format('woff2'), 
+		url('https://www.softpedia.com/_fonts/museosanscnd-500-webfont.woff?v=1x199') format('woff'), 
+		url('https://www.softpedia.com/_fonts/museosanscnd-500-webfont.ttf?v=1x199') format('truetype');
+}
+
+@font-face { 
+	font-family: "FontAwesome"; font-weight: normal; font-style: normal; font-display: swap; text-rendering: optimizeLegibility; 
+	src: url('https://cdnssl.softpedia.com/_fonts/fontawesome-webfont.eot?v=1x199'); 
+	src: url('https://cdnssl.softpedia.com/_fonts/fontawesome-webfont.eot?#iefix') format('embedded-opentype'), 
+		url('https://cdnssl.softpedia.com/_fonts/fontawesome-webfont.woff2?v=1x199') format('woff2'), 
+		url('https://cdnssl.softpedia.com/_fonts/fontawesome-webfont.woff?v=1x199') format('woff'), 
+		url('https://cdnssl.softpedia.com/_fonts/fontawesome-webfont.ttf?v=1x199') format('truetype');
+}
+
+html, input, select, textarea, option, button, li { font-family: 'museo_sans_cond', Bodoni MT, Didot, Didot LT STD, Hoefler Text, Garamond, Calisto MT, Times New Roman, sans-serif; font-weight: 500; }
+body { min-width: 970px; position:relative; background-color: #fff; color: #000; }
+form, dl, body, p { padding: 0; margin: 0; }
+.mgbot_10 { margin-bottom: 10px !important; }
+.storybox1, .storybox1 .legible, .nv_revby, .legible, .legible li { line-height: 1.5em; font-size: 19px; font-weight: 500; }
+.storybox1 { color:#000000; }
+</style>
+<link crossorigin rel="preload" href="https://www.softpedia.com/_fonts/museosanscnd-700-webfont.woff2?v=1x199" as="font" type="font/woff2">
+<link crossorigin rel="preload" href="https://www.softpedia.com/_fonts/museosanscnd-500-webfont.woff2?v=1x199" as="font" type="font/woff2">
+<link crossorigin rel="preload" href="https://cdnssl.softpedia.com/_fonts/fontawesome-webfont.woff2?v=1x199" as="font" type="font/woff2">
+
+<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+<script async src="https://cdnssl.softpedia.com/_js/prebid9.53.2.js?v=5"></script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2364887827571271" crossorigin="anonymous"></script>
+<script>
+var PREBID_TIMEOUT = 2000;
+var FAILSAFE_TIMEOUT = 5000;
+var googletag = googletag || {}; googletag.cmd = googletag.cmd || [];
+var pbjs = pbjs || {}; pbjs.que = pbjs.que || [];
+const adUnits = [{"code":"Softpedia_software_programpage_billboard_atf_P1","mediaTypes":{"banner":{"pos":1,"sizes":[[970,90],[728,90]]}},"bids":[{"bidder":"ix","params":{"siteId":"1071874"}},{"bidder":"pubmatic","params":{"publisherId":"161882","adSlot":"6907417"}},{"bidder":"gumgum","params":{"inSlot":"1056717"}},{"bidder":"rubicon","params":{"accountId":"27084","siteId":"576208","zoneId":"3653644"}},{"bidder":"nextMillennium","params":{"placement_id":"78306"}}]},{"code":"Softpedia_software_programpage_mpu_atf_P1","mediaTypes":{"banner":{"pos":1,"sizes":[[300,250]]}},"bids":[{"bidder":"ix","params":{"siteId":"1071874"}},{"bidder":"pubmatic","params":{"publisherId":"161882","adSlot":"6907417"}},{"bidder":"gumgum","params":{"inSlot":"1056714"}},{"bidder":"rubicon","params":{"accountId":"27084","siteId":"576208","zoneId":"3653644"}},{"bidder":"nextMillennium","params":{"placement_id":"78306"}}]}];
+const adUnitsCodes = ["Softpedia_software_programpage_billboard_atf_P1","Softpedia_software_programpage_mpu_atf_P1"];
+const adUnitsLazy = [{"code":"Softpedia_software_programpage_mpu_btf_P1","mediaTypes":{"banner":{"pos":1,"sizes":[[300,250]]}},"bids":[{"bidder":"ix","params":{"siteId":"1071874"}},{"bidder":"pubmatic","params":{"publisherId":"161882","adSlot":"6907417"}},{"bidder":"gumgum","params":{"inSlot":"1056714"}},{"bidder":"rubicon","params":{"accountId":"27084","siteId":"576208","zoneId":"3653644"}},{"bidder":"nextMillennium","params":{"placement_id":"78306"}}]}];
+const adUnitsLazyCodes = ["Softpedia_software_programpage_mpu_btf_P1"];
+const _customGranCfg = { "buckets": [{ "precision": 2, "min": 0, "max": 0.05, "increment": 0.01 }, { "precision": 2, "min": 0.05, "max": 5, "increment": 0.05 }, { "precision": 2, "min": 5, "max": 10, "increment": 0.1 }, { "precision": 2, "min": 10, "max": 20, "increment": 0.5 }]};
+
+googletag.cmd.push(function(){	
+	window._atfslots = []; window._btfslots = [];
+		window._atfslots.push(googletag.defineSlot("/1004334/Softpedia/software_programpage_billboard_atf", [[970, 90]], "Softpedia_software_programpage_billboard_atf_P1").addService(googletag.pubads()));
+	window._atfslots.push(googletag.defineSlot("/1004334/Softpedia/software_programpage_mpu_atf", [[300, 250]], "Softpedia_software_programpage_mpu_atf_P1").addService(googletag.pubads()));
+	window._btfslots.push(googletag.defineSlot("/1004334/Softpedia/software_programpage_mpu_btf", [[300, 250]], "Softpedia_software_programpage_mpu_btf_P1").addService(googletag.pubads()));
+	
+	(adsbygoogle=window.adsbygoogle||[]).pauseAdRequests=1;
+	googletag.pubads().disableInitialLoad();
+	googletag.pubads().addEventListener("slotRequested", (event) => { updateSlotStatus(event.slot.getSlotElementId(), "fetched"); });
+	googletag.pubads().addEventListener("slotOnload", (event) => { updateSlotStatus(event.slot.getSlotElementId(), "rendered"); });
+	googletag.pubads().addEventListener("impressionViewable", (event) => { updateSlotStatus(event.slot.getSlotElementId(), "viewable"); });
+	googletag.pubads().setCentering(true);
+	googletag.pubads().enableSingleRequest();
+	googletag.enableServices();
+});
+
+pbjs.que.push(function() {
+	pbjs.bidderSettings = { gumgum: { storageAllowed: true } }
+
+	pbjs.setConfig({
+		ortb2: {
+			site: {
+				name: "Softpedia", domain: "www.softpedia.com", cat: ["IAB19"], sectioncat: ["IAB19"], pagecat: ["IAB19"], privacypolicy: 1, mobile: 1,
+				page: "https:\/\/drivers.softpedia.com\/get\/DVD-BluRay-Media-Players\/Cloud-Media\/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-050815012025POP422802.shtml",
+				ref: "https:\/\/drivers.softpedia.com\/dyn-postdownload.php\/25387a84fbc6f56d85fb4cd2ce486243\/6905ff68\/79aca\/0\/1",
+								ext: { data: { pageType: "article"  }}
+			}
+		},
+		maxBid: 20,
+		bidderTimeout: 1000,
+		bidderSequence: "fixed",		
+		strictStorageEnforcement: false,
+		enableTIDs: true,
+		performanceMetrics: false,
+		enableSendAllBids: true,
+		targetingControls: { alwaysIncludeDeals: true },
+		pageUrl: "https:\/\/drivers.softpedia.com\/get\/DVD-BluRay-Media-Players\/Cloud-Media\/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-050815012025POP422802.shtml",
+		priceGranularity: _customGranCfg,
+		gptPreAuction: { enabled: true, useDefaultPreAuction: true },
+        bidViewability: { enabled: true, firePixels: false },
+		userSync: {
+			syncEnabled: true,
+			syncsPerBidder: 5,
+			iframeEnabled: true,
+			filterSettings: { all: { bidders: ['ix','gumgum','rubicon','nextmillenium'], filter: 'include' } },
+			userIds: [				
+								{ name: "sharedID", params: { pixelUrl: "https://www.softpedia.com/xpubcid.php?shrid", enableSharedId: true }, storage: { name: "_sharedid", type: "cookie", expires: 60 } }, 
+				{ name: "hadronId", params: { partnerId: 443 }, storage: { name: "hadronId", type: "html5" } },				
+				{ name: "id5Id", params: { partner: 1548, externalModuleUrl: 'https://cdn.id5-sync.com/api/1.0/id5PrebidModule.js' }, storage: {type: "html5", name: "id5id", expires: 90, refreshInSeconds: 7200 } },
+				{ name: "lotamePanoramaId", params: { clientId: "18284" } },
+				{ name: "pubmaticId", params: { publisherId: "161882" }, storage: { name: "pubmaticId", type: "cookie&html5", expires: 30, refreshInSeconds: 86400 } },
+				{ name: "criteo" }
+			], 
+			ppid: "pubcid.org",
+			syncDelay: 5000,
+			auctionDelay: 50
+		},
+
+				consentManagement: { 			
+			gdpr: { cmpApi: 'iab', defaultGdprScope: true, timeout: 2000, actionTimeout: 10000, rules: [{ purpose: "storage", enforcePurpose: true, enforceVendor: true }] },
+			gpp: { cmpApi: 'iab', timeout: 2000 },
+		},
+			});
+
+	pbjs.setConfig({ rubicon: {singleRequest: true} });
+});
+
+function initAdserver() {
+	if (pbjs.initAdserverSet) return; 
+	pbjs.initAdserverSet = true;
+
+	pbjs.que.push(function() {				
+		googletag.cmd.push(function() {
+			pbjs.setTargetingForGPTAsync();
+
+			window._btfobserverset=0;
+			console.log("LZLD: ATFslots=", window._atfslots);
+			
+			googletag.pubads().refresh(window._atfslots);
+			(adsbygoogle=window.adsbygoogle||[]).pauseAdRequests=0;
+		});
+	});
+}
+
+function GPT_GO() {	
+	console.log('GPT_GO [ONLOAD]');
+	
+	pbjs.que.push(function() {
+		pbjs.addAdUnits(adUnits);
+		pbjs.requestBids({
+			bidsBackHandler: initAdserver,
+			timeout: PREBID_TIMEOUT
+		});
+	});
+
+	setTimeout(function() { initAdserver(); }, FAILSAFE_TIMEOUT);
+}
+function GPT_GO_LAZY() {	
+	console.log('GPT_GO [LAZY]');
+	
+	pbjs.que.push(function() {
+		pbjs.addAdUnits(adUnitsLazy);
+		pbjs.requestBids({
+			timeout: PREBID_TIMEOUT,
+			adUnitCodes: adUnitsLazyCodes,
+			bidsBackHandler: function() {				
+				googletag.cmd.push(function() {
+					pbjs.setTargetingForGPTAsync(adUnitsLazyCodes);
+					googletag.pubads().refresh(window._btfslots);
+				});
+			}
+		});
+	});
+}
+
+function updateSlotStatus(slotId, state) { 
+	console.log("LZLD: "+slotId + " -> " + state); 
+	if(window._btfobserverset==0) { window._btfobserverset=1; setupBTFObserver(); }
+}
+function setupBTFObserver() {
+	console.log("LZLD: BTFslots=", window._btfslots);
+	if(window._btfslots.length) {
+		const btfelem = document.getElementById(window._btfslots[0].getSlotElementId());
+		//console.log("LZLD: [OBS] BTFelem", btfelem);
+		let observer = new IntersectionObserver(function(e) { if(e[0].intersectionRatio <= 0) return; console.log('LZLD: BTF intersect!'); observer.disconnect(); GPT_GO_LAZY(); }, { root: null, rootMargin: "0px 0px 200px 0px", threshold: 0.0 });
+		observer.observe(btfelem);
+	}
+}
+</script>
+
+<script>
+window.__scripts_initialized = 0;
+window.__tcfapi('addEventListener', 2, function(tcData,success) {
+	if(window.__scripts_initialized == 0 && success && (tcData.eventStatus === 'tcloaded' || tcData.eventStatus == 'useractioncomplete')) {
+		window.__scripts_initialized = 1; window.__tcfapi('removeEventListener', 2, function (success) { }, tcData.listenerId);		
+		console.log('CMP: done, enabling scripts');
+		GPT_GO();
+	}
+});
+</script>
+
+<title>Download Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802 for OS Independent - Softpedia</title>
+<meta name="robots" content="max-image-preview:large" /><meta name=supported-media content="only screen and (min-width: 640px)">
+<meta name="language" content="english" /><meta http-equiv="content-type" content="text/html; charset=utf-8" /><meta name="viewport" content="width=980" /><meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<link rel="canonical" href="https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/Cloud-Media/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-050815012025POP422802.shtml" />
+<link rel="alternate" href="https://drivers.softpedia.com/backend.xml" type="application/rss+xml" title="Softpedia Drivers" />
+<link rel="alternate" href="https://drivers.softpedia.com/rss/732.xml" type="application/rss+xml" title="Softpedia Drivers - Cloud Media" />
+<meta property="fb:app_id" content="505430742898262">
+<meta property="og:type" content="article">
+<meta property="og:article:publisher" content="https://www.facebook.com/softpediacom/">
+<meta property="og:site_name" content="softpedia">
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:site" content="@Softpedia">
+<meta property="twitter:creator" content="@Softpedia">
+<meta property="twitter:url" content="">
+<meta property="og:url" content="">
+<meta name="description" content="Download Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802 - DVD / Blu-Ray / Media Players">
+<meta property="twitter:description" content="Download Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802 - DVD / Blu-Ray / Media Players">
+<meta property="og:description" content="Download Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802 - DVD / Blu-Ray / Media Players">
+<meta name="keywords" content="Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802, download Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802, Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802 free download, Cloud Media Popcorn Hour A-400 Firmware, Popcorn Hour A-400 Media Player Firmware, Cloud Media A-400 Media Player Firmware, Popcorn Hour A-400, Firmware, Media Player, Cloud Media">
+<meta property="og:article:published_time" content="2016-03-13T09:59:15+0000">
+<meta property="og:title" content="Download Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802 for OS Independent">
+<meta property="twitter:title" content="Download Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802 for OS Independent">
+<meta property="og:image" content="https://cdnssl.softpedia.com/_img/softpedia_logo_rss.png">
+<meta property="twitter:image" content="https://cdnssl.softpedia.com/_img/softpedia_logo_rss.png">
+<link crossorigin fetchpriority="highest" rel="stylesheet" type="text/css" href="https://cdnssl.softpedia.com/_min/?g=cssbase_2016_2,cssbase_2018&amp;vv=5172" /><link rel="icon" type="image/x-icon" href="https://cdnssl.softpedia.com/_img/favicon.ico">
+<link rel="icon" type="image/png" sizes="192x192" href="https://cdnssl.softpedia.com/_img/favicon-192x192.png">
+<link rel="icon" type="image/png" sizes="96x96" href="https://cdnssl.softpedia.com/_img/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://cdnssl.softpedia.com/_img/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://cdnssl.softpedia.com/_img/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="512x512" href="https://cdnssl.softpedia.com/_img/favicon_512.png">
+<link rel="mask-icon" sizes="any" href="https://cdnssl.softpedia.com/_img/spdfavicon.svg" color="#002873">
+<meta name="theme-color" content="#002873" /><meta name="apple-mobile-web-app-status-bar-style" content="#002873" /><meta name="apple-mobile-web-app-title" content="Softpedia" />
+
+<script>var hp_dwlcounter = 2734719071;</script>
+</head>
+
+<body class="PROGPAGE">
+	<div class="wrapper posrel" id="wrapper">
+		<div class="topbar">
+						<div class="menubar">
+				<!--<div id="bg-menubar"></div>-->
+				<div class="container_48">
+					<div class="grid_48">
+						<div id="topovl1">&nbsp;</div>
+						<div id="bg-logo"></div>
+						<span id="brand">
+							<a href="https://www.softpedia.com/" class="dspblock" title="Softpedia"><span class="logov" data-src="https://cdnssl.softpedia.com/_img/softpedia_logo.png">SOFTPEDIA&reg;</span></a>
+						</span>
+						<div class="navtopm ">
+														<ul class="lev1 navsect locmenu" role="menubar">
+								<li role="menuitem" ><a class="upcase fw500" href="https://win.softpedia.com/" title="Windows Software"><i class="fa fa-windows"></i>&nbsp; Windows Apps</a></li>
+								<li role="menuitem" class="mgleft_10"><a class="upcase fw500 mgleft_7" href="https://mac.softpedia.com/"  title="Mac Apps"><i class="fa fa-apple"></i>&nbsp; Mac Apps</a></li>
+								<li role="menuitem" class="mgleft_10"><a class="upcase fw500 mgleft_7" href="https://linux.softpedia.com/" title="Linux Software"><i class="fa fa-linux"></i>&nbsp; Linux Apps</a></li>
+								<li role="menuitem" class="mgleft_10 active"><a class="upcase fw500 mgleft_7" href="https://drivers.softpedia.com/" title="Windows Device Drivers"><i class="fa fa-graphics"></i>&nbsp; Drivers</a></li>						
+								<li role="menuitem" class="mgleft_10"><a class="upcase fw500 mgleft_7" href="https://mobile.softpedia.com/apk/" title="Android Apps (APK)"><i class="fa fa-android"></i>&nbsp; Android APK</a></li>							
+								<li role="menuitem" class="mgleft_10"><a class="upcase fw500 mgleft_7" href="https://news.softpedia.com/" title="Technology News"><i class="fa fa-newspaper"></i>&nbsp; Reviews</a></li>
+							</ul>
+														<ul class="lev1 navico" id="navicos">
+								<!--<li class="fa fa-heart nosel" data-src="love"></li>-->
+								<a href="/dyn-search.php"><li class="fa fa-search nosel"></li></a>
+								<li class="fa fa-info nosel" data-src="info"></li>
+								<li class="fa fa-user nosel" onclick="showloginovl();"></li>							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+
+					</div>
+		<div role="main" class="main ">
+											<div class="statusbar  posrel"><div class="container_48">
+					<div class="grid_38 breadcrumb posrel">
+		<i class="fa fa-bars jhref spmenu2" id="spmenu" title="Drivers categories"></i>
+
+				<div class="breadcrumb-cnt ellip">			
+			<span itemprop="breadcrumb" itemscope itemtype="http://schema.org/BreadcrumbList"><span itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem"><meta itemprop="position" content="1" /><a href="https://www.softpedia.com/" itemprop="item" title="Softpedia Homepage"><span itemprop="name">Softpedia</span></a></span>&gt;<span itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem"><meta itemprop="position" content="2" /><a href="https://drivers.softpedia.com/" itemprop="item" title="Drivers Homepage"><span itemprop="name">Drivers</span></a></span>&gt;<span itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem"><meta itemprop="position" content="3" /><a href="https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/" itemprop="item" title="DVD / Blu-Ray / Media Players"><span itemprop="name">DVD / Blu-Ray / Media Players</span></a></span>&gt;<span itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem"><meta itemprop="position" content="4" /><a href="https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/Cloud-Media/" itemprop="item" title="Cloud Media"><span itemprop="name">Cloud Media</span></a></span>&gt;<span itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem"><meta itemprop="position" content="5" />&nbsp; <span itemprop="name">Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802</span><meta itemtype="http://schema.org/Thing" itemprop="item" content="https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/Cloud-Media/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-050815012025POP422802.shtml" /></span></span>		</div>
+			</div>
+
+		<div class="grid_8 prefix_2">	<div class="src2015 " id="main-search">
+	<form role="search" action="/dyn-search.php" method="GET" class="mgtop_20">
+	<!--<div onclick="$('#hp_search').focus()" class="fa fa-search"></div>-->
+	<input aria-label="Search" id="hp_search" type="text" value="Search..." onkeydown="if(this.value=='Search...') this.value='';" onclick="if(this.value=='Search...') this.value='';" onblur="if(this.value=='') this.value='Search...';" onfocus="if(this.value=='Search...') this.value='';" name="search_term">
+	<button type="submit">GO</button>
+		</form></div>
+	</div>
+		<div class="clearfix"></div>
+					</div></div>
+							<script>document.addEventListener("DOMContentLoaded", function(){ _trkev('DownloadButton', 'Loaded', '-', false); }, { once:true});</script>
+
+<div class="ppatf" id="ppatf"><div><div class="ad ad-970x90 mgtop_20 mgbot_10"><div id="Softpedia_software_programpage_billboard_atf_P1" style="width:970px; height: auto; min-height:90px"></div>
+<script>googletag.cmd.push(function(){ 
+googletag.display("Softpedia_software_programpage_billboard_atf_P1");
+});</script></div></div></div>
+<div id="dlmain"></div>
+<div itemscope itemtype="http://schema.org/SoftwareApplication" id="progmain">
+<meta itemprop="url" content="https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/Cloud-Media/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-050815012025POP422802.shtml"/>
+
+<div id="dlbtnFcontainer">
+	<div class="container_48">
+		<div class="grid_38">
+			<div id="dlbtnF" class="curpo" onclick="_trkev('DownloadButton', 'ClickedFloatingButton', '-', true); if(!$('#spovl6').length) $('#dlicon').toggleClass('fa-download fa-spinner fa-spin'); dlpop2025(); return false;"><b>DOWNLOAD</b>: Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802</div>
+		</div>
+		<div class="grid_8 prefix_2">	<div class="src2015 " id="main-search">
+	<form role="search" action="/dyn-search.php" method="GET" class="mgtop_20">
+	<!--<div onclick="$('#hp_search').focus()" class="fa fa-search"></div>-->
+	<input aria-label="Search" id="hp_search" type="text" value="Search..." onkeydown="if(this.value=='Search...') this.value='';" onclick="if(this.value=='Search...') this.value='';" onblur="if(this.value=='') this.value='Search...';" onfocus="if(this.value=='Search...') this.value='';" name="search_term">
+	<button type="submit">GO</button>
+		</form></div>
+	</div>
+	</div>
+</div>
+
+<div class="container_48">
+	<div class="pagetop pagetop2 mgtop_20">
+		<div class="grid_48">
+			<h1 class="grid_48 posrel nomgtop sanscond h1drivers">
+				<a href="https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/Cloud-Media/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-050815012025POP422802.shtml" title="Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802">
+					<span itemprop="name">Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802</span>
+				</a>
+			</h1>
+
+			<div class="nv_topshelf col-blue grid_48">
+				<!--<span class="nv_downloads posrel fl mgleft_20"><b>1,009</b> downloads</span>-->				
+				<span class="fl" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">Manufacturer: <a href="https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/Cloud-Media/" itemprop="url" title="Cloud Media drivers"><strong><u itemprop="name">Cloud Media</u></strong></a></span>
+				<span class="nv_downloads fl posrel" itemprop="datePublished" content="2016-03-13">Date: <b>Mar 13, 2016</b></span>
+			</div>
+			<div class="clearfix"></div>
+		</div>
+
+		 <div class="grid_15">
+			 <div id="dlbtn1">
+				<a itemprop="downloadUrl" href="https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/Cloud-Media/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-050815012025POP422802.shtml#download" onclick="_trkev('DownloadButton', 'ClickedTopButton', '-', true); if(!$('#spovl6').length) $('#dlicon').toggleClass('fa-download fa-spinner fa-spin'); dlpop2025(); return false;" title="Start download Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802">
+					<i id="dlicon" class="fa fa-download"></i>
+					<span class="dllogo">SOFTPEDIA&reg;</span>
+					<strong class="upcase">Download</strong>
+					<span class="dlbtn_stats"><b>1,009 downloads</b></span>
+				</a>
+			</div>
+		</div>
+
+		<div class="clearfix"></div>
+	</div>	
+</div>
+
+<div class="container_48 mgtop_30" style="border-top: 1px solid #f2f4f8">
+	<div class="grid_15">
+		<div class="grid_13 blk2024 mgtop_30">
+			<dl class="pspec2015 grid_13">
+				<dt class="nomgtop"><i class="fa fa-folder"></i>&nbsp; CATEGORY:</dt><dd class="ellip"><span itemprop="applicationSubCategory"><a href="https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/" title="DVD / Blu-Ray / Media Players">DVD / Blu-Ray / Media Players</a></span></dd>
+				<dt><i class="fa fa-desktop"></i>&nbsp; COMPATIBLE WITH:</dt><dd class="multiline" title="OS Independent"><span>OS Independent</span></dd>				<dt class="upcase"><i class="fa fa-storage"></i>&nbsp; file size:</dt><dd itemprop="fileSize">73 MB</dd>							</dl>
+		</div>
+
+		<div class="grid_15 altdrver"><div class="storystream grid_15 mgtop_30"><div class="ss-head mgbot_10 nosel"><div>Other versions</div></div><div class="os open"><div class="title" onclick="altdrver_toggle(this);">OS Independent</div><ul><li><a class="clearfix" href="https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/Cloud-Media/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-050614030725POP422802.shtml" title="Cloud Media Popcorn Hour A-400 Media Player Firmware 05-06-140307-25-POP-422-802">Cloud Media Popcorn Hour A-400 Media Player Firmware 05-06-140307-25-POP-422-802<span class="date">2016-03-13</span></a></li><li><a class="clearfix" href="https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/Cloud-Media/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-050815012025POP422802.shtml" title="Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802">Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802<span class="date">2016-03-13</span></a></li><li><a class="clearfix" href="https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/Cloud-Media/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-050814072425POP422802.shtml" title="Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-140724-25-POP-422-802">Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-140724-25-POP-422-802<span class="date">2016-03-13</span></a></li><li><a class="clearfix" href="https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/Cloud-Media/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-050614041425POP422802.shtml" title="Cloud Media Popcorn Hour A-400 Media Player Firmware 05-06-140414-25-POP-422-802" rel="nofollow">Cloud Media Popcorn Hour A-400 Media Player Firmware 05-06-140414-25-POP-422-802<span class="date">2016-03-13</span></a></li><li><a class="clearfix" href="https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/Cloud-Media/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-050413110525POP422000.shtml" title="Cloud Media Popcorn Hour A-400 Media Player Firmware 05-04-131105-25-POP-422-000" rel="nofollow">Cloud Media Popcorn Hour A-400 Media Player Firmware 05-04-131105-25-POP-422-000<span class="date">2016-03-13</span></a></li><li><a class="clearfix" href="https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/Cloud-Media/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-050313073125POP422000.shtml" title="Cloud Media Popcorn Hour A-400 Media Player Firmware 05-03-130731-25-POP-422-000" rel="nofollow">Cloud Media Popcorn Hour A-400 Media Player Firmware 05-03-130731-25-POP-422-000<span class="date">2016-03-13</span></a></li><li><a class="clearfix" href="https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/Cloud-Media/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-05-04-131014-25-POP-422-000.shtml" title="Cloud Media Popcorn Hour A-400 Media Player Firmware 05-04-131014-25-POP-422-000" rel="nofollow">Cloud Media Popcorn Hour A-400 Media Player Firmware 05-04-131014-25-POP-422-000<span class="date">2013-10-21</span></a></li></ul></div></div></div>	</div>
+
+	<div class="grid_31 prefix_1 mgtop_30" id="dlmaincenter">
+		<div class="tabbar posrel">
+			<h3 class="active mgleft_10" title="Description">Description</h3>
+			<h3 class="active bg-blue" onclick="_trkev('DownloadButton', 'ClickedTab', '-', true); if(!$('#spovl6').length) $('#dlicon').toggleClass('fa-download fa-spinner fa-spin'); dlpop2025(); return false;" title="Download Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802"><a class="col-white" href="https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/Cloud-Media/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-050815012025POP422802.shtml#download">Free Download</a></h3>
+		</div>
+
+		<div class="tabscontent posrel fl">
+			
+			<div id="edreview" class="_tabpage">
+				<div class=" grid_29 prefix_1 suffix_1">
+					<div class="tabpage legible posrel">
+						<div class="storybox1 posrel">
+						<div itemprop="description"><h4>Changes:</h4><p class="txtind1">- added support for stack box<br /></p><h4>About Media Player Updates:</h4><p class="txtind1">Installing a firmware update for your Media Player improves the general user experience by adding new features, fixing bugs, and enhancing the compatibility of your device, in order to play various formats of audio and video content. <br /><br />By updating your Media Player, you can actually prolong the device&rsquo;s life because, this way, it will be in sync with the new industry standards for content creation. <br /><br />However, the process of updating your device is a risky one if not done according to strict instructions, such as: make sure that the firmware you have downloaded is compatible with your device, and don&rsquo;t interfere with the player during the update process. <br /><br />The most common method of upgrading your Media Player is by using a USB stick or update DVD. Although this process is very straightforward, each device has certain particularities that you must take into account. <br /><br />If you consider using this update for your Media Player, feel free to click the download button, install the firmware and enjoy. Check out our website as often as possible to keep your Media Player up to date with the latest software and firmware.</p></div>						<div id="dlbtn2" class="posrel mgtop_30">
+							<div><a class="bigbtn ellip grid_29 posrel" rel="nofollow" href="https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/Cloud-Media/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-050815012025POP422802.shtml#download" onclick="_trkev('DownloadButton', 'ClickedBottomButton', '-', true); if(!$('#spovl6').length) $('#dlicon').toggleClass('fa-download fa-spinner fa-spin'); dlpop2025(); return false;" title="Download Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802"><span class="dllabel fl">DOWNLOAD </span> <span class="ellip grid_20">Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802</span></a></div>
+						</div>
+						<div class="clearfix"></div>
+						<h4 class="sepbrd4 mgbot_5">Filed under</h4><p class="tags_inl"><a title="Cloud Media Popcorn Hour A-400 Firmware" href="https://drivers.softpedia.com/downloadTag/Cloud+Media+Popcorn+Hour+A-400+Firmware">Cloud Media Popcorn Hour A-400 Firmware</a> <a title="Popcorn Hour A-400 Media Player Firmware" href="https://drivers.softpedia.com/downloadTag/Popcorn+Hour+A-400+Media+Player+Firmware">Popcorn Hour A-400 Media Player Firmware</a> <a title="Cloud Media A-400 Media Player Firmware" href="https://drivers.softpedia.com/downloadTag/Cloud+Media+A-400+Media+Player+Firmware">Cloud Media A-400 Media Player Firmware</a> <a title="Popcorn Hour A-400" href="https://drivers.softpedia.com/downloadTag/Popcorn+Hour+A-400">Popcorn Hour A-400</a> <a title="Firmware" href="https://drivers.softpedia.com/downloadTag/Firmware">Firmware</a> <a title="Media Player" href="https://drivers.softpedia.com/downloadTag/Media+Player">Media Player</a> <a title="Cloud Media" href="https://drivers.softpedia.com/downloadTag/Cloud+Media">Cloud Media</a> </p>						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="grid_15 mgtop_30 prefix_2" id="spfloatcnt">
+		<div id="spfloatside">
+			<div class="ad adwblue ad-300x250">
+				<div id="Softpedia_software_programpage_mpu_atf_P1" style="width:300px; height: auto; min-height:250px"></div>
+<script>googletag.cmd.push(function(){ 
+googletag.display("Softpedia_software_programpage_mpu_atf_P1");
+});</script>			</div>
+
+			<div class="ad adwblue ad-300x250 mgtop_30">
+				<div id="Softpedia_software_programpage_mpu_btf_P1" style="width:300px; height: auto; min-height:250px"></div>
+<script>googletag.cmd.push(function(){ 
+googletag.display("Softpedia_software_programpage_mpu_btf_P1");
+});</script>			</div>
+		</div>
+	</div>
+
+	<div class="clearfix"></div>	
+
+
+<script>
+function handleDLintersect(ent,obs){ ent.forEach((e) => { if(e.intersectionRatio<=0.0) document.getElementById('dlbtnFcontainer').style.display='block'; else if(e.intersectionRatio>=1.0) document.getElementById('dlbtnFcontainer').style.display='none'; }); }
+const obs = new IntersectionObserver(handleDLintersect, { root: null, rootMargin: "-60px", threshold: [0.0,1.0] });
+obs.observe(document.getElementById('dlbtn1'));
+
+function dlpop2025() {	
+	fetch('/_xaja/dlinfo.php', { method: "POST", body: new URLSearchParams('t='+15+'&y=25&id=498378&tsf='+spjs_prog_tsf+'&skipa='+(window.ads_skipped_due_policy?1:0)) }).
+	then((resp) => resp.text()).
+	then((r) => {
+		if(r) {
+			urlhashadd('download');
+			$('#progmain').hide(); $('#_progfloat').remove();
+			$('#dlmain').html('<div id="spovl6"><div id="ov6popup">'+r+'</div></div><style>#spovl6::after { height: 0; } #spovl6 #ov6popup { box-shadow: none; width: 970px; margin-top: 10px; padding-top: 20px; height: 100% !important; } #spovl6 { position: relative; top: 0; z-index: 0; }</style>');
+		}
+	});
+}
+window.addEventListener("popstate", (event) => {
+	console.log(event);
+});
+</script>
+
+<div itemscope itemprop="offers" itemtype="http://schema.org/Offer"><meta itemprop="price" content="0"><meta itemprop="priceCurrency" content="USD"></div>
+<meta itemprop="applicationCategory" content="http://schema.org/DriverApplication" />
+<meta itemprop="operatingSystem" content="OS Independent" /></div>
+
+<script>document.getElementById('spfloatcnt').style.height = document.getElementById('dlmaincenter').offsetHeight+'px';</script>
+		</div></div>
+		
+		<div class="clearfix"></div>
+		<div class="footer mgtop_40" id="footer">
+			<div class="social">
+				<div class="container_48 posrel">
+					<div class="grid_38"><div class="home-search"><form role="search" action="/dyn-search.php" method="GET"><div class="fa fa-search"></div><input aria-label="Search" type="text" value="Search here..." onkeydown="if(this.value=='Search here...') this.value='';" onclick="if(this.value=='Search here...') this.value='';" onblur="if(this.value=='') this.value='Search here...';" name="search_term" /></form></div></div>
+					<div class="grid_10 mgtop_20 ta_right"><span class="nosel logof">i <i class="fa fa-heart col-red-l"></i> softpedia&reg;</span></div>
+				</div>
+			</div>
+			<div class="copyright_cnt">
+				<div class="container_48 posrel">
+					<div class="copyright f_content grid_48">
+						&copy; 2001-2025 <span itemprop="name">Softpedia</span>.
+						All rights reserved. Softpedia&reg; and the Softpedia&reg; logo are registered trademarks of SoftNews NET SRL						<br/>
+						<a href="https://www.softpedia.com/user/contact.php" rel="nofollow" title="Contact">Contact</a>
+						&nbsp;&bull;
+						<a href="https://www.softpedia.com/user/privacy.shtml" rel="nofollow" title="Privacy Policy">Privacy Policy</a>
+						&nbsp;&bull;
+						<a href="https://www.softpedia.com/user/cookies.shtml" rel="nofollow" title="Cookie Policy">Cookie Policy</a>
+						&nbsp;&bull;
+						EU residents: <a title="Cookie Settings" href="javascript:;" onclick="window.__tcfapi('displayConsentUi', 2, function(){});">Cookie Settings</a>					</div>
+					<div class="clearfix"></div>
+				</div>
+			</div>
+		</div>
+		
+<div id="spsbtns"><div id="feedbackb" class="rgbutton" onclick="spsite_feedback('https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/Cloud-Media/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-050815012025POP422802.shtml');"><div class="rotate90r">feedback <i class="fa fa-info-circle rotate270r"></i></div></div>
+</div>
+<div id="spovl1" class="ovlgrad1 novig"><div class="spovl1box"><div class="spovl1box2">&nbsp;</div></div></div><!-- overlay 1 -->
+<div id="spovl2"><div class="spovl2box"><div class="spovl2box2">&nbsp;</div></div></div><!-- overlay 2 -->
+<div id="spovl3"><div class="spovl3box">&nbsp;</div></div><!-- overlay 3 -->
+
+<script defer crossorigin src="https://cdnssl.softpedia.com/_min/?g=jsbase&amp;jv=4153"></script>
+<script>window.spcsrf="YiFXiDsyhxfI4aTWOGI5dAwBfZViFDnq";</script><script>
+var sp_nsroot=".softpedia.com";
+var sp_xaja_root="https://drivers.softpedia.com/";
+var pe_section='drivers';
+var spjs_prog_id=498378;
+var sp_trkev=1;
+var tm_act='desktop';
+var tm_open=false;
+var tm_evset=false;
+var spjs_social={"pagetitle":"Download Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802 for OS Independent","pageurl":"https:\/\/drivers.softpedia.com\/get\/DVD-BluRay-Media-Players\/Cloud-Media\/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-050815012025POP422802.shtml","mediaurl":""};
+var spsocial_pagetitle='Download Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802 for OS Independent';
+var spsocial_pageurl='https://drivers.softpedia.com/get/DVD-BluRay-Media-Players/Cloud-Media/Cloud-Media-Popcorn-Hour-A-400-Media-Player-Firmware-050815012025POP422802.shtml';
+var spsocial_mediaurl="";
+var spjs_cat_id=31;
+var spjs_prog_version="";
+var sp_catid=31;
+var spjs_prog_namevertxt_cln1="Cloud Media Popcorn Hour A-400 Media Player Firmware 05-08-150120-25-POP-422-802 ";
+var spjs_prod_id=732;
+var spjs_prog_tsf=0;
+var spjs_auth_uid=0;
+var spjs_auth={"user":"","name":"","mail":""};
+</script>
+<script defer src="/_min/jsstore.php?l=cHJvZ3BhZ2VfanNfMjAxNixwb3B1cHMyLHByb2djaGtoYXNoLGRyaXZlcl9wYWdl&amp;f=bGFuZy9FTi5qcw==&amp;jv=4014"></script>
+
+</script>
+
+<script type="application/ld+json">{ "@context": "http://schema.org", "@type": "Organization", "url": "https://www.softpedia.com/", "logo": "https://cdnssl.softpedia.com/_img/rba_sp_hd.png", "name": "Softpedia", "sameAs" : [ "https://www.facebook.com/softpediacom/", "https://twitter.com/Softpedia", "https://www.instagram.com/softpedia/", "https://flipboard.com/@softpedia/softpedia-news-ji14q1huy" ] }</script>
+<script type="application/ld+json">{ "@context": "http://schema.org", "@type": "WebSite", "name": "Softpedia", "url": "https://www.softpedia.com/" }</script>
+
+
+</body>
+</html>

@@ -1,0 +1,116 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16
+    container_name: cinema_db
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: cinema
+    ports:
+      - "5464:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app_network
+
+  cinema:
+    build: .
+    container_name: cinema_app
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgres://user:pass@db:5432/cinema?sslmode=disable
+    networks:
+      - app_network
+
+volumes:
+  postgres_data:
+
+networks:
+  app_network:
+    driver: bridge
+    # Можно добавить depends_on для миграций, если необходимо
+## docker-compose.yml
+#version: '3.8'
+#
+#services:
+#  db:
+#    image: postgres:16
+#    environment:
+#      POSTGRES_USER: user
+#      POSTGRES_PASSWORD: pass
+#      POSTGRES_DB: cinema
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#      - ./migrations:/docker-entrypoint-initdb.d
+#    ports:
+#      - "5464:5432"
+#
+#  app:
+#    build: .
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      DATABASE_URL: postgres://user:pass@db:5432/cinema?sslmode=disable
+#    depends_on:
+#      - db
+#    # Для GUI в Docker (если нужно):
+#    # environment:
+#    #   - DISPLAY=${DISPLAY}
+#    # volumes:
+#    #   - /tmp/.X11-unix:/tmp/.X11-unix
+#
+#volumes:
+#  postgres_data:
+
+#version: '3.8'
+#
+#services:
+#  db:
+#    image: postgres:16
+#    container_name: cinema_db
+#    restart: always
+#    environment:
+#      POSTGRES_USER: user
+#      POSTGRES_PASSWORD: pass
+#      POSTGRES_DB: cinema
+#    ports:
+#      - "5464:5432"
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#      - ./migrations/001_up.sql:/docker-entrypoint-initdb.d/001_up.sql
+#    networks:
+#      - app_network
+#
+#  app:
+#    build: .
+#    container_name: cinema_app
+#    restart: always
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - db
+#    environment:
+#      DATABASE_URL: postgres://user:pass@db:5432/cinema?sslmode=disable
+#    networks:
+#      - app_network
+#
+#volumes:
+#  postgres_data:
+#
+#networks:
+#  app_network:
+#    driver: bridge

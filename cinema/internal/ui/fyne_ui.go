@@ -1,0 +1,569 @@
+// internal/ui/fyne_ui.go
+package ui
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/widget"
+	"log"
+	"net/http"
+	"net/http/cookiejar"
+	"net/url"
+	"os"
+	"strconv"
+	"time"
+)
+
+var (
+	client  *http.Client
+	window  fyne.Window
+	history []func()
+)
+
+const cookieFile = "cookies.json"
+
+// Приложение запускается кастомно
+// надо хранить куки например на диске
+// куки
+func saveCookies() {
+	if client == nil || client.Jar == nil {
+		return
+	}
+	u, _ := url.Parse("http://localhost:8080")
+	cookies := client.Jar.Cookies(u)
+	data, _ := json.Marshal(cookies)
+	os.WriteFile(cookieFile, data, 0600)
+	log.Printf("КУКИ СОХРАНЕНЫ: %d шт.", len(cookies))
+}
+
+// Загрузить куки
+func loadCookies() {
+	data, err := os.ReadFile(cookieFile)
+	if err != nil {
+		return
+	}
+	var cookies []*http.Cookie
+	if json.Unmarshal(data, &cookies) != nil {
+		return
+	}
+	u, _ := url.Parse("http://localhost:8080")
+	client.Jar.SetCookies(u, cookies)
+	log.Printf("КУКИ ЗАГРУЖЕНЫ: %d шт.", len(cookies))
+}
+
+func showScreen(f func()) {
+	//Новый экран
+	f()
+
+	//
+	content := window.Content()
+	history = append(history, func() {
+		window.SetContent(content)
+		log.Printf("ВОССТАНОВЛЕНО: экран из истории")
+	})
+
+	log.Printf("showScreen: добавлено в историю, всего: %d", len(history))
+}
+
+func goBack() {
+	log.Printf("goBack: нажато, history size = %d", len(history))
+	if len(history) > 1 {
+		history = history[:len(history)-1]
+		prev := history[len(history)-1]
+		prev()
+		log.Printf("goBack: возвращено, осталось: %d", len(history))
+	} else {
+		log.Printf("goBack: нет куда возвращаться")
+	}
+}
+
+func Start(w fyne.Window) {
+	window = w
+
+	//
+	jar, _ := cookiejar.New(nil)
+	client = &http.Client{
+		Jar:     jar,
+		Timeout: 10 * time.Second,
+	}
+
+	// Грузим куки
+	loadCookies()
+
+	time.Sleep(500 * time.Millisecond)
+	history = nil
+
+	if tryAutoLogin() {
+		showScreen(showMainScreen)
+	} else {
+		showScreen(showLoginForm)
+	}
+}
+
+func tryAutoLogin() bool {
+	if client == nil {
+		return false
+	}
+
+	req, _ := http.NewRequest("GET", "http://localhost:8080/protected", nil)
+	resp, err := client.Do(req)
+	if err != nil || resp.StatusCode != 200 {
+		return false
+	}
+	resp.Body.Close()
+	return true
+}
+
+// === ЭКРАНЫ ===
+
+func showLoginForm() {
+	email := widget.NewEntry()
+	email.SetPlaceHolder("Email")
+	pass := widget.NewPasswordEntry()
+	pass.SetPlaceHolder("Пароль")
+
+	loginBtn := widget.NewButton("Войти", func() {
+		payload := map[string]string{"email": email.Text, "password": pass.Text}
+		body, _ := json.Marshal(payload)
+		resp, err := client.Post("http://localhost:8080/login", "application/json", bytes.NewBuffer(body))
+		if err != nil || resp.StatusCode != 200 {
+			dialog.ShowError(err, window)
+			return
+		}
+		saveCookies() // сохраним куки
+		history = nil
+		showScreen(showMainScreen)
+	})
+
+	regBtn := widget.NewButton("Регистрация", func() { showScreen(showRegisterForm) })
+
+	window.SetContent(container.NewVBox(
+		widget.NewLabel("Вход"),
+		email, pass, loginBtn, regBtn,
+	))
+}
+
+func showRegisterForm() {
+	email := widget.NewEntry()
+	pass := widget.NewPasswordEntry()
+
+	regBtn := widget.NewButton("Зарегистрироваться", func() {
+		payload := map[string]string{"email": email.Text, "password": pass.Text}
+		body, _ := json.Marshal(payload)
+		resp, err := client.Post("http://localhost:8080/register", "application/json", bytes.NewBuffer(body))
+		if err != nil || resp.StatusCode != 200 {
+			dialog.ShowError(err, window)
+			return
+		}
+		dialog.ShowInformation("Успех", "Аккаунт создан!", window)
+		goBack()
+	})
+
+	backBtn := widget.NewButton("Назад", goBack)
+
+	window.SetContent(container.NewBorder(
+		nil, backBtn, nil, nil,
+		container.NewVBox(
+			widget.NewLabel("Регистрация"),
+			email, pass, regBtn,
+		),
+	))
+}
+
+func showMainScreen() {
+	filmsBtn := widget.NewButton("Фильмы", func() { showScreen(showFilmsList) })
+	adminBtn := widget.NewButton("Админка", func() { showScreen(showAdminPanel) })
+	logoutBtn := widget.NewButton("Выйти", func() {
+		client.Post("http://localhost:8080/logout", "application/json", nil)
+		os.Remove(cookieFile) // из базы удаляем сессии и удаляем куки с диска
+		history = nil
+		showScreen(showLoginForm)
+	})
+
+	window.SetContent(container.NewVBox(
+		widget.NewLabel("Главное меню"),
+		filmsBtn,
+		adminBtn,
+		logoutBtn,
+	))
+}
+
+func showFilmsList() {
+	resp, _ := client.Get("http://localhost:8080/sessions")
+	var sessions []map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&sessions)
+	resp.Body.Close()
+
+	list := widget.NewList(
+		func() int { return len(sessions) },
+		func() fyne.CanvasObject { return widget.NewLabel("") },
+		func(i widget.ListItemID, o fyne.CanvasObject) {
+			title := sessions[i]["film_title"].(string)
+			time := sessions[i]["start_time"].(string)
+			o.(*widget.Label).SetText(fmt.Sprintf("%s — %s", title, time))
+		},
+	)
+
+	list.OnSelected = func(id widget.ListItemID) {
+		sess := sessions[id]
+		sessionID := int(sess["id"].(float64))
+		showScreen(func() { showHall(sessionID) })
+	}
+
+	backBtn := widget.NewButton("Назад", goBack)
+	window.SetContent(container.NewBorder(nil, backBtn, nil, nil, list))
+}
+
+func showAdminPanel() {
+
+	filmBtn := widget.NewButton("Добавить фильм", func() { showScreen(showCreateFilmForm) })
+	cinemaBtn := widget.NewButton("Создать кинотеатр", func() { showScreen(showCreateCinemaForm) })
+	sessionFilmBtn := widget.NewButton("Привязать фильм к кинотеатру", func() { showScreen(showCreateFilmSessionForm) })
+	backBtn := widget.NewButton("Назад", goBack)
+
+	window.SetContent(container.NewBorder(
+		nil, backBtn, nil, nil,
+		container.NewVBox(
+			widget.NewLabel("Админка"),
+			filmBtn,
+			cinemaBtn,
+			sessionFilmBtn,
+		),
+	))
+}
+
+func showHall(sessionID int) {
+	resp, _ := client.Get(fmt.Sprintf("http://localhost:8080/seats?session=%d", sessionID))
+	var seats []struct {
+		ID     int  `json:"id"`
+		Row    int  `json:"row"`
+		Col    int  `json:"col"`
+		Booked bool `json:"booked"`
+	}
+	json.NewDecoder(resp.Body).Decode(&seats)
+	resp.Body.Close()
+
+	selected := make(map[int]bool)
+	var selectedIDs []int
+
+	grid := container.NewGridWithColumns(10) // 10 мест в ряду
+
+	for _, s := range seats {
+		btn := widget.NewButton("", func(id int) func() {
+			return func() {
+				if s.Booked {
+					return
+				}
+				selected[id] = !selected[id]
+				selectedIDs = nil
+				for id := range selected {
+					if selected[id] {
+						selectedIDs = append(selectedIDs, id)
+					}
+				}
+				showHall(sessionID)
+			}
+		}(s.ID))
+
+		if s.Booked {
+			btn.Importance = widget.DangerImportance // красный
+		} else if selected[s.ID] {
+			btn.Importance = widget.HighImportance // синий
+		} else {
+			btn.Importance = widget.SuccessImportance // зелёный
+		}
+
+		btn.SetText(fmt.Sprintf("%d-%d", s.Row, s.Col)) // ← Row-Col
+		grid.Add(btn)
+	}
+
+	bookBtn := widget.NewButton("Забронировать", func() {
+		if len(selectedIDs) == 0 {
+			dialog.ShowInformation("Ошибка", "Выберите места", window)
+			return
+		}
+		payload := map[string]interface{}{
+			"session_id": sessionID,
+			"seat_ids":   selectedIDs,
+		}
+		body, _ := json.Marshal(payload)
+		resp, _ := client.Post("http://localhost:8080/bookings", "application/json", bytes.NewBuffer(body))
+		if resp.StatusCode == 200 {
+			dialog.ShowInformation("Успех", "Места забронированы!", window)
+			showScreen(showFilmsList)
+		} else {
+			dialog.ShowError(fmt.Errorf("ошибка бронирования"), window)
+		}
+	})
+
+	backBtn := widget.NewButton("Назад", goBack)
+
+	window.SetContent(container.NewBorder(
+		container.NewHBox(
+			widget.NewLabel(fmt.Sprintf("Сеанс ID: %d", sessionID)),
+			layout.NewSpacer(),
+			bookBtn,
+		),
+		backBtn,
+		nil, nil,
+		container.NewScroll(grid),
+	))
+}
+
+// Методы создания сущностей
+func showCreateCinemaForm() {
+	nameEntry := widget.NewEntry()
+	nameEntry.SetPlaceHolder("Название кинотеатра")
+
+	addressEntry := widget.NewEntry()
+	addressEntry.SetPlaceHolder("Адрес")
+
+	cityEntry := widget.NewEntry()
+	cityEntry.SetPlaceHolder("Город")
+
+	phoneEntry := widget.NewEntry()
+	phoneEntry.SetPlaceHolder("Телефон")
+
+	totalSeatsEntry := widget.NewEntry()
+	totalSeatsEntry.SetPlaceHolder("Общее количество мест")
+
+	posterEntry := widget.NewEntry()
+	posterEntry.SetPlaceHolder("URL постера")
+
+	createBtn := widget.NewButton("Создать", func() {
+		totalSeats, _ := strconv.Atoi(totalSeatsEntry.Text)
+		payload := map[string]interface{}{
+			"name":        nameEntry.Text,
+			"address":     addressEntry.Text,
+			"city":        cityEntry.Text,
+			"phone":       phoneEntry.Text,
+			"total_seats": totalSeats,
+			"poster":      posterEntry.Text,
+		}
+		body, _ := json.Marshal(payload)
+		req, _ := http.NewRequest("POST", "http://localhost:8080/admin/cinemas", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := client.Do(req)
+		log.Printf("Status: %d", resp.StatusCode)
+		if err != nil || resp.StatusCode != 201 {
+			dialog.ShowError(fmt.Errorf("ошибка создания: %v", err), window)
+			return
+		}
+		dialog.ShowInformation("Успех", "Кинотеатр создан!", window)
+		goBack()
+	})
+
+	backBtn := widget.NewButton("Назад", goBack)
+
+	window.SetContent(container.NewBorder(
+		nil, backBtn, nil, nil,
+		container.NewVBox(
+			widget.NewLabel("Создать кинотеатр"),
+			widget.NewLabel("Название:"), nameEntry,
+			widget.NewLabel("Адрес:"), addressEntry,
+			widget.NewLabel("Город:"), cityEntry,
+			widget.NewLabel("Телефон:"), phoneEntry,
+			widget.NewLabel("Мест всего:"), totalSeatsEntry,
+			widget.NewLabel("Постер:"), posterEntry,
+			createBtn,
+		),
+	))
+}
+
+func showCreateFilmForm() {
+	titleEntry := widget.NewEntry()
+	titleEntry.SetPlaceHolder("Название фильма")
+
+	posterEntry := widget.NewEntry()
+	posterEntry.SetPlaceHolder("URL постера")
+
+	descEntry := widget.NewMultiLineEntry()
+	descEntry.SetPlaceHolder("Описание")
+
+	durationEntry := widget.NewEntry()
+	durationEntry.SetPlaceHolder("Продолжительность (мин)")
+
+	createBtn := widget.NewButton("Создать", func() {
+		duration, _ := strconv.Atoi(durationEntry.Text)
+		payload := map[string]interface{}{
+			"title":       titleEntry.Text,
+			"poster":      posterEntry.Text,
+			"description": descEntry.Text,
+			"duration":    duration,
+		}
+		body, _ := json.Marshal(payload)
+		req, _ := http.NewRequest("POST", "http://localhost:8080/admin/films", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := client.Do(req)
+		if err != nil || resp.StatusCode != 201 {
+			dialog.ShowError(fmt.Errorf("ошибка: %v", err), window)
+			return
+		}
+		dialog.ShowInformation("Успех", "Фильм создан!", window)
+		goBack()
+	})
+
+	backBtn := widget.NewButton("Назад", goBack)
+
+	window.SetContent(container.NewBorder(
+		nil, backBtn, nil, nil,
+		container.NewVBox(
+			widget.NewLabel("Создать фильм"),
+			widget.NewLabel("Название:"), titleEntry,
+			widget.NewLabel("Постер:"), posterEntry,
+			widget.NewLabel("Описание:"), descEntry,
+			widget.NewLabel("Длительность:"), durationEntry,
+			createBtn,
+		),
+	))
+}
+
+func showCreateFilmSessionForm() {
+	// Получаем списки
+	filmsResp, _ := client.Get("http://localhost:8080/films")
+	var films []map[string]interface{}
+	json.NewDecoder(filmsResp.Body).Decode(&films)
+	filmsResp.Body.Close()
+
+	fmt.Println(filmsResp)
+
+	cinemasResp, _ := client.Get("http://localhost:8080/cinemas")
+	var cinemas []map[string]interface{}
+	json.NewDecoder(cinemasResp.Body).Decode(&cinemas)
+	cinemasResp.Body.Close()
+
+	// Выбор фильма
+	filmSelect := widget.NewSelect([]string{}, nil)
+	filmIDs := []int{}
+	for _, f := range films {
+		title := f["title"].(string)
+		id := int(f["id"].(float64))
+		filmSelect.Options = append(filmSelect.Options, fmt.Sprintf("%s (ID: %d)", title, id))
+		filmIDs = append(filmIDs, id)
+	}
+	filmSelect.OnChanged = func(s string) { log.Printf("Film selected: %s", s) }
+	filmSelect.Refresh()
+
+	// Выбор кинотеатра
+	cinemaSelect := widget.NewSelect([]string{}, nil)
+	cinemaIDs := []int{}
+	for _, c := range cinemas {
+		name := c["name"].(string)
+		id := int(c["id"].(float64))
+		cinemaSelect.Options = append(cinemaSelect.Options, fmt.Sprintf("%s (ID: %d)", name, id))
+		cinemaIDs = append(cinemaIDs, id)
+	}
+	cinemaSelect.OnChanged = func(s string) { log.Printf("Cinema selected: %s", s) }
+	cinemaSelect.Refresh()
+
+	startTimeEntry := widget.NewEntry()
+	startTimeEntry.SetPlaceHolder("Время сеанса (YYYY-MM-DD HH:MM:SS)")
+
+	createBtn := widget.NewButton("Создать сеанс", func() {
+		if filmSelect.SelectedIndex() < 0 || cinemaSelect.SelectedIndex() < 0 {
+			dialog.ShowError(fmt.Errorf("выберите фильм и кинотеатр"), window)
+			return
+		}
+		filmID := filmIDs[filmSelect.SelectedIndex()]
+		cinemaID := cinemaIDs[cinemaSelect.SelectedIndex()]
+		log.Printf("Creating session: film=%d, cinema=%d, time=%s", filmID, cinemaID, startTimeEntry.Text)
+
+		payload := map[string]interface{}{
+			"film_id":    filmID,
+			"cinema_id":  cinemaID,
+			"start_time": startTimeEntry.Text,
+		}
+		body, _ := json.Marshal(payload)
+		req, _ := http.NewRequest("POST", "http://localhost:8080/admin/sessions", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := client.Do(req)
+		log.Printf("Response status: %d, error: %v", resp.StatusCode, err)
+		if err != nil || resp.StatusCode != 201 {
+			dialog.ShowError(fmt.Errorf("ошибка: %v", err), window)
+			return
+		}
+		dialog.ShowInformation("Успех", "Сеанс создан!", window)
+		goBack()
+	})
+
+	backBtn := widget.NewButton("Назад", goBack)
+
+	window.SetContent(container.NewBorder(
+		nil, backBtn, nil, nil,
+		container.NewVBox(
+			widget.NewLabel("Привязать фильм к кинотеатру"),
+			widget.NewLabel("Фильм:"), filmSelect,
+			widget.NewLabel("Кинотеатр:"), cinemaSelect,
+			widget.NewLabel("Время сеанса:"), startTimeEntry,
+			createBtn,
+		),
+	))
+}
+
+//sessionsByFilmBtn := widget.NewButton("Сеансы по фильму", func() { showScreen(showSessionsByFilmForm) })
+//
+//// В container.NewVBox добавь: sessionsByFilmBtn,
+//
+//// Новая функция
+//func showSessionsByFilmForm() {
+//	// Получаем фильмы
+//	filmsResp, _ := client.Get("http://localhost:8080/films")
+//	var films []map[string]interface{}
+//	json.NewDecoder(filmsResp.Body).Decode(&films)
+//	filmsResp.Body.Close()
+//
+//	filmSelect := widget.NewSelect([]string{}, nil)
+//	filmIDs := []int{}
+//	for _, f := range films {
+//		title := f["title"].(string)
+//		id := int(f["id"].(float64))
+//		filmSelect.Options = append(filmSelect.Options, title)
+//		filmIDs = append(filmIDs, id)
+//	}
+//
+//	var sessionsList *widget.List
+//	var sessions []map[string]interface{}
+//
+//	updateList := func() {
+//		if filmSelect.Selected == "" {
+//			return
+//		}
+//		filmID := filmIDs[filmSelect.SelectedIndex()]
+//		resp, _ := client.Get(fmt.Sprintf("http://localhost:8080/sessions?film_id=%d", filmID))
+//		json.NewDecoder(resp.Body).Decode(&sessions)
+//		resp.Body.Close()
+//
+//		sessionsList.Length = func() int { return len(sessions) }
+//		sessionsList.UpdateItem = func(i widget.ListItemID, o fyne.CanvasObject) {
+//			s := sessions[i]
+//			cinema := s["cinema_name"].(string) // предполагаем поле
+//			time := s["start_time"].(string)
+//			o.(*widget.Label).SetText(fmt.Sprintf("%s — %s", cinema, time))
+//		}
+//		sessionsList.Refresh()
+//	}
+//
+//	filmSelect.OnChanged = func(s string) { updateList() }
+//
+//	sessionsList = widget.NewList(
+//		func() int { return 0 },
+//		func() fyne.CanvasObject { return widget.NewLabel("") },
+//		func(i widget.ListItemID, o fyne.CanvasObject) {},
+//	)
+//
+//	backBtn := widget.NewButton("Назад", goBack)
+//
+//	window.SetContent(container.NewBorder(
+//		nil, backBtn, nil, nil,
+//		container.NewVBox(
+//			widget.NewLabel("Сеансы по фильму"),
+//			widget.NewLabel("Выберите фильм:"), filmSelect,
+//			sessionsList,
+//		),
+//	))
+//}
