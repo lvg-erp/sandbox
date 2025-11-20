@@ -9,3 +9,11 @@ vladimir@vladimir-VirtualBox:~/Project/go/sandbox/grTest8/04_fuelStationFyne$
 
 проверка валидности кода
 go vet ./...
+
+
+отладка при падении Докераdocker
+
+docker-compose down -v --remove-orphans
+docker system prune -a --volumes
+docker-compose build --no-cache
+docker-compose up
