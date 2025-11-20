@@ -13,18 +13,17 @@ import (
 
 func main() {
 	logger := logrus.New()
-	if logger == nil {
-		os.Exit(1)
-	}
+	logger.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp: true,
+	})
 
-	// Создаём кэш с воркером
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
+	//Кэш
 	wordCache := cache.NewWordCache(logger)
 	go wordCache.Run(ctx)
 
-	// Создаём GUI
+	// GUI
 	appGui, err := gui.NewAppGui(wordCache, logger)
 	if err != nil {
 		logger.Error("Failed to create GUI", "err", err)
