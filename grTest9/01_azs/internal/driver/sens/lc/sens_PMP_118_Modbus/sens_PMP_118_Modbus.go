@@ -88,6 +88,7 @@ func (lc *LCDriver) GetMainStatus(devicePNumber string) ([]byte, error) {
 
 	// 2. Верификация устройства
 	verifyPayload := []byte{DeviceNumber}
+
 	res, err := lc.sendLinCommand(devicePNumber, []byte{deviceAddressByte}, []byte{CmdReadInfo}, verifyPayload, DriverName)
 	if err != nil {
 		return nil, fmt.Errorf("device verification command failed for address %s: %w", fileConfig.Address, err)
@@ -1017,6 +1018,7 @@ func (lc *LCDriver) SetSettings(devicePNumber string, data []byte) error {
 
 // Ping Метод для проверки отвечает ли уровнемер
 func (lc *LCDriver) Ping(devicePNumber string) error {
+
 	filePath := filepath.Join("internal", "driver", "sens", "lc", "configLC", fmt.Sprintf("sens_PMP_118_Modbus_%s.json", devicePNumber))
 	fileConfig, err := configLC.ReadConfig(filePath)
 	if err != nil {
@@ -1032,6 +1034,7 @@ func (lc *LCDriver) Ping(devicePNumber string) error {
 
 	deviceAddressByte := sens.StringToBytes(fileConfig.Address)
 	verifyPayload := []byte{DeviceNumber}
+
 	res, err := lc.sendLinCommand(devicePNumber, []byte{deviceAddressByte}, []byte{CmdReadInfo}, verifyPayload, DriverName)
 	if err != nil {
 		return fmt.Errorf("device verification command failed for address %s: %w", fileConfig.Address, err)
@@ -1041,6 +1044,8 @@ func (lc *LCDriver) Ping(devicePNumber string) error {
 		return fmt.Errorf("device verification response too short (expected >= 9, got %d) from address %s", len(res), fileConfig.Address)
 	}
 
+	fmt.Println(DeviceList)
+	fmt.Println(res)
 	deviceResponseStr := sens.ByteToHexString(res[6]) + sens.ByteToHexString(res[5])
 	_, ok := DeviceList[deviceResponseStr]
 	if !ok {
@@ -1051,6 +1056,7 @@ func (lc *LCDriver) Ping(devicePNumber string) error {
 
 // GetFuelVolume Метод для получения объема топлива
 func (lc *LCDriver) GetFuelVolume(devicePNumber string) (float32, error) {
+
 	filePath := filepath.Join("internal", "driver", "sens", "lc", "configLC", fmt.Sprintf("sens_PMP_118_Modbus_%s.json", devicePNumber))
 	fileConfig, err := configLC.ReadConfig(filePath)
 	if err != nil {
@@ -1067,6 +1073,7 @@ func (lc *LCDriver) GetFuelVolume(devicePNumber string) (float32, error) {
 	deviceAddressByte := sens.StringToBytes(fileConfig.Address)
 
 	verifyPayload := []byte{DeviceNumber}
+
 	res, err := lc.sendLinCommand(devicePNumber, []byte{deviceAddressByte}, []byte{CmdReadInfo}, verifyPayload, DriverName)
 	if err != nil {
 		return 0, fmt.Errorf("device verification command failed for address %s: %w", fileConfig.Address, err)

@@ -329,7 +329,7 @@ func NewSensAdapter() (map[string]*SensAdapter, error) {
 			bkNumberString := strconv.Itoa(bkNumber)
 			bkList[bkNumberString] = struct{}{}
 		}
-
+		//spew.Dump(bkList)
 		lcList := make(map[string]struct{}, len(sensConfig.LC))
 		for _, lcNumber := range sensConfig.LC {
 			lcNumberString := strconv.Itoa(lcNumber)
@@ -351,6 +351,9 @@ func NewSensAdapter() (map[string]*SensAdapter, error) {
 			mutex: sync.Mutex{},
 		}
 	}
+
+	//spew.Dump(sensAdapters)
+
 	return sensAdapters, nil
 }
 

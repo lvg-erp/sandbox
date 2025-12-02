@@ -50,8 +50,8 @@ func NewLinDriver(adapter *map[string]*sensAdapter.SensAdapter) *LinDriver {
 // SetSettings Метод для настройки ЛИН-АДАПТЕРА
 func (l *LinDriver) SetSettings(devicePNumber string, data []byte) error {
 
-	//filePath := "lin/" + DriverName + "_" + devicePNumber + ".json"
-	filePath := filepath.Join("internal", "driver", "sens", "lin", "configLIN", fmt.Sprintf("sens_LIN_RS_USB_LAN_%s.json", devicePNumber))
+	filePath := "lin/" + DriverName + "_" + devicePNumber + ".json"
+	//filePath := filepath.Join("internal", "driver", "sens", "lin", "configLIN", fmt.Sprintf("sens_LIN_RS_USB_LAN_%s.json", devicePNumber))
 	// --- Сценарий 1: Применение новых настроек (data != nil) ---
 	if data != nil {
 		var dataJSON configLIN.SensLinRsUsbLan

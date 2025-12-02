@@ -592,9 +592,9 @@ func (p *Processing) StartProgram(ntpServer string) error {
 
 func (c *Processing) ReadPort(cancel context.CancelFunc) {
 	logger := c.logger.BaseError("controller_read_port")
-
 	// Используем порт из ControllerAdapter
 	port := c.driver.ControllerDriver.Adapter.Port
+
 	if port == nil {
 		logger.Error("последовательный порт не инициализирован")
 		return

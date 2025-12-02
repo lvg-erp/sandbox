@@ -10,6 +10,7 @@ import (
 	"fuelazs/internal/driver/sens/lc/sens_PMP_118_Modbus"
 	"fuelazs/internal/integration"
 	"fuelazs/internal/usecase/models"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -236,31 +237,65 @@ func (p *Processing) GetTelemetry() {
 
 }
 
+// т.к. нет устройств пробуем читать из файла.
 func (p *Processing) ReadTelemetry() {
 	logger := p.logger.BaseError("read_sens_telemetry")
 	captureError := CaptureErrorDep{
 		operation:  "ReadTelemetry",
 		kazsNumber: p.kazsOperator.KazsNumber,
 	}
-	if !(*p.driver.SensDriver.LCDriver.Adapter)["1"].IsOpen() {
+
+	if p.driver == nil || p.driver.SensDriver == nil || p.driver.SensDriver.LCDriver == nil || p.driver.SensDriver.LCDriver.Adapter == nil {
+		logger.Error("Некорректная инициализация драйверов: один из элементов nil")
+		return
+	}
+
+	adapter, ok := (*p.driver.SensDriver.LCDriver.Adapter)["1"]
+	if !ok || adapter == nil {
+		logger.Error("Адаптер '1' не найден или не инициализирован")
+		return
+	}
+
+	if !adapter.IsOpen() {
 		logger.Warn("порт закрыт.")
 		p.CaptureError(fmt.Errorf("LCDriver.Adapter isNotOpen"), captureError)
 		return
 	}
 
-	buf := make([]byte, 128)
+	if adapter.Port == nil {
+		logger.Error("Порт адаптера не инициализирован")
+		return
+	}
 
+	buf := make([]byte, 128)
 	for {
 		if !p.kazsActivation || !p.startProgramm {
+			time.Sleep(100 * time.Millisecond)
 			continue
 		}
-		n, err := (*p.driver.SensDriver.LCDriver.Adapter)["1"].Port.Read(buf)
+
+		if adapter.Port == nil {
+			logger.Error("Порт адаптера не инициализирован внутри цикла")
+			break
+		}
+
+		// Попытка чтения с порта
+		n, err := adapter.Port.Read(buf)
 		if err != nil {
 			logger.Error("ошибка чтения порта.", "err", err)
-			p.CaptureError(fmt.Errorf("LCDriver.Port.Read error: %w", err), captureError)
-			err = (*p.driver.SensDriver.LCDriver.Adapter)["1"].Reopen()
-			if err != nil {
-				p.CaptureError(fmt.Errorf("LCDriver.Reopen error: %w", err), captureError)
+
+			// Вставляем сюда fallback — чтение из файла
+			fallbackData, fileErr := readResponseFromFile("/home/vladimir/Project/go/sandbox/grTest9/01_azs/device_config_1.json")
+			if fileErr != nil {
+				logger.Error("не удалось прочитать из файла fallback", "err", fileErr)
+			} else {
+				p.ProcessIncomingData(fallbackData)
+			}
+
+			// Продолжить цикл или попробовать reopen?
+			reopenErr := adapter.Reopen()
+			if reopenErr != nil {
+				p.CaptureError(fmt.Errorf("LCDriver.Reopen error: %w", reopenErr), captureError)
 			}
 			continue
 		}
@@ -270,6 +305,50 @@ func (p *Processing) ReadTelemetry() {
 		}
 	}
 }
+
+// Новая функция для чтения из файла
+func readResponseFromFile(filename string) ([]byte, error) {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+//func (p *Processing) Old_ReadTelemetry() {
+//	logger := p.logger.BaseError("read_sens_telemetry")
+//	captureError := CaptureErrorDep{
+//		operation:  "ReadTelemetry",
+//		kazsNumber: p.kazsOperator.KazsNumber,
+//	}
+//
+//	if !(*p.driver.SensDriver.LCDriver.Adapter)["1"].IsOpen() {
+//		logger.Warn("порт закрыт.")
+//		p.CaptureError(fmt.Errorf("LCDriver.Adapter isNotOpen"), captureError)
+//		return
+//	}
+//
+//	buf := make([]byte, 128)
+//	for {
+//		if !p.kazsActivation || !p.startProgramm {
+//			continue
+//		}
+//		n, err := (*p.driver.SensDriver.LCDriver.Adapter)["1"].Port.Read(buf)
+//		if err != nil {
+//			logger.Error("ошибка чтения порта.", "err", err)
+//			p.CaptureError(fmt.Errorf("LCDriver.Port.Read error: %w", err), captureError)
+//			err = (*p.driver.SensDriver.LCDriver.Adapter)["1"].Reopen()
+//			if err != nil {
+//				p.CaptureError(fmt.Errorf("LCDriver.Reopen error: %w", err), captureError)
+//			}
+//			continue
+//		}
+//
+//		if n > 0 {
+//			p.ProcessIncomingData(buf[:n])
+//		}
+//	}
+//}
 
 func (p *Processing) GetTRKTelemetry() {
 	logger := p.logger.BaseError("get_trk_telemetry")

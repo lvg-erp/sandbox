@@ -110,12 +110,12 @@ func NewControllerAdapter(portFactory func(string, *serial.Mode) (SerialPort, er
 			}), nil
 		}
 	}
-
 	controllerInfo, err := getControllerConnectionInfo()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get controller connection info: %w", err)
 	}
-
+	fmt.Println("This controller info")
+	fmt.Println(controllerInfo)
 	comName := getOSPortName(controllerInfo.Controller.Settings.COMPort, controllerInfo.Controller.Settings.IsUSB)
 
 	port, err := portFactory(comName, &serial.Mode{
@@ -124,6 +124,7 @@ func NewControllerAdapter(portFactory func(string, *serial.Mode) (SerialPort, er
 		Parity:   parity(controllerInfo.Controller.Settings.Parity),
 		StopBits: stopBits(controllerInfo.Controller.Settings.StopBits),
 	})
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to open serial port: %w", err)
 	}

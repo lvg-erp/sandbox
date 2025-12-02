@@ -1,0 +1,8 @@
+{
+  "timestamp": "2024-04-27T12:34:56Z",
+  "sensor_id": 1,
+  "temperature": 22.5,
+  "humidity": 45.2,
+  "pressure": 1013.25,
+  "status": "OK"
+}

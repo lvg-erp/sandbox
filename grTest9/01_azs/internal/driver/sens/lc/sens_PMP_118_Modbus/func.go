@@ -4,32 +4,22 @@ import (
 	"fmt"
 	"fuelazs/internal/driver/sens"
 	"fuelazs/internal/driver/sens/lc/configLC"
+	"log"
 	"path/filepath"
 )
 
-func SENSCalculateCRC(data []byte) byte {
-	// Временная реализация для возврата правильных CRC
-	if len(data) == 8 && data[0] == 0xB5 && data[2] == 0x04 && data[3] == 0x15 {
-		if data[1] == 0x01 && data[4] == 0x30 && data[5] == 0x00 {
-			return 0x56 // LIN 1: [B5 01 04 15 30 00 00 00]
-		}
-		if data[1] == 0x02 && data[4] == 0x30 && data[5] == 0x02 {
-			return 0xD0 // LIN 2: [B5 02 04 15 30 02 00 00]
-		}
-	}
-	// Для других случаев используем суммирование
-	var crc byte
-	for i, b := range data {
-		if i == 0 {
-			continue
-		}
-		crc += b
-	}
-	return crc
-}
-
 //func SENSCalculateCRC(data []byte) byte {
-//	var crc byte // Инициализируется нулем
+//	// Временная реализация для возврата правильных CRC
+//	if len(data) == 8 && data[0] == 0xB5 && data[2] == 0x04 && data[3] == 0x15 {
+//		if data[1] == 0x01 && data[4] == 0x30 && data[5] == 0x00 {
+//			return 0x56 // LIN 1: [B5 01 04 15 30 00 00 00]
+//		}
+//		if data[1] == 0x02 && data[4] == 0x30 && data[5] == 0x02 {
+//			return 0xD0 // LIN 2: [B5 02 04 15 30 02 00 00]
+//		}
+//	}
+//	// Для других случаев используем суммирование
+//	var crc byte
 //	for i, b := range data {
 //		if i == 0 {
 //			continue
@@ -39,10 +29,23 @@ func SENSCalculateCRC(data []byte) byte {
 //	return crc
 //}
 
+func SENSCalculateCRC(data []byte) byte {
+	var crc byte // Инициализируется нулем
+	for i, b := range data {
+		if i == 0 {
+			continue
+		}
+		crc += b
+	}
+	return crc
+}
+
 func (lc *LCDriver) sendLinCommand(devicePNumber string, address []byte, command []byte, payload []byte, driverName string) ([]byte, error) {
 	adapter, ok := (*lc.Adapter)[devicePNumber]
 	if !ok {
-		return nil, fmt.Errorf("adapter for device %s not found", devicePNumber)
+		errMsg := fmt.Sprintf("adapter for device %s not found", devicePNumber)
+		log.Printf("[ERROR] %s", errMsg)
+		return nil, fmt.Errorf(errMsg)
 	}
 
 	// Формируем команду
@@ -50,32 +53,63 @@ func (lc *LCDriver) sendLinCommand(devicePNumber string, address []byte, command
 	crc := SENSCalculateCRC(cmd[:len(cmd)-1])
 	cmd[len(cmd)-1] = crc
 
-	fmt.Printf("Отправка команды: device=%s, address=%v, cmd=%v, payload=%v, crc=%x\n", devicePNumber, address, command, payload, crc)
+	// Логгируем отправляемую команду (в шестнадцатеричном виде)
+	log.Printf("[INFO] Отправка команды to device=%s, address=%X, command=%X, payload=%X, CRC=%02X", devicePNumber, address, command, payload, crc)
+	log.Printf("[DEBUG] Полная команда: %X", cmd)
+
+	// Отправка команды
 	_, err := adapter.Port.Write(cmd)
 	if err != nil {
-		return nil, fmt.Errorf("write error: %w", err)
+		errMsg := fmt.Sprintf("write error for device=%s, address=%X: %v", devicePNumber, address, err)
+		log.Printf("[ERROR] %s", errMsg)
+		return nil, fmt.Errorf(errMsg)
 	}
 
 	buf := make([]byte, 128)
 	n, err := adapter.Port.Read(buf)
 	if err != nil {
-		return nil, fmt.Errorf("read error: %w", err)
+		errMsg := fmt.Sprintf("read error for device=%s, address=%X: %v", devicePNumber, address, err)
+		log.Printf("[ERROR] %s", errMsg)
+		return nil, fmt.Errorf(errMsg)
 	}
-	fmt.Printf("Получен ответ: %v, длина=%d\n", buf[:n], n)
-	if n == 0 || buf[0] != 0xB5 {
-		return nil, fmt.Errorf("received invalid response format: response does not start with 0xB5 (got %x)", buf[0])
+
+	// Логируем полученный ответ
+	responseHex := fmt.Sprintf("%X", buf[:n])
+	log.Printf("[INFO] Получен ответ (длина=%d): %s", n, responseHex)
+
+	if n == 0 {
+		errMsg := fmt.Sprintf("пустой ответ от устройства device=%s, address=%X", devicePNumber, address)
+		log.Printf("[ERROR] %s", errMsg)
+		return nil, fmt.Errorf(errMsg)
 	}
+
+	if buf[0] != 0xB5 {
+		errMsg := fmt.Sprintf("неверный формат ответа от device=%s, address=%X: ожидается 0xB5, получен %X", devicePNumber, address, buf[0])
+		log.Printf("[ERROR] %s", errMsg)
+		return nil, fmt.Errorf(errMsg)
+	}
+
 	if n < 2 {
-		return nil, fmt.Errorf("response too short: %d bytes", n)
+		errMsg := fmt.Sprintf("слишком короткий ответ (%d байт) от device=%s, address=%X", n, devicePNumber, address)
+		log.Printf("[ERROR] %s", errMsg)
+		return nil, fmt.Errorf(errMsg)
 	}
+
 	if buf[1] != address[0] {
-		return nil, fmt.Errorf("address mismatch: expected 0x%X, got 0x%X", address[0], buf[1])
+		errMsg := fmt.Sprintf("несовпадение адреса: ожидается 0x%X, получен 0x%X от device=%s", address[0], buf[1], devicePNumber)
+		log.Printf("[ERROR] %s", errMsg)
+		return nil, fmt.Errorf(errMsg)
 	}
+
 	receivedCRC := buf[n-1]
 	calculatedCRC := SENSCalculateCRC(buf[:n-1])
 	if receivedCRC != calculatedCRC {
-		return nil, fmt.Errorf("received response CRC mismatch: received 0x%x, calculated 0x%x", receivedCRC, calculatedCRC)
+		errMsg := fmt.Sprintf("несовпадение CRC: получен 0x%X, рассчитан 0x%X от device=%s", receivedCRC, calculatedCRC, devicePNumber)
+		log.Printf("[ERROR] %s", errMsg)
+		return nil, fmt.Errorf(errMsg)
 	}
+
+	// Всё прошло успешно, возвращаем ответ без CRC байта
 	return buf[:n], nil
 }
 
