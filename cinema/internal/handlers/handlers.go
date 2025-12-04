@@ -234,27 +234,23 @@ func CreateFilmSession(repo db.Repository) http.HandlerFunc {
 		var input struct {
 			FilmID   int    `json:"film_id"`
 			CinemaID int    `json:"cinema_id"`
-			Start    string `json:"start_time"` // ISO
-			Rows     int    `json:"rows"`
-			Cols     int    `json:"cols"`
+			Start    string `json:"start_time"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 			http.Error(w, "invalid json", http.StatusBadRequest)
 			return
 		}
-
-		start, err := time.Parse(time.RFC3339, input.Start)
+		start, err := time.Parse("2006-01-02 15:04", input.Start)
 		if err != nil {
 			http.Error(w, "invalid time", http.StatusBadRequest)
 			return
 		}
 
-		sessionID, err := repo.CreateFilmSession(input.FilmID, input.CinemaID, start, input.Rows, input.Cols)
+		sessionID, err := repo.CreateFilmSession(input.FilmID, input.CinemaID, start)
 		if err != nil {
 			http.Error(w, "failed to create session", http.StatusInternalServerError)
 			return
 		}
-
 		json.NewEncoder(w).Encode(map[string]int{"session_id": sessionID})
 	}
 }
@@ -271,13 +267,49 @@ func GetSeats(repo db.Repository) http.HandlerFunc {
 	}
 }
 
+func ListCinemas(repo db.Repository) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "GET only", http.StatusMethodNotAllowed)
+			return
+		}
+		cinemas, err := repo.ListCinemas()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		json.NewEncoder(w).Encode(cinemas)
+	}
+}
+
 func GetSessions(repo db.Repository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		sessions, err := repo.GetAllSessions() // ← МЕТОД РЕПОЗИТОРИЯ
+		if r.Method != http.MethodGet {
+			http.Error(w, "GET only", http.StatusMethodNotAllowed)
+			return
+		}
+		cinemaIDStr := r.URL.Query().Get("cinema_id")
+		if cinemaIDStr == "" {
+			http.Error(w, "cinema_id required", http.StatusBadRequest)
+			return
+		}
+		cinemaID, _ := strconv.Atoi(cinemaIDStr)
+		sessions, err := repo.ListSessionsForCinema(cinemaID)
 		if err != nil {
-			http.Error(w, "db error", http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		json.NewEncoder(w).Encode(sessions)
 	}
 }
+
+//func GetSessions(repo db.Repository) http.HandlerFunc {
+//	return func(w http.ResponseWriter, r *http.Request) {
+//		sessions, err := repo.GetAllSessions() // ← МЕТОД РЕПОЗИТОРИЯ
+//		if err != nil {
+//			http.Error(w, "db error", http.StatusInternalServerError)
+//			return
+//		}
+//		json.NewEncoder(w).Encode(sessions)
+//	}
+//}

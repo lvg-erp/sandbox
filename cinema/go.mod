@@ -3,7 +3,7 @@ module cinema
 go 1.24.5
 
 require (
-	fyne.io/fyne/v2 v2.7.0
+	fyne.io/fyne/v2 v2.7.1
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/lib/pq v1.10.9
 	github.com/pressly/goose/v3 v3.26.0

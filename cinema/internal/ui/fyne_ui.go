@@ -177,7 +177,10 @@ func showRegisterForm() {
 
 func showMainScreen() {
 	filmsBtn := widget.NewButton("Фильмы", func() { showScreen(showFilmsList) })
+	cinemasBtn := widget.NewButton("Кинотеатры", func() { showScreen(showCinemasList) })
+	sessionsBtn := widget.NewButton("Создать сеанс", func() { showScreen(showCreateFilmSessionForm) })
 	adminBtn := widget.NewButton("Админка", func() { showScreen(showAdminPanel) })
+
 	logoutBtn := widget.NewButton("Выйти", func() {
 		client.Post("http://localhost:8080/logout", "application/json", nil)
 		os.Remove(cookieFile) // из базы удаляем сессии и удаляем куки с диска
@@ -188,36 +191,38 @@ func showMainScreen() {
 	window.SetContent(container.NewVBox(
 		widget.NewLabel("Главное меню"),
 		filmsBtn,
+		cinemasBtn,
+		sessionsBtn,
 		adminBtn,
 		logoutBtn,
 	))
 }
 
-func showFilmsList() {
-	resp, _ := client.Get("http://localhost:8080/sessions")
-	var sessions []map[string]interface{}
-	json.NewDecoder(resp.Body).Decode(&sessions)
-	resp.Body.Close()
-
-	list := widget.NewList(
-		func() int { return len(sessions) },
-		func() fyne.CanvasObject { return widget.NewLabel("") },
-		func(i widget.ListItemID, o fyne.CanvasObject) {
-			title := sessions[i]["film_title"].(string)
-			time := sessions[i]["start_time"].(string)
-			o.(*widget.Label).SetText(fmt.Sprintf("%s — %s", title, time))
-		},
-	)
-
-	list.OnSelected = func(id widget.ListItemID) {
-		sess := sessions[id]
-		sessionID := int(sess["id"].(float64))
-		showScreen(func() { showHall(sessionID) })
-	}
-
-	backBtn := widget.NewButton("Назад", goBack)
-	window.SetContent(container.NewBorder(nil, backBtn, nil, nil, list))
-}
+//func showFilmsList() {
+//	resp, _ := client.Get("http://localhost:8080/sessions")
+//	var sessions []map[string]interface{}
+//	json.NewDecoder(resp.Body).Decode(&sessions)
+//	resp.Body.Close()
+//
+//	list := widget.NewList(
+//		func() int { return len(sessions) },
+//		func() fyne.CanvasObject { return widget.NewLabel("") },
+//		func(i widget.ListItemID, o fyne.CanvasObject) {
+//			title := sessions[i]["film_title"].(string)
+//			time := sessions[i]["start_time"].(string)
+//			o.(*widget.Label).SetText(fmt.Sprintf("%s — %s", title, time))
+//		},
+//	)
+//
+//	list.OnSelected = func(id widget.ListItemID) {
+//		sess := sessions[id]
+//		sessionID := int(sess["id"].(float64))
+//		showScreen(func() { showHall(sessionID) })
+//	}
+//
+//	backBtn := widget.NewButton("Назад", goBack)
+//	window.SetContent(container.NewBorder(nil, backBtn, nil, nil, list))
+//}
 
 func showAdminPanel() {
 
@@ -354,7 +359,20 @@ func showCreateCinemaForm() {
 			dialog.ShowError(fmt.Errorf("ошибка создания: %v", err), window)
 			return
 		}
-		dialog.ShowInformation("Успех", "Кинотеатр создан!", window)
+		// Получаем cinemaID
+		var created map[string]interface{}
+		json.NewDecoder(resp.Body).Decode(&created)
+		cinemaID := int(created["id"].(float64))
+		// Генерация зала
+		hallPayload := map[string]interface{}{"cinema_id": cinemaID}
+		hallBody, _ := json.Marshal(hallPayload)
+		hallReq, _ := http.NewRequest("POST", "http://localhost:8080/admin/halls/generate", bytes.NewBuffer(hallBody))
+		hallReq.Header.Set("Content-Type", "application/json")
+		hallResp, hallErr := client.Do(hallReq)
+		if hallErr != nil || hallResp.StatusCode != 201 {
+			log.Printf("Ошибка генерации зала: %v", hallErr)
+		}
+		dialog.ShowInformation("Успех", "Кинотеатр и зал созданы!", window)
 		goBack()
 	})
 
@@ -423,6 +441,11 @@ func showCreateFilmForm() {
 	))
 }
 
+type TimePair struct {
+	Date *widget.DateEntry
+	Time *widget.Entry
+}
+
 func showCreateFilmSessionForm() {
 	// Получаем списки
 	filmsResp, _ := client.Get("http://localhost:8080/films")
@@ -430,64 +453,127 @@ func showCreateFilmSessionForm() {
 	json.NewDecoder(filmsResp.Body).Decode(&films)
 	filmsResp.Body.Close()
 
-	fmt.Println(filmsResp)
-
-	cinemasResp, _ := client.Get("http://localhost:8080/cinemas")
+	cinemasResp, _ := client.Get("http://localhost:8080/admin/cinemas/list")
 	var cinemas []map[string]interface{}
 	json.NewDecoder(cinemasResp.Body).Decode(&cinemas)
 	cinemasResp.Body.Close()
 
 	// Выбор фильма
-	filmSelect := widget.NewSelect([]string{}, nil)
+	filmOptions := []string{}
 	filmIDs := []int{}
 	for _, f := range films {
 		title := f["title"].(string)
 		id := int(f["id"].(float64))
-		filmSelect.Options = append(filmSelect.Options, fmt.Sprintf("%s (ID: %d)", title, id))
+		filmOptions = append(filmOptions, title)
 		filmIDs = append(filmIDs, id)
 	}
-	filmSelect.OnChanged = func(s string) { log.Printf("Film selected: %s", s) }
-	filmSelect.Refresh()
+	filmSelect := widget.NewSelect(filmOptions, nil)
 
-	// Выбор кинотеатра
-	cinemaSelect := widget.NewSelect([]string{}, nil)
+	// Выбор кинотеатров
+	cinemaOptions := []string{}
 	cinemaIDs := []int{}
 	for _, c := range cinemas {
 		name := c["name"].(string)
 		id := int(c["id"].(float64))
-		cinemaSelect.Options = append(cinemaSelect.Options, fmt.Sprintf("%s (ID: %d)", name, id))
+		cinemaOptions = append(cinemaOptions, name)
 		cinemaIDs = append(cinemaIDs, id)
 	}
-	cinemaSelect.OnChanged = func(s string) { log.Printf("Cinema selected: %s", s) }
-	cinemaSelect.Refresh()
 
-	startTimeEntry := widget.NewEntry()
-	startTimeEntry.SetPlaceHolder("Время сеанса (YYYY-MM-DD HH:MM:SS)")
+	// CheckGroup
+	multiCinemaSelect := widget.NewCheckGroup(cinemaOptions, nil)
 
-	createBtn := widget.NewButton("Создать сеанс", func() {
-		if filmSelect.SelectedIndex() < 0 || cinemaSelect.SelectedIndex() < 0 {
-			dialog.ShowError(fmt.Errorf("выберите фильм и кинотеатр"), window)
+	// Динамические времена
+	timesContainer := container.NewVBox()
+	var timePairs []TimePair
+
+	updateTimes := func() {
+		timesContainer.Objects = timesContainer.Objects[:0]
+		timePairs = timePairs[:0]
+		selected := multiCinemaSelect.Selected
+		for _, name := range selected {
+			dateEntry := widget.NewDateEntry()
+			timeEntry := widget.NewEntry()
+			timeEntry.SetPlaceHolder("HH:MM")
+			timeEntry.OnChanged = func(s string) {
+				// Маска для времени
+				var formatted string
+				for i, c := range s {
+					if i == 2 || i == 5 {
+						formatted += ":"
+					}
+					if c >= '0' && c <= '9' {
+						formatted += string(c)
+					}
+					if len(formatted) == 8 {
+						break
+					}
+				}
+				timeEntry.SetText(formatted)
+				timeEntry.CursorColumn = len(formatted)
+			}
+			timeHBox := container.NewGridWithColumns(2, dateEntry, timeEntry)
+			timePairs = append(timePairs, TimePair{Date: dateEntry, Time: timeEntry})
+			timesContainer.Add(widget.NewLabel(fmt.Sprintf("%s:", name)))
+			timesContainer.Add(timeHBox)
+		}
+		timesContainer.Refresh()
+	}
+
+	multiCinemaSelect.OnChanged = func(selected []string) {
+		updateTimes()
+	}
+
+	createBtn := widget.NewButton("Создать сеансы", func() {
+		if filmSelect.Selected == "" {
+			dialog.ShowError(fmt.Errorf("выберите фильм"), window)
 			return
 		}
 		filmID := filmIDs[filmSelect.SelectedIndex()]
-		cinemaID := cinemaIDs[cinemaSelect.SelectedIndex()]
-		log.Printf("Creating session: film=%d, cinema=%d, time=%s", filmID, cinemaID, startTimeEntry.Text)
-
-		payload := map[string]interface{}{
-			"film_id":    filmID,
-			"cinema_id":  cinemaID,
-			"start_time": startTimeEntry.Text,
-		}
-		body, _ := json.Marshal(payload)
-		req, _ := http.NewRequest("POST", "http://localhost:8080/admin/sessions", bytes.NewBuffer(body))
-		req.Header.Set("Content-Type", "application/json")
-		resp, err := client.Do(req)
-		log.Printf("Response status: %d, error: %v", resp.StatusCode, err)
-		if err != nil || resp.StatusCode != 201 {
-			dialog.ShowError(fmt.Errorf("ошибка: %v", err), window)
+		selected := multiCinemaSelect.Selected
+		if len(selected) == 0 {
+			dialog.ShowError(fmt.Errorf("выберите кинотеатры"), window)
 			return
 		}
-		dialog.ShowInformation("Успех", "Сеанс создан!", window)
+		for i, name := range selected {
+			if i >= len(timePairs) {
+				dialog.ShowError(fmt.Errorf("укажите время для %s", name), window)
+				return
+			}
+			fullTime := timePairs[i].Date.Text + " " + timePairs[i].Time.Text
+			if fullTime == "  " {
+				dialog.ShowError(fmt.Errorf("укажите время для %s", name), window)
+				return
+			}
+			t, err := time.Parse("2006-01-02 15:04", fullTime)
+			if err != nil {
+				dialog.ShowError(fmt.Errorf("неверное время для %s: %v", name, err), window)
+				return
+			}
+			idx := -1
+			for j, opt := range cinemaOptions {
+				if opt == name {
+					idx = j
+					break
+				}
+			}
+			if idx == -1 {
+				continue
+			}
+			cinemaID := cinemaIDs[idx]
+			payload := map[string]interface{}{
+				"film_id":    filmID,
+				"cinema_id":  cinemaID,
+				"start_time": t.Format("2006-01-02 15:04:05"),
+			}
+			body, _ := json.Marshal(payload)
+			req, _ := http.NewRequest("POST", "http://localhost:8080/admin/sessions", bytes.NewBuffer(body))
+			req.Header.Set("Content-Type", "application/json")
+			resp, _ := client.Do(req)
+			if resp.StatusCode != 200 {
+				log.Printf("Ошибка сеанса: %d", resp.StatusCode)
+			}
+		}
+		dialog.ShowInformation("Успех", "Сеансы созданы!", window)
 		goBack()
 	})
 
@@ -496,12 +582,120 @@ func showCreateFilmSessionForm() {
 	window.SetContent(container.NewBorder(
 		nil, backBtn, nil, nil,
 		container.NewVBox(
-			widget.NewLabel("Привязать фильм к кинотеатру"),
+			widget.NewLabel("Создать сеансы"),
 			widget.NewLabel("Фильм:"), filmSelect,
-			widget.NewLabel("Кинотеатр:"), cinemaSelect,
-			widget.NewLabel("Время сеанса:"), startTimeEntry,
+			widget.NewLabel("Кинотеатры:"), multiCinemaSelect,
+			widget.NewLabel("Времена:"), timesContainer,
 			createBtn,
 		),
+	))
+	updateTimes() // Инициализация
+}
+
+func showFilmsList() {
+	resp, _ := client.Get("http://localhost:8080/films")
+	var films []map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&films)
+	resp.Body.Close()
+
+	list := widget.NewList(
+		func() int { return len(films) },
+		func() fyne.CanvasObject { return widget.NewLabel("") },
+		func(i widget.ListItemID, o fyne.CanvasObject) {
+			title := films[i]["title"].(string)
+			o.(*widget.Label).SetText(title)
+		},
+	)
+
+	list.OnSelected = func(id widget.ListItemID) {
+		filmID := int(films[id]["id"].(float64))
+		showScreen(func() { showSessionsForFilm(filmID) })
+	}
+
+	backBtn := widget.NewButton("Назад", goBack)
+	window.SetContent(container.NewBorder(nil, backBtn, nil, nil, list))
+}
+
+// Добавь функцию для сеансов фильма
+func showSessionsForFilm(filmID int) {
+	resp, _ := client.Get(fmt.Sprintf("http://localhost:8080/sessions?film_id=%d", filmID))
+	var sessions []map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&sessions)
+	resp.Body.Close()
+
+	list := widget.NewList(
+		func() int { return len(sessions) },
+		func() fyne.CanvasObject { return widget.NewLabel("") },
+		func(i widget.ListItemID, o fyne.CanvasObject) {
+			time := sessions[i]["start_time"].(string)
+			o.(*widget.Label).SetText(time)
+		},
+	)
+
+	list.OnSelected = func(id widget.ListItemID) {
+		sessionID := int(sessions[id]["id"].(float64))
+		showScreen(func() { showHall(sessionID) })
+	}
+
+	backBtn := widget.NewButton("Назад", goBack)
+	window.SetContent(container.NewBorder(nil, backBtn, nil, nil, list))
+}
+
+// Кинотеатры
+
+func showCinemasList() {
+	resp, _ := client.Get("http://localhost:8080/admin/cinemas/list")
+	var cinemas []map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&cinemas)
+	resp.Body.Close()
+
+	log.Printf("Cinemas count: %d", len(cinemas))
+
+	list := widget.NewList(
+		func() int { return len(cinemas) },
+		func() fyne.CanvasObject { return widget.NewLabel("") },
+		func(i widget.ListItemID, o fyne.CanvasObject) {
+			name := cinemas[i]["name"].(string)
+			var count int
+			if sessionCount, ok := cinemas[i]["session_count"].(float64); ok {
+				count = int(sessionCount)
+			} else {
+				count = 0
+			}
+			o.(*widget.Label).SetText(fmt.Sprintf("%s (%d сеансов)", name, count))
+		},
+	)
+
+	list.OnSelected = func(id widget.ListItemID) {
+		cinemaID := int(cinemas[id]["id"].(float64))
+		showScreen(func() { showSessionsForCinema(cinemaID, cinemas[id]["name"].(string)) })
+	}
+
+	backBtn := widget.NewButton("Назад", goBack)
+	window.SetContent(container.NewBorder(nil, backBtn, nil, nil, list))
+}
+
+// Подфункция для сеансов кинотеатра
+func showSessionsForCinema(cinemaID int, cinemaName string) {
+	resp, _ := client.Get(fmt.Sprintf("http://localhost:8080/sessions?cinema_id=%d", cinemaID))
+	var sessions []map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&sessions)
+	resp.Body.Close()
+
+	list := widget.NewList(
+		func() int { return len(sessions) },
+		func() fyne.CanvasObject { return widget.NewLabel("") },
+		func(i widget.ListItemID, o fyne.CanvasObject) {
+			title := sessions[i]["film_title"].(string)
+			duration := int(sessions[i]["duration"].(float64))
+			o.(*widget.Label).SetText(fmt.Sprintf("%s (%d мин)", title, duration))
+		},
+	)
+
+	backBtn := widget.NewButton("Назад", goBack)
+	window.SetContent(container.NewBorder(
+		widget.NewLabel(fmt.Sprintf("Фильмы в %s", cinemaName)),
+		backBtn, nil, nil, list,
 	))
 }
 

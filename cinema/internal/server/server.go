@@ -52,6 +52,7 @@ func Start(dbURL string) {
 
 	mux.HandleFunc("/admin/films", AuthMiddleware(repo, RoleMiddleware("admin", handlers.AddFilm(repo)).ServeHTTP))
 	mux.HandleFunc("/admin/cinemas", AuthMiddleware(repo, RoleMiddleware("admin", handlers.AddCinema(repo)).ServeHTTP))
+	mux.HandleFunc("/admin/cinemas/list", AuthMiddleware(repo, RoleMiddleware("admin", handlers.ListCinemas(repo))))
 
 	mux.HandleFunc("/seats", AuthMiddleware(repo, handlers.GetSeats(repo)).ServeHTTP)
 
@@ -60,6 +61,10 @@ func Start(dbURL string) {
 	mux.HandleFunc("/admin/sessions",
 		AuthMiddleware(repo,
 			RoleMiddleware("admin", handlers.CreateFilmSession(repo)).ServeHTTP))
+
+	//mux.HandleFunc("/admin/cinemas/list", AuthMiddleware(repo, RoleMiddleware("admin", handlers.ListCinemas(repo))))
+
+	mux.HandleFunc("/sessions", AuthMiddleware(repo, handlers.GetSessions(repo)))
 
 	//mux.HandleFunc("POST /admin/halls/generate",
 	//	AuthMiddleware(repo, RoleMiddleware("admin", handlers.GenerateHall(repo))))

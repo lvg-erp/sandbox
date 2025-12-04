@@ -8,14 +8,6 @@ CREATE TABLE IF NOT EXISTS users (
                                      role TEXT NOT NULL DEFAULT 'user'
 );
 
-CREATE TABLE IF NOT EXISTS films (
-                                     id SERIAL PRIMARY KEY,
-                                     title TEXT NOT NULL,
-                                     poster TEXT,
-                                     description TEXT,
-                                     duration INT,
-                                     added_at TIMESTAMP DEFAULT NOW()
-);
 
 CREATE TABLE IF NOT EXISTS sessions (
                                         id SERIAL PRIMARY KEY,
@@ -35,6 +27,16 @@ CREATE TABLE IF NOT EXISTS cinemas (
                                        poster TEXT,
                                        created_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS films (
+                                     id SERIAL PRIMARY KEY,
+                                     title TEXT NOT NULL,
+                                     poster TEXT,
+                                     description TEXT,
+                                     duration INT,
+                                     added_at TIMESTAMP DEFAULT NOW()
+);
+
 
 CREATE TABLE IF NOT EXISTS film_sessions (
                                              id SERIAL PRIMARY KEY,
