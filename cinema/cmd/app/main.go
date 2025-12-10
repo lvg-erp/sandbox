@@ -2,7 +2,7 @@ package main
 
 import (
 	"cinema/internal/server"
-	"cinema/internal/ui"
+	"cinema/presentation/ui"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"log"

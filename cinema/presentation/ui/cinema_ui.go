@@ -2,7 +2,7 @@ package ui
 
 import (
 	"bytes"
-	"cinema/internal/db" // твой репозиторий
+	"cinema/domain/entities"
 	"encoding/json"
 	"fmt"
 	"fyne.io/fyne/v2"
@@ -42,7 +42,7 @@ func CreateCinemaForm(w fyne.Window) {
 		widget.NewLabel("Мест всего:"), totalSeatsEntry,
 		widget.NewLabel("Постер:"), posterEntry,
 		widget.NewButton("Создать", func() {
-			_ = db.Cinema{
+			_ = entities.Cinema{
 				Name:       nameEntry.Text,
 				Address:    addressEntry.Text,
 				City:       cityEntry.Text,
