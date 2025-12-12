@@ -36,7 +36,6 @@ func ListCinemas(repo ports.CinemaRepository) http.HandlerFunc {
 			http.Error(w, "GET only", http.StatusMethodNotAllowed)
 			return
 		}
-
 		uc := &usecases.CinemaUseCase{Repo: repo}
 		cinemas, err := uc.ExecuteListCinema()
 		if err != nil {

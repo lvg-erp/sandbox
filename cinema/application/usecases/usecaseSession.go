@@ -82,7 +82,7 @@ func (uc *SessionUseCase) ExecuteGetAllSessions() ([]entities.SessionInfo, error
 }
 
 func (uc *SessionUseCase) ExecuteListSessionsForCinema(input *ListFilmSessionsForCinemaInput) (ListFilmSessionsForCinemaOutput, error) {
-	sessions, err := uc.Repo.ListSessionsForCinema(input.CinemaID)
+	sessions, err := uc.Repo.ListFilmsForCinema(input.CinemaID)
 	if err != nil {
 		return nil, err
 	}

@@ -117,7 +117,7 @@ func Logout(repoSession ports.SessionRepository) http.HandlerFunc {
 
 func Protected() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		user := r.Context().Value("user").(entities.User)
+		user := r.Context().Value("user").(*entities.User)
 		json.NewEncoder(w).Encode(map[string]string{
 			"status": "ok",
 			"email":  user.Email,

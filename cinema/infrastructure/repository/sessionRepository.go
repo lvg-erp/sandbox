@@ -93,7 +93,7 @@ func (r *sessionRepo) GetAllSessions() ([]entities.SessionInfo, error) {
 	return sessions, nil
 }
 
-func (r *sessionRepo) ListSessionsForCinema(cinemaID int) ([]map[string]interface{}, error) {
+func (r *sessionRepo) ListFilmsForCinema(cinemaID int) ([]map[string]interface{}, error) {
 	rows, err := r.db.Query(`
         SELECT fs.id, f.title as film_title, f.duration, fs.start_time, c.name as cinema_name 
         FROM film_sessions fs 

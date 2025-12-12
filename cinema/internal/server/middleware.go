@@ -63,8 +63,8 @@ func AuthMiddleware(authUC *usecases.AuthUseCase, next http.HandlerFunc) http.Ha
 
 func RoleMiddleware(requiredRole string, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		user, ok := r.Context().Value("user").(entities.User)
-		//log.Printf("Role check: user=%v, role=%s, required=%s", user.ID, user.Role, requiredRole)
+		user, ok := r.Context().Value("user").(*entities.User)
+		log.Printf("Role check: user=%v, role=%s, required=%s", user.ID, user.Role, requiredRole)
 		if !ok || user.Role != requiredRole {
 			http.Error(w, "forbidden", http.StatusForbidden)
 			return

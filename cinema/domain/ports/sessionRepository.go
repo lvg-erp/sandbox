@@ -11,6 +11,6 @@ type SessionRepository interface {
 	GetSession(token string) (entities.Session, error)
 	DeleteSession(token string) error
 	CreateFilmSession(filmID, cinemaID int, start time.Time) (int, error)
-	ListSessionsForCinema(cinemaID int) ([]map[string]interface{}, error)
+	ListFilmsForCinema(cinemaID int) ([]map[string]interface{}, error)
 	ListCinemasWithSessions() ([]map[string]interface{}, error)
 }

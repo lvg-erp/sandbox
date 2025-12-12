@@ -1,22 +1,23 @@
 package handlers
 
 import (
+	"cinema/application/usecases"
 	"cinema/domain/entities"
 	"cinema/domain/ports"
 	"encoding/json"
 	"net/http"
 )
 
-func GetFilms(repoFilm ports.FilmRepository) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		films, err := repoFilm.ListFilms()
-		if err != nil {
-			http.Error(w, "db error", http.StatusInternalServerError)
-			return
-		}
-		json.NewEncoder(w).Encode(films)
-	}
-}
+//func GetFilms(repoFilm ports.FilmRepository) http.HandlerFunc {
+//	return func(w http.ResponseWriter, r *http.Request) {
+//		films, err := repoFilm.ListFilms()
+//		if err != nil {
+//			http.Error(w, "db error", http.StatusInternalServerError)
+//			return
+//		}
+//		json.NewEncoder(w).Encode(films)
+//	}
+//}
 
 func AddFilm(repoFilm ports.FilmRepository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -35,5 +36,23 @@ func AddFilm(repoFilm ports.FilmRepository) http.HandlerFunc {
 		}
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(map[string]string{"status": "added"})
+	}
+}
+
+func GetListFilms(repo ports.FilmRepository) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		uc := &usecases.FilmUseCase{Repo: repo}
+		films, err := uc.ExecuteListFilm()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		err = json.NewEncoder(w).Encode(films)
+		if err != nil {
+			return
+		}
 	}
 }

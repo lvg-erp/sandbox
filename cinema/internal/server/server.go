@@ -59,22 +59,22 @@ func Start(dbURL string) {
 	//mux.HandleFunc("/book", AuthMiddleware(repos.UserRepo, handlers.Book(repos.BookingRepo)).ServeHTTP)
 
 	authUC := &usecases.AuthUseCase{UserRepo: repos.UserRepo, SessionRepo: repos.SessionRepo}
-	mux.HandleFunc("/films", AuthMiddleware(authUC, handlers.GetFilms(repos.FilmRepo)).ServeHTTP)
+	mux.HandleFunc("/films", AuthMiddleware(authUC, handlers.GetListFilms(repos.FilmRepo)).ServeHTTP)
 
 	mux.HandleFunc("/admin/films", AuthMiddleware(authUC, RoleMiddleware("admin", handlers.AddFilm(repos.FilmRepo)).ServeHTTP))
 	mux.HandleFunc("/admin/cinemas", AuthMiddleware(authUC, RoleMiddleware("admin", handlers.AddCinema(repos.CinemaRepo)).ServeHTTP))
-	mux.HandleFunc("/admin/cinemas/list", AuthMiddleware(authUC, RoleMiddleware("admin", handlers.ListCinemas(repos.CinemaRepo))))
+	//mux.HandleFunc("/admin/cinemas/list", AuthMiddleware(authUC, RoleMiddleware("admin", handlers.ListCinemas(repos.CinemaRepo))))
 	//TODO
 	//mux.HandleFunc("/seats", AuthMiddleware(repos.UserRepo, handlers.GetSeats(repos.SeatsRepository)).ServeHTTP)
 
-	//mux.HandleFunc("/protected", AuthMiddleware(repos.UserRepo, handlers.Protected(repos.UserRepo)).ServeHTTP) //!!!!!!!!!!!!!!!!!!!!!
+	mux.HandleFunc("/protected", AuthMiddleware(authUC, handlers.Protected().ServeHTTP)) //!!!!!!!!!!!!!!!!!!!!!
 
 	//TODO
 	//mux.HandleFunc("/admin/sessions",
 	//	AuthMiddleware(repos.UserRepo,
 	//		RoleMiddleware("admin", handlers.CreateFilmSession(repos.SessionRepo)).ServeHTTP))
-
-	//mux.HandleFunc("/admin/cinemas/list", AuthMiddleware(repo, RoleMiddleware("admin", handlers.ListCinemas(repo))))
+	//
+	mux.HandleFunc("/admin/cinemas/list", AuthMiddleware(authUC, RoleMiddleware("admin", handlers.ListCinemas(repos.CinemaRepo))))
 
 	mux.HandleFunc("/sessions", AuthMiddleware(authUC, handlers.GetSessions(repos.SessionRepo)))
 

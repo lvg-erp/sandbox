@@ -5,6 +5,7 @@ import (
 	"cinema/domain/ports"
 	"database/sql"
 	"errors"
+	"log"
 )
 
 type cinemaRepo struct {
@@ -29,16 +30,16 @@ func (r *cinemaRepo) CreateCinema(cinema entities.Cinema) error {
 // ListCinemas — все кинотеатры
 func (r *cinemaRepo) ListCinemas() ([]entities.Cinema, error) {
 	rows, err := r.db.Query(`
-		SELECT id, name, address, city, phone, total_seats, poster, created_at
-		FROM cinemas ORDER BY name`)
+       SELECT id, name, address, city, phone, total_seats, poster, created_at
+       FROM cinemas ORDER BY name`)
 	if err != nil {
 		return nil, err
 	}
-	defer func(rows *sql.Rows) {
-		err := rows.Close()
-		if err != nil {
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			log.Printf("Error closing rows: %v", closeErr)
 		}
-	}(rows)
+	}()
 
 	var cinemas []entities.Cinema
 	for rows.Next() {
@@ -48,8 +49,11 @@ func (r *cinemaRepo) ListCinemas() ([]entities.Cinema, error) {
 		}
 		cinemas = append(cinemas, c)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
-	return cinemas, rows.Err()
+	return cinemas, nil
 }
 
 // GetCinema — по ID

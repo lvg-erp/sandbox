@@ -15,7 +15,7 @@ type Repositories struct {
 	SeatsRepository ports.SeatsRepository
 	HallRepository  ports.HallRepository
 	//Repo       domain.Repository
-	// Добавьте другие
+
 }
 
 func NewRepositories(db *sql.DB) *Repositories {
@@ -28,6 +28,6 @@ func NewRepositories(db *sql.DB) *Repositories {
 		SeatsRepository: repository.NewSeatsRepo(db),
 		HallRepository:  repository.NewHallRepo(db),
 		//Repo:       repository.NewRepo(db),
-		// Добавьте другие
+
 	}
 }
