@@ -130,3 +130,12 @@ func factorialInt_(n int, ctx context.Context) (*big.Int, error) {
 	}
 	return result, nil
 }
+
+// Простой генератор чисел
+func genInt() int {
+	r := rand.New(rand.NewSource(uint64(time.Now().UnixNano())))
+
+	// Используем r для генерации случайных чисел
+	randomNumber := r.Intn(10)
+	return randomNumber
+}
