@@ -114,7 +114,7 @@ func (g *Gui) updateTime() {
 }
 
 func newTopSection() *TopSection {
-	topSection, timeLabel, dateLabel, logoImage, phoneLabel, kazsLabel := createHeader(logo, "8-111-555-11-1", "99699")
+	topSection, timeLabel, dateLabel, logoImage, phoneLabel, kazsLabel := createHeader(logo, "8-111-555-11-11", "99699")
 	return &TopSection{
 		Content:            topSection,
 		TimeLabel:          timeLabel,
@@ -143,12 +143,12 @@ func createHeader(logo, supportNumber, kazsNumber string) (*fyne.Container, *can
 	}
 	imageReader := bytes.NewReader(decodedImageBytes)
 	_, _, _ = image.Decode(bytes.NewReader(decodedImageBytes))
-	itecoImage := canvas.NewImageFromReader(imageReader, "iteco_logo.png")
+	itecoImage := canvas.NewImageFromReader(imageReader, "logo.png") //logo iteco_logo.png
 	itecoImage.FillMode = canvas.ImageFillContain
 	itecoImage.SetMinSize(fyne.NewSize(368, 150))
 
-	phoneLabel := canvas.NewText(supportNumber, Black)
-	supportLabel := canvas.NewText("Техническая поддержка", Black)
+	phoneLabel := canvas.NewText(supportNumber, White) //or Black
+	supportLabel := canvas.NewText("Техническая поддержка", White)
 	phoneLabel.Alignment = fyne.TextAlignCenter
 	supportLabel.Alignment = fyne.TextAlignCenter
 	phoneLabel.TextStyle = fyne.TextStyle{Bold: true}
@@ -182,8 +182,8 @@ func createHeader(logo, supportNumber, kazsNumber string) (*fyne.Container, *can
 }
 
 func createDefaultScreen(jarNumber string) *fyne.Container {
-	qrText1 := canvas.NewText("Отсканируйте QR-код", Black)
-	qrText2 := canvas.NewText(fmt.Sprintf("для пистолета №%v", jarNumber), Black)
+	qrText1 := canvas.NewText("Отсканируйте QR-код", White)                       //or Black
+	qrText2 := canvas.NewText(fmt.Sprintf("для пистолета №%v", jarNumber), White) //or Black
 	qrText1.Alignment = fyne.TextAlignCenter
 	qrText1.TextSize = 42
 	qrText2.Alignment = fyne.TextAlignCenter
