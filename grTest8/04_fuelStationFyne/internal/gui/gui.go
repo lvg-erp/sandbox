@@ -17,10 +17,10 @@ import (
 )
 
 var (
-	Black = color.RGBA{0, 0, 0, 255}
-	Gray  = color.RGBA{128, 128, 128, 255}
-	Green = color.RGBA{0, 128, 0, 255}
-	White = color.RGBA{255, 255, 255, 255}
+	Black = color.RGBA{A: 255}
+	Gray  = color.RGBA{R: 128, G: 128, B: 128, A: 255}
+	Green = color.RGBA{G: 128, A: 255}
+	White = color.RGBA{R: 255, G: 255, B: 255, A: 255}
 )
 
 var logo = "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="
@@ -72,7 +72,7 @@ func NewGui(a fyne.App) *Gui {
 	topSection := newTopSection()
 	leftSection := newSection("1")
 	rightSection := newSection("2")
-	// Убрал сепаратор
+
 	bottomSection := container.NewHBox(
 		container.NewVBox(leftSection.Content),
 		container.NewVBox(rightSection.Content),
@@ -91,7 +91,7 @@ func NewGui(a fyne.App) *Gui {
 
 func (g *Gui) RunGui() {
 	g.Window.SetContent(g.MainContent)
-	g.Window.Resize(fyne.NewSize(800, 800)) // Вернул размер окна 800x600
+	g.Window.Resize(fyne.NewSize(800, 800))
 	go g.updateTime()
 	g.Window.ShowAndRun()
 }
