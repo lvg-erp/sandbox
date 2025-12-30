@@ -854,6 +854,7 @@ func showSessionsForCinema(cinemaID int, cinemaName string) {
 //		))
 //	}
 func showHallsList() {
+	// Загрузка залов
 	resp, err := client.Get("http://localhost:8080/admin/halls")
 	if err != nil || resp.StatusCode != 200 {
 		dialog.ShowError(fmt.Errorf("ошибка загрузки залов"), window)
@@ -870,7 +871,7 @@ func showHallsList() {
 	if len(halls) == 0 {
 		window.SetContent(container.NewVBox(
 			widget.NewLabel("Залы и места"),
-			widget.NewLabel("Нет доступных залов"),
+			widget.NewLabel("Нет залов"),
 			widget.NewButton("Назад", goBack),
 		))
 		return
@@ -887,9 +888,9 @@ func showHallsList() {
 
 	hallSelect := widget.NewSelect(hallOptions, nil)
 
-	seatsContainer := container.NewVBox(widget.NewLabel("Выберите зал для просмотра мест"))
-
-	loadSeats := func() {
+	seatsContainer := container.NewVBox(widget.NewLabel("Выберите зал"))
+	var loadSeats func()
+	loadSeats = func() {
 		if hallSelect.SelectedIndex() < 0 {
 			seatsContainer.Objects = []fyne.CanvasObject{widget.NewLabel("Выберите зал")}
 			seatsContainer.Refresh()
@@ -898,14 +899,14 @@ func showHallsList() {
 		hallID := hallIDs[hallSelect.SelectedIndex()]
 
 		seats, err := fetchSeatsByHall(hallID)
-		log.Printf("Loaded seats for hall %d: %d", hallID, len(seats))
+		log.Printf("Seats loaded for hall %d: %d items", hallID, len(seats))
 		if err != nil {
 			dialog.ShowError(err, window)
 			return
 		}
 
 		if len(seats) == 0 {
-			seatsContainer.Objects = []fyne.CanvasObject{widget.NewLabel("В зале нет мест")}
+			seatsContainer.Objects = []fyne.CanvasObject{widget.NewLabel("Мест нет")}
 			seatsContainer.Refresh()
 			return
 		}
@@ -923,20 +924,31 @@ func showHallsList() {
 			}
 		}
 
-		grid := container.NewGridWithColumns(maxCol)
+		grid := container.NewGridWithRows(maxRow)
 
-		var refresh func()
-		refresh = func() {
-			grid.Objects = nil
-			for _, s := range seats {
-				grid.Add(createSeatButton(s, selected, &selectedIDs, refresh))
+		for row := 1; row <= maxRow; row++ {
+			rowGrid := container.NewGridWithColumns(maxCol)
+			for col := 1; col <= maxCol; col++ {
+				found := false
+				for _, s := range seats {
+					if s.Row == row && s.Number == col {
+						btn := createSeatButton(s, selected, &selectedIDs, loadSeats)
+						rowGrid.Add(btn)
+						found = true
+						break
+					}
+				}
+				if !found {
+					rowGrid.Add(layout.NewSpacer())
+				}
 			}
-			grid.Refresh()
+			grid.Add(container.NewMax(rowGrid))
 		}
-		refresh()
 
-		seatsContainer.Objects = []fyne.CanvasObject{container.NewScroll(grid)}
+		// Без скролла — прямое содержимое
+		seatsContainer.Objects = []fyne.CanvasObject{container.NewMax(grid)}
 		seatsContainer.Refresh()
+		log.Printf("Grid objects after refresh: %d", len(grid.Objects))
 	}
 
 	hallSelect.OnChanged = func(_ string) { loadSeats() }
@@ -952,7 +964,7 @@ func showHallsList() {
 		),
 	))
 
-	loadSeats() // Первый вызов
+	loadSeats()
 }
 
 // Новая функция получения мест по залу

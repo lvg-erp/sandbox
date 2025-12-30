@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
@@ -132,55 +133,68 @@ func ShowHall(sessionID int) {
 	))
 }
 
-//func ShowHallByHallID(hallID int) {
-//	// Запрос мест по ID зала (нужен эндпоинт /halls/{id}/seats)
-//	resp, err := client.Get(fmt.Sprintf("http://localhost:8080/halls/%d/seats", hallID))
-//	if err != nil {
-//		dialog.ShowError(err, window)
-//		return
-//	}
-//	defer resp.Body.Close()
-//
-//	var seats []Seat
-//	if err := json.NewDecoder(resp.Body).Decode(&seats); err != nil {
-//		dialog.ShowError(err, window)
-//		return
-//	}
-//
-//	selected := make(map[int]bool)
-//	var selectedIDs []int
-//
-//	maxRow, maxCol := 0, 0
-//	for _, s := range seats {
-//		if s.Row > maxRow {
-//			maxRow = s.Row
-//		}
-//		if s.Number > maxCol {
-//			maxCol = s.Number
-//		}
-//	}
-//
-//	grid := container.NewGridWithColumns(maxCol)
-//
-//	var refresh func()
-//	refresh = func() {
-//		grid.Objects = nil
-//		for _, s := range seats {
-//			grid.Add(createSeatButton(s, selected, &selectedIDs, refresh))
-//		}
-//		grid.Refresh()
-//	}
-//	refresh()
-//
-//	backBtn := widget.NewButton("Назад", goBack)
-//
-//	window.SetContent(container.NewBorder(
-//		widget.NewLabel(fmt.Sprintf("Зал %d", hallID)),
-//		backBtn,
-//		nil, nil,
-//		container.NewScroll(grid),
-//	))
-//}
+func ShowHallByHallID(hallID int) {
+	seats, err := fetchSeatsByHall(hallID)
+	if err != nil {
+		dialog.ShowError(err, window)
+		return
+	}
+
+	// Объявляем переменные для выбранных мест
+	selected := make(map[int]bool)
+	selectedIDs := []int{}
+
+	maxRow, maxCol := 0, 0
+	for _, s := range seats {
+		if s.Row > maxRow {
+			maxRow = s.Row
+		}
+		if s.Number > maxCol {
+			maxCol = s.Number
+		}
+	}
+
+	// Создаем контейнер с сеткой
+	grid := &fyne.Container{}
+	grid.Layout = layout.NewGridLayout(maxCol)
+
+	for row := 1; row <= maxRow; row++ {
+		for col := 1; col <= maxCol; col++ {
+			var btn fyne.CanvasObject
+			found := false
+			for _, s := range seats {
+				if s.Row == row && s.Number == col {
+					btn = createSeatButton(s, selected, &selectedIDs, func() {
+						ShowHallByHallID(hallID)
+					})
+					found = true
+					break
+				}
+			}
+			if !found {
+				btn = widget.NewLabel("") // или используйте другой виджет-заполнитель
+			}
+			grid.AddObject(btn)
+		}
+	}
+
+	// Создаем вертикальный контейнер:
+	// - Заголовок
+	// - Максимальный контейнер с сеткой (растягнется по высоте)
+	// - Spacer, чтобы заполнить оставшееся пространство
+	// - Кнопка "Назад" внизу
+	contentContainer := container.NewVBox(
+		widget.NewLabel(fmt.Sprintf("Зал %d", hallID)),
+		// Оборачиваем сетку в Max, чтобы она растягивалась по доступной высоте
+		container.NewMax(grid),
+		layout.NewSpacer(), // заполнит все свободное пространство
+		widget.NewButton("Назад", goBack),
+	)
+
+	// Обновляем UI
+	window.SetContent(contentContainer)
+	window.Resize(fyne.NewSize(800, 600))
+}
 
 func showCreateHallForm() {
 	// Получаем кинотеатры
@@ -208,6 +222,8 @@ func showCreateHallForm() {
 	seatsEntry := widget.NewEntry()
 	seatsEntry.SetPlaceHolder("Мест в ряду (например, 5)")
 
+	previewContainer := container.NewVBox(widget.NewLabel("Создайте зал для просмотра схемы"))
+
 	createBtn := widget.NewButton("Создать зал", func() {
 		if cinemaSelect.Selected == "" || nameEntry.Text == "" || rowsEntry.Text == "" || seatsEntry.Text == "" {
 			dialog.ShowError(fmt.Errorf("заполните все поля"), window)
@@ -231,8 +247,14 @@ func showCreateHallForm() {
 			dialog.ShowError(fmt.Errorf("ошибка создания зала"), window)
 			return
 		}
+
+		// Получаем ID нового зала (предполагаем, что сервер возвращает { "id": X })
+		var result map[string]interface{}
+		json.NewDecoder(resp.Body).Decode(&result)
+		hallID := int(result["id"].(float64))
+
 		dialog.ShowInformation("Успех", "Зал создан с местами!", window)
-		goBack()
+		ShowHallByHallID(hallID) // Показываем схему сразу после создания
 	})
 
 	backBtn := widget.NewButton("Назад", goBack)
@@ -246,6 +268,7 @@ func showCreateHallForm() {
 			widget.NewLabel("Рядов:"), rowsEntry,
 			widget.NewLabel("Мест в ряду:"), seatsEntry,
 			createBtn,
+			previewContainer, // Можно оставить для будущего превью
 		),
 	))
 }
