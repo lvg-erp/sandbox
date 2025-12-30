@@ -182,6 +182,8 @@ func showMainScreen() {
 	filmsBtn := widget.NewButton("Фильмы", func() { showScreen(showFilmsList) })
 	cinemasBtn := widget.NewButton("Кинотеатры", func() { showScreen(showCinemasList) })
 	sessionsBtn := widget.NewButton("Создать сеанс", func() { showScreen(showCreateFilmSessionForm) })
+	hallsBtn := widget.NewButton("Залы и места", func() { showScreen(showHallsList) })
+	createHallBtn := widget.NewButton("Создать зал", func() { showScreen(showCreateHallForm) })
 	adminBtn := widget.NewButton("Админка", func() { showScreen(showAdminPanel) })
 
 	logoutBtn := widget.NewButton("Выйти", func() {
@@ -202,6 +204,8 @@ func showMainScreen() {
 		filmsBtn,
 		cinemasBtn,
 		sessionsBtn,
+		hallsBtn,
+		createHallBtn,
 		adminBtn,
 		logoutBtn,
 	))
@@ -786,65 +790,188 @@ func showSessionsForCinema(cinemaID int, cinemaName string) {
 	))
 }
 
-//sessionsByFilmBtn := widget.NewButton("Сеансы по фильму", func() { showScreen(showSessionsByFilmForm) })
+// sessionsByFilmBtn := widget.NewButton("Сеансы по фильму", func() { showScreen(showSessionsByFilmForm) })
 //
-//// В container.NewVBox добавь: sessionsByFilmBtn,
+// // В container.NewVBox добавь: sessionsByFilmBtn,
 //
-//// Новая функция
-//func showSessionsByFilmForm() {
-//	// Получаем фильмы
-//	filmsResp, _ := client.Get("http://localhost:8080/films")
-//	var films []map[string]interface{}
-//	json.NewDecoder(filmsResp.Body).Decode(&films)
-//	filmsResp.Body.Close()
+// // Новая функция
 //
-//	filmSelect := widget.NewSelect([]string{}, nil)
-//	filmIDs := []int{}
-//	for _, f := range films {
-//		title := f["title"].(string)
-//		id := int(f["id"].(float64))
-//		filmSelect.Options = append(filmSelect.Options, title)
-//		filmIDs = append(filmIDs, id)
-//	}
+//	func showSessionsByFilmForm() {
+//		// Получаем фильмы
+//		filmsResp, _ := client.Get("http://localhost:8080/films")
+//		var films []map[string]interface{}
+//		json.NewDecoder(filmsResp.Body).Decode(&films)
+//		filmsResp.Body.Close()
 //
-//	var sessionsList *widget.List
-//	var sessions []map[string]interface{}
-//
-//	updateList := func() {
-//		if filmSelect.Selected == "" {
-//			return
+//		filmSelect := widget.NewSelect([]string{}, nil)
+//		filmIDs := []int{}
+//		for _, f := range films {
+//			title := f["title"].(string)
+//			id := int(f["id"].(float64))
+//			filmSelect.Options = append(filmSelect.Options, title)
+//			filmIDs = append(filmIDs, id)
 //		}
-//		filmID := filmIDs[filmSelect.SelectedIndex()]
-//		resp, _ := client.Get(fmt.Sprintf("http://localhost:8080/sessions?film_id=%d", filmID))
-//		json.NewDecoder(resp.Body).Decode(&sessions)
-//		resp.Body.Close()
 //
-//		sessionsList.Length = func() int { return len(sessions) }
-//		sessionsList.UpdateItem = func(i widget.ListItemID, o fyne.CanvasObject) {
-//			s := sessions[i]
-//			cinema := s["cinema_name"].(string) // предполагаем поле
-//			time := s["start_time"].(string)
-//			o.(*widget.Label).SetText(fmt.Sprintf("%s — %s", cinema, time))
+//		var sessionsList *widget.List
+//		var sessions []map[string]interface{}
+//
+//		updateList := func() {
+//			if filmSelect.Selected == "" {
+//				return
+//			}
+//			filmID := filmIDs[filmSelect.SelectedIndex()]
+//			resp, _ := client.Get(fmt.Sprintf("http://localhost:8080/sessions?film_id=%d", filmID))
+//			json.NewDecoder(resp.Body).Decode(&sessions)
+//			resp.Body.Close()
+//
+//			sessionsList.Length = func() int { return len(sessions) }
+//			sessionsList.UpdateItem = func(i widget.ListItemID, o fyne.CanvasObject) {
+//				s := sessions[i]
+//				cinema := s["cinema_name"].(string) // предполагаем поле
+//				time := s["start_time"].(string)
+//				o.(*widget.Label).SetText(fmt.Sprintf("%s — %s", cinema, time))
+//			}
+//			sessionsList.Refresh()
 //		}
-//		sessionsList.Refresh()
+//
+//		filmSelect.OnChanged = func(s string) { updateList() }
+//
+//		sessionsList = widget.NewList(
+//			func() int { return 0 },
+//			func() fyne.CanvasObject { return widget.NewLabel("") },
+//			func(i widget.ListItemID, o fyne.CanvasObject) {},
+//		)
+//
+//		backBtn := widget.NewButton("Назад", goBack)
+//
+//		window.SetContent(container.NewBorder(
+//			nil, backBtn, nil, nil,
+//			container.NewVBox(
+//				widget.NewLabel("Сеансы по фильму"),
+//				widget.NewLabel("Выберите фильм:"), filmSelect,
+//				sessionsList,
+//			),
+//		))
 //	}
-//
-//	filmSelect.OnChanged = func(s string) { updateList() }
-//
-//	sessionsList = widget.NewList(
-//		func() int { return 0 },
-//		func() fyne.CanvasObject { return widget.NewLabel("") },
-//		func(i widget.ListItemID, o fyne.CanvasObject) {},
-//	)
-//
-//	backBtn := widget.NewButton("Назад", goBack)
-//
-//	window.SetContent(container.NewBorder(
-//		nil, backBtn, nil, nil,
-//		container.NewVBox(
-//			widget.NewLabel("Сеансы по фильму"),
-//			widget.NewLabel("Выберите фильм:"), filmSelect,
-//			sessionsList,
-//		),
-//	))
-//}
+func showHallsList() {
+	resp, err := client.Get("http://localhost:8080/admin/halls")
+	if err != nil || resp.StatusCode != 200 {
+		dialog.ShowError(fmt.Errorf("ошибка загрузки залов"), window)
+		return
+	}
+	defer resp.Body.Close()
+
+	var halls []map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&halls); err != nil {
+		dialog.ShowError(err, window)
+		return
+	}
+
+	if len(halls) == 0 {
+		window.SetContent(container.NewVBox(
+			widget.NewLabel("Залы и места"),
+			widget.NewLabel("Нет доступных залов"),
+			widget.NewButton("Назад", goBack),
+		))
+		return
+	}
+
+	hallOptions := []string{}
+	hallIDs := []int{}
+	for _, h := range halls {
+		name := h["name"].(string)
+		id := int(h["id"].(float64))
+		hallOptions = append(hallOptions, name)
+		hallIDs = append(hallIDs, id)
+	}
+
+	hallSelect := widget.NewSelect(hallOptions, nil)
+
+	seatsContainer := container.NewVBox(widget.NewLabel("Выберите зал для просмотра мест"))
+
+	loadSeats := func() {
+		if hallSelect.SelectedIndex() < 0 {
+			seatsContainer.Objects = []fyne.CanvasObject{widget.NewLabel("Выберите зал")}
+			seatsContainer.Refresh()
+			return
+		}
+		hallID := hallIDs[hallSelect.SelectedIndex()]
+
+		seats, err := fetchSeatsByHall(hallID)
+		log.Printf("Loaded seats for hall %d: %d", hallID, len(seats))
+		if err != nil {
+			dialog.ShowError(err, window)
+			return
+		}
+
+		if len(seats) == 0 {
+			seatsContainer.Objects = []fyne.CanvasObject{widget.NewLabel("В зале нет мест")}
+			seatsContainer.Refresh()
+			return
+		}
+
+		selected := make(map[int]bool)
+		var selectedIDs []int
+
+		maxRow, maxCol := 0, 0
+		for _, s := range seats {
+			if s.Row > maxRow {
+				maxRow = s.Row
+			}
+			if s.Number > maxCol {
+				maxCol = s.Number
+			}
+		}
+
+		grid := container.NewGridWithColumns(maxCol)
+
+		var refresh func()
+		refresh = func() {
+			grid.Objects = nil
+			for _, s := range seats {
+				grid.Add(createSeatButton(s, selected, &selectedIDs, refresh))
+			}
+			grid.Refresh()
+		}
+		refresh()
+
+		seatsContainer.Objects = []fyne.CanvasObject{container.NewScroll(grid)}
+		seatsContainer.Refresh()
+	}
+
+	hallSelect.OnChanged = func(_ string) { loadSeats() }
+
+	backBtn := widget.NewButton("Назад", goBack)
+
+	window.SetContent(container.NewBorder(
+		nil, backBtn, nil, nil,
+		container.NewVBox(
+			widget.NewLabel("Залы и места"),
+			widget.NewLabel("Выберите зал:"), hallSelect,
+			seatsContainer,
+		),
+	))
+
+	loadSeats() // Первый вызов
+}
+
+// Новая функция получения мест по залу
+func fetchSeatsByHall(hallID int) ([]Seat, error) {
+	log.Printf("Fetching seats for hall %d", hallID)
+	resp, err := client.Get(fmt.Sprintf("http://localhost:8080/halls/%d/seats", hallID))
+	log.Printf("Status: %d", resp.StatusCode)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("server error: %d", resp.StatusCode)
+	}
+
+	var seats []Seat
+	if err := json.NewDecoder(resp.Body).Decode(&seats); err != nil {
+		return nil, err
+	}
+	return seats, nil
+}

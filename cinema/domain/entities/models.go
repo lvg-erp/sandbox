@@ -20,7 +20,7 @@ type Film struct {
 	AddedAt     string `json:"added_at,omitempty"` // ISO string, если нужно
 }
 
-// Session — модель сеанса (показа фильма)
+// Session — модель сеанса
 type Session struct {
 	ID        int       `json:"id,omitempty"`
 	UserID    int       `json:"user_id"`

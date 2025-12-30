@@ -1,6 +1,6 @@
 module htmx
 
-go 1.22.3
+go 1.25.5
 
 require (
 	github.com/shirou/gopsutil/v4 v4.24.6

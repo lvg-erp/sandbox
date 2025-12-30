@@ -7,6 +7,7 @@ import (
 	db2 "cinema/infrastructure/db"
 	"cinema/infrastructure/http/handlers"
 	"database/sql"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"os"
@@ -46,38 +47,43 @@ func Start(dbURL string) {
 
 	dbConn := db2.Connect(dbURL)
 	repos := infrastructure.NewRepositories(dbConn)
-	mux := http.NewServeMux()
+	//mux := http.NewServeMux() --- не работает с параметрами
+	muxRoute := mux.NewRouter()
+	///
 
 	// ← ПУБЛИЧНЫЙ МАРШРУТ: РЕГИСТРАЦИЯ
-	mux.HandleFunc("/register", handlers.Register(repos.UserRepo))
+	muxRoute.HandleFunc("/register", handlers.Register(repos.UserRepo))
 
 	// Остальные маршруты
-	mux.HandleFunc("/login", handlers.LoginHandler(repos.UserRepo, repos.SessionRepo))
-	mux.HandleFunc("/logout", handlers.Logout(repos.SessionRepo))
+	muxRoute.HandleFunc("/login", handlers.LoginHandler(repos.UserRepo, repos.SessionRepo))
+	muxRoute.HandleFunc("/logout", handlers.Logout(repos.SessionRepo))
 
 	//TODO
 	//mux.HandleFunc("/book", AuthMiddleware(repos.UserRepo, handlers.Book(repos.BookingRepo)).ServeHTTP)
 
 	authUC := &usecases.AuthUseCase{UserRepo: repos.UserRepo, SessionRepo: repos.SessionRepo}
-	mux.HandleFunc("/films", AuthMiddleware(authUC, handlers.GetListFilms(repos.FilmRepo)).ServeHTTP)
+	muxRoute.HandleFunc("/films", AuthMiddleware(authUC, handlers.GetListFilms(repos.FilmRepo)).ServeHTTP)
 
-	mux.HandleFunc("/admin/films", AuthMiddleware(authUC, RoleMiddleware("admin", handlers.AddFilm(repos.FilmRepo)).ServeHTTP))
-	mux.HandleFunc("/admin/cinemas", AuthMiddleware(authUC, RoleMiddleware("admin", handlers.AddCinema(repos.CinemaRepo)).ServeHTTP))
+	muxRoute.HandleFunc("/admin/films", AuthMiddleware(authUC, RoleMiddleware("admin", handlers.AddFilm(repos.FilmRepo)).ServeHTTP))
+	muxRoute.HandleFunc("/admin/cinemas", AuthMiddleware(authUC, RoleMiddleware("admin", handlers.AddCinema(repos.CinemaRepo)).ServeHTTP))
 	//mux.HandleFunc("/admin/cinemas/list", AuthMiddleware(authUC, RoleMiddleware("admin", handlers.ListCinemas(repos.CinemaRepo))))
 	//TODO
 	//mux.HandleFunc("/seats", AuthMiddleware(repos.UserRepo, handlers.GetSeats(repos.SeatsRepository)).ServeHTTP)
 
-	mux.HandleFunc("/protected", AuthMiddleware(authUC, handlers.Protected().ServeHTTP)) //!!!!!!!!!!!!!!!!!!!!!
+	muxRoute.HandleFunc("/protected", AuthMiddleware(authUC, handlers.Protected().ServeHTTP)) //!!!!!!!!!!!!!!!!!!!!!
 
 	//TODO
 	//mux.HandleFunc("/admin/sessions",
 	//	AuthMiddleware(repos.UserRepo,
 	//		RoleMiddleware("admin", handlers.CreateFilmSession(repos.SessionRepo)).ServeHTTP))
 	//
-	mux.HandleFunc("/admin/cinemas/list", AuthMiddleware(authUC, RoleMiddleware("admin", handlers.ListCinemas(repos.CinemaRepo))))
+	muxRoute.HandleFunc("/admin/cinemas/list", AuthMiddleware(authUC, RoleMiddleware("admin", handlers.ListCinemas(repos.CinemaRepo))))
 
-	mux.HandleFunc("/sessions", AuthMiddleware(authUC, handlers.GetSessions(repos.SessionRepo)))
+	muxRoute.HandleFunc("/sessions", AuthMiddleware(authUC, handlers.GetSessions(repos.SessionRepo)))
+	muxRoute.HandleFunc("/admin/halls/create", AuthMiddleware(authUC, RoleMiddleware("admin", handlers.CreateHall(repos.HallRepository)).ServeHTTP))
+	muxRoute.HandleFunc("/admin/halls", AuthMiddleware(authUC, RoleMiddleware("admin", handlers.ListHalls(repos.HallRepository)).ServeHTTP))
 
+	muxRoute.HandleFunc("/halls/{id}/seats", handlers.GetHallSeats(repos.SeatsRepository))
 	//mux.HandleFunc("POST /admin/halls/generate",
 	//	AuthMiddleware(repo, RoleMiddleware("admin", handlers.GenerateHall(repo))))
 
@@ -89,7 +95,7 @@ func Start(dbURL string) {
 	}
 
 	log.Printf("Сервер запущен на :%s", port)
-	if err := http.ListenAndServe(":"+port, mux); err != nil {
+	if err := http.ListenAndServe(":"+port, muxRoute); err != nil {
 		log.Fatal("Server error: ", err)
 	}
 }

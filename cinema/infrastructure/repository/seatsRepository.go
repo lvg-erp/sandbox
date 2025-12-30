@@ -72,3 +72,25 @@ func (r *seatsRepo) CreateSeat(hallID uint, row, number int) error {
 	)
 	return err
 }
+
+func (r *seatsRepo) ListSeatsByHall(hallID int) ([]entities.Seat, error) {
+	rows, err := r.db.Query(`
+        SELECT id, hall_id, row, number, reserved
+        FROM seats 
+        WHERE hall_id = $1
+        ORDER BY row, number`, hallID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var seats []entities.Seat
+	for rows.Next() {
+		var s entities.Seat
+		if err := rows.Scan(&s.ID, &s.HallID, &s.Row, &s.Number, &s.Reserved); err != nil {
+			return nil, err
+		}
+		seats = append(seats, s)
+	}
+	return seats, rows.Err()
+}
