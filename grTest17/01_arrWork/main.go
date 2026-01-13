@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// Изменение объекта только по значению
 type S struct {
 	v int
 }
