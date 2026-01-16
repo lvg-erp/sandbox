@@ -67,7 +67,7 @@ func GenerateUniqueRandomNumbers(n, min, max int, seed int64) ([]int, error) {
 	return numbers[:n], nil
 }
 
-func RandomFomConstants() {
+func RandomFromConstants() {
 	rand.Seed(uint64(time.Now().UnixNano()))
 
 	// Срез с константами
