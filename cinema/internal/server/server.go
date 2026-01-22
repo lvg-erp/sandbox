@@ -73,13 +73,13 @@ func Start(dbURL string) {
 	muxRoute.HandleFunc("/protected", AuthMiddleware(authUC, handlers.Protected().ServeHTTP)) //!!!!!!!!!!!!!!!!!!!!!
 
 	//TODO
-	//mux.HandleFunc("/admin/sessions",
-	//	AuthMiddleware(repos.UserRepo,
-	//		RoleMiddleware("admin", handlers.CreateFilmSession(repos.SessionRepo)).ServeHTTP))
-	//
+	muxRoute.HandleFunc("/admin/film/sessions",
+		AuthMiddleware(authUC,
+			RoleMiddleware("admin", handlers.CreateFilmSession(repos.SessionFilmRepository)).ServeHTTP))
+
 	muxRoute.HandleFunc("/admin/cinemas/list", AuthMiddleware(authUC, RoleMiddleware("admin", handlers.ListCinemas(repos.CinemaRepo))))
 
-	muxRoute.HandleFunc("/sessions", AuthMiddleware(authUC, handlers.GetSessions(repos.SessionRepo)))
+	muxRoute.HandleFunc("/film/sessions", AuthMiddleware(authUC, handlers.GetFilmSessions(repos.SessionFilmRepository)))
 	muxRoute.HandleFunc("/admin/halls/create", AuthMiddleware(authUC, RoleMiddleware("admin", handlers.CreateHall(repos.HallRepository)).ServeHTTP))
 	muxRoute.HandleFunc("/admin/halls", AuthMiddleware(authUC, RoleMiddleware("admin", handlers.ListHalls(repos.HallRepository)).ServeHTTP))
 

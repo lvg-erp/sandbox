@@ -5,6 +5,7 @@ import (
 	"cinema/domain/ports"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 )
 
@@ -18,13 +19,16 @@ func NewCinemaRepo(db *sql.DB) ports.CinemaRepository {
 }
 
 // CreateCinema — добавить кинотеатр
-func (r *cinemaRepo) CreateCinema(cinema entities.Cinema) error {
-	_, err := r.db.Exec(`
+func (r *cinemaRepo) CreateCinema(cinema entities.Cinema) (int, error) {
+	fmt.Println("Count mest ", cinema.TotalSeats)
+	var id int
+	err := r.db.QueryRow(`
 		INSERT INTO cinemas (name, address, city, phone, total_seats, poster)
-		VALUES ($1, $2, $3, $4, $5, $6)`,
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id`,
 		cinema.Name, cinema.Address, cinema.City, cinema.Phone, cinema.TotalSeats, cinema.Poster,
-	)
-	return err
+	).Scan(&id)
+	return id, err
 }
 
 // ListCinemas — все кинотеатры

@@ -3,15 +3,16 @@ package usecases
 import (
 	"cinema/domain/entities"
 	"cinema/domain/ports"
+	"log"
 )
 
 type CreateCinemaInput struct {
-	Name       string
-	Address    string
-	City       string
-	Phone      string
-	TotalSeats int
-	Poster     string
+	Name       string `json:"name"`
+	Address    string `json:"address"`
+	City       string `json:"city"`
+	Phone      string `json:"phone"`
+	TotalSeats int    `json:"total_seats"`
+	Poster     string `json:"poster"`
 }
 
 type CreateCinemaOutput struct {
@@ -33,6 +34,7 @@ type CinemaUseCase struct {
 }
 
 func (uc *CinemaUseCase) ExecuteCreateCinema(input *CreateCinemaInput) (*CreateCinemaOutput, error) {
+	log.Printf("Input TotalSeats: %d", input.TotalSeats)
 	cinema := entities.Cinema{
 		Name:       input.Name,
 		Address:    input.Address,
@@ -41,10 +43,13 @@ func (uc *CinemaUseCase) ExecuteCreateCinema(input *CreateCinemaInput) (*CreateC
 		TotalSeats: input.TotalSeats,
 		Poster:     input.Poster,
 	}
-	if err := uc.Repo.CreateCinema(cinema); err != nil {
+	log.Printf("Cinema.TotalSeats перед repo: %d", cinema.TotalSeats)
+	id, err := uc.Repo.CreateCinema(cinema)
+	if err != nil {
 		return nil, err
 	}
-	return &CreateCinemaOutput{ID: cinema.ID}, nil
+
+	return &CreateCinemaOutput{ID: id}, nil
 }
 
 func (uc *CinemaUseCase) ExecuteListCinema() (ListCinemasOutput, error) {

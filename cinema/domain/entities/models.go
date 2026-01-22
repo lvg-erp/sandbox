@@ -40,10 +40,12 @@ type Cinema struct {
 	CreatedAt  string `json:"created_at,omitempty"`  // ISO время
 }
 
-type SessionInfo struct {
+type SessionFilm struct {
 	ID        int    `json:"id"`
 	FilmTitle string `json:"film_title"`
+	Duration  int    `json:"duration,omitempty"`
 	StartTime string `json:"start_time"`
+	EndTime   string `json:"end_time"`
 }
 
 type Booking struct {

@@ -27,22 +27,6 @@ type DeleteUserSessionInput struct {
 	Token string
 }
 
-type CreateFilmSessionInput struct {
-	FilmID   int
-	CinemaID int
-	Start    time.Time
-}
-
-type CreateFilmSessionOutput struct {
-	ID int
-}
-
-type ListFilmSessionsForCinemaInput struct {
-	CinemaID int
-}
-
-type ListFilmSessionsForCinemaOutput []map[string]interface{}
-
 type ListCinemasWithSessionsOutput []map[string]interface{}
 
 type SessionUseCase struct {
@@ -67,32 +51,4 @@ func (uc *SessionUseCase) ExecuteGetUserSession(input *GetUserSessionInput) (*Ge
 
 func (uc *SessionUseCase) ExecuteDeleteUserSession(input *DeleteUserSessionInput) error {
 	return uc.Repo.DeleteSession(input.Token)
-}
-
-func (uc *SessionUseCase) ExecuteCreateFilmSession(input *CreateFilmSessionInput) (*CreateFilmSessionOutput, error) {
-	id, err := uc.Repo.CreateFilmSession(input.FilmID, input.CinemaID, input.Start)
-	if err != nil {
-		return nil, err
-	}
-	return &CreateFilmSessionOutput{ID: id}, nil
-}
-
-func (uc *SessionUseCase) ExecuteGetAllSessions() ([]entities.SessionInfo, error) {
-	return uc.Repo.GetAllSessions()
-}
-
-func (uc *SessionUseCase) ExecuteListSessionsForCinema(input *ListFilmSessionsForCinemaInput) (ListFilmSessionsForCinemaOutput, error) {
-	sessions, err := uc.Repo.ListFilmsForCinema(input.CinemaID)
-	if err != nil {
-		return nil, err
-	}
-	return sessions, nil
-}
-
-func (uc *SessionUseCase) ExecuteListCinemasWithSessions() (ListCinemasWithSessionsOutput, error) {
-	cinemas, err := uc.Repo.ListCinemasWithSessions()
-	if err != nil {
-		return nil, err
-	}
-	return cinemas, nil
 }

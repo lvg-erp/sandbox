@@ -3,6 +3,7 @@ package ui
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -360,7 +361,13 @@ func showCreateCinemaForm() {
 	posterEntry.SetPlaceHolder("URL постера")
 
 	createBtn := widget.NewButton("Создать", func() {
-		totalSeats, _ := strconv.Atoi(totalSeatsEntry.Text)
+		totalSeats, err := strconv.Atoi(totalSeatsEntry.Text)
+		fmt.Println("Count mest: ", totalSeats)
+		if err != nil {
+			dialog.ShowError(fmt.Errorf("некорректное количество мест"), window)
+			return
+		}
+
 		payload := map[string]interface{}{
 			"name":        nameEntry.Text,
 			"address":     addressEntry.Text,
@@ -369,29 +376,67 @@ func showCreateCinemaForm() {
 			"total_seats": totalSeats,
 			"poster":      posterEntry.Text,
 		}
+
 		body, _ := json.Marshal(payload)
+		log.Printf("%s", string(body))
 		req, _ := http.NewRequest("POST", "http://localhost:8080/admin/cinemas", bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
+
 		resp, err := client.Do(req)
-		log.Printf("Status: %d", resp.StatusCode)
-		if err != nil || resp.StatusCode != 201 {
-			dialog.ShowError(fmt.Errorf("ошибка создания: %v", err), window)
+		if err != nil {
+			dialog.ShowError(fmt.Errorf("ошибка сети: %v", err), window)
 			return
 		}
-		// Получаем cinemaID
-		var created map[string]interface{}
-		json.NewDecoder(resp.Body).Decode(&created)
-		cinemaID := int(created["id"].(float64))
-		// Генерация зала
-		hallPayload := map[string]interface{}{"cinema_id": cinemaID}
-		hallBody, _ := json.Marshal(hallPayload)
-		hallReq, _ := http.NewRequest("POST", "http://localhost:8080/admin/halls/generate", bytes.NewBuffer(hallBody))
-		hallReq.Header.Set("Content-Type", "application/json")
-		hallResp, hallErr := client.Do(hallReq)
-		if hallErr != nil || hallResp.StatusCode != 201 {
-			log.Printf("Ошибка генерации зала: %v", hallErr)
+		defer resp.Body.Close()
+
+		if resp.StatusCode != 201 {
+			dialog.ShowError(fmt.Errorf("ошибка сервера: %d", resp.StatusCode), window)
+			return
 		}
-		dialog.ShowInformation("Успех", "Кинотеатр и зал созданы!", window)
+
+		// Безопасное чтение id
+		var created map[string]interface{}
+		if err := json.NewDecoder(resp.Body).Decode(&created); err != nil {
+			dialog.ShowError(fmt.Errorf("неверный ответ сервера"), window)
+			return
+		}
+
+		_, ok := created["ID"]
+		if !ok {
+			dialog.ShowError(fmt.Errorf("в ответе нет поля id"), window)
+			return
+		}
+
+		//var cinemaID int
+		//switch v := idVal.(type) {
+		//case float64:
+		//	cinemaID = int(v)
+		//case int:
+		//	cinemaID = v
+		//case int64:
+		//	cinemaID = int(v)
+		//default:
+		//	dialog.ShowError(fmt.Errorf("id имеет неверный тип"), window)
+		//	return
+		//}
+
+		//// Генерация зала
+		//hallPayload := map[string]interface{}{"cinema_id": cinemaID}
+		//hallBody, _ := json.Marshal(hallPayload)
+		//hallReq, _ := http.NewRequest("POST", "http://localhost:8080/admin/halls/create", bytes.NewBuffer(hallBody))
+		//hallReq.Header.Set("Content-Type", "application/json")
+		//
+		//hallResp, hallErr := client.Do(hallReq)
+		//if hallErr != nil || hallResp.StatusCode != 201 {
+		//	log.Printf("Ошибка генерации зала: %v %d", hallErr, hallResp.StatusCode)
+		//	// можно показать предупреждение, но не обязательно прерывать
+		//}
+		//
+		//if hallResp != nil {
+		//	hallResp.Body.Close()
+		//}
+
+		dialog.ShowInformation("Успех", "Кинотеатр создан!", window)
 		goBack()
 	})
 
@@ -461,12 +506,12 @@ func showCreateFilmForm() {
 }
 
 type TimePair struct {
-	Date *widget.DateEntry
-	Time *widget.Entry
+	Date    *widget.DateEntry
+	Time    *widget.Entry
+	EndTime *widget.Entry
 }
 
 func showCreateFilmSessionForm() {
-	// Получаем списки
 	filmsResp, _ := client.Get("http://localhost:8080/films")
 	var films []map[string]interface{}
 	json.NewDecoder(filmsResp.Body).Decode(&films)
@@ -477,9 +522,8 @@ func showCreateFilmSessionForm() {
 	json.NewDecoder(cinemasResp.Body).Decode(&cinemas)
 	cinemasResp.Body.Close()
 
-	// Выбор фильма
-	var filmOptions []string
-	var filmIDs []int
+	filmOptions := []string{}
+	filmIDs := []int{}
 	for _, f := range films {
 		title := f["title"].(string)
 		id := int(f["id"].(float64))
@@ -488,9 +532,8 @@ func showCreateFilmSessionForm() {
 	}
 	filmSelect := widget.NewSelect(filmOptions, nil)
 
-	// Выбор кинотеатров
-	var cinemaOptions []string
-	var cinemaIDs []int
+	cinemaOptions := []string{}
+	cinemaIDs := []int{}
 	for _, c := range cinemas {
 		name := c["name"].(string)
 		id := int(c["id"].(float64))
@@ -498,42 +541,62 @@ func showCreateFilmSessionForm() {
 		cinemaIDs = append(cinemaIDs, id)
 	}
 
-	// CheckGroup
 	multiCinemaSelect := widget.NewCheckGroup(cinemaOptions, nil)
 
-	// Динамические времена
 	timesContainer := container.NewVBox()
-	var timePairs []TimePair
+	var timePairs []TimePair // предполагается, что TimePair имеет Date *widget.DateEntry, Time, EndTime *widget.Entry
 
 	updateTimes := func() {
-		timesContainer.Objects = timesContainer.Objects[:0]
-		timePairs = timePairs[:0]
+		timesContainer.Objects = nil
+		timePairs = nil
 		selected := multiCinemaSelect.Selected
 		for _, name := range selected {
 			dateEntry := widget.NewDateEntry()
-			timeEntry := widget.NewEntry()
-			timeEntry.SetPlaceHolder("HH:MM")
-			timeEntry.OnChanged = func(s string) {
-				// Маска для времени
+			timeStart := widget.NewEntry()
+			timeStart.SetPlaceHolder("Начало (HH:MM)")
+			timeStart.OnChanged = func(s string) {
 				var formatted string
 				for i, c := range s {
-					if i == 2 || i == 5 {
+					if i == 2 {
 						formatted += ":"
 					}
 					if c >= '0' && c <= '9' {
 						formatted += string(c)
 					}
-					if len(formatted) == 8 {
+					if len(formatted) == 5 {
 						break
 					}
 				}
-				timeEntry.SetText(formatted)
-				timeEntry.CursorColumn = len(formatted)
+				timeStart.SetText(formatted)
 			}
-			timeHBox := container.NewGridWithColumns(2, dateEntry, timeEntry)
-			timePairs = append(timePairs, TimePair{Date: dateEntry, Time: timeEntry})
-			timesContainer.Add(widget.NewLabel(fmt.Sprintf("%s:", name)))
+
+			timeEnd := widget.NewEntry()
+			timeEnd.SetPlaceHolder("Окончание (HH:MM)")
+			timeEnd.OnChanged = func(s string) {
+				var formatted string
+				for i, c := range s {
+					if i == 2 {
+						formatted += ":"
+					}
+					if c >= '0' && c <= '9' {
+						formatted += string(c)
+					}
+					if len(formatted) == 5 {
+						break
+					}
+				}
+				timeEnd.SetText(formatted)
+			}
+
+			timeHBox := container.NewGridWithColumns(3, dateEntry, timeStart, timeEnd)
+			timesContainer.Add(widget.NewLabel(name + ":"))
 			timesContainer.Add(timeHBox)
+
+			timePairs = append(timePairs, TimePair{
+				Date:    dateEntry,
+				Time:    timeStart,
+				EndTime: timeEnd,
+			})
 		}
 		timesContainer.Refresh()
 	}
@@ -544,54 +607,111 @@ func showCreateFilmSessionForm() {
 
 	createBtn := widget.NewButton("Создать сеансы", func() {
 		if filmSelect.Selected == "" {
-			dialog.ShowError(fmt.Errorf("выберите фильм"), window)
+			dialog.ShowError(errors.New("выберите фильм"), window)
 			return
 		}
 		filmID := filmIDs[filmSelect.SelectedIndex()]
+
 		selected := multiCinemaSelect.Selected
 		if len(selected) == 0 {
-			dialog.ShowError(fmt.Errorf("выберите кинотеатры"), window)
+			dialog.ShowError(errors.New("выберите кинотеатры"), window)
 			return
 		}
+
 		for i, name := range selected {
 			if i >= len(timePairs) {
 				dialog.ShowError(fmt.Errorf("укажите время для %s", name), window)
 				return
 			}
-			fullTime := timePairs[i].Date.Text + " " + timePairs[i].Time.Text
-			if fullTime == "  " {
-				dialog.ShowError(fmt.Errorf("укажите время для %s", name), window)
+
+			pair := timePairs[i]
+
+			// 3-й путь — используем .Date() из виджета
+			selectedDate := pair.Date // time.Time
+			if selectedDate.Date.IsZero() {
+				dialog.ShowError(fmt.Errorf("укажите дату для %s", name), window)
 				return
 			}
-			t, err := time.Parse("2006-01-02 15:04", fullTime)
+
+			startStr := pair.Time.Text
+			if startStr == "" {
+				dialog.ShowError(fmt.Errorf("укажите время начала для %s", name), window)
+				return
+			}
+			startTime, err := time.Parse("15:04", startStr)
 			if err != nil {
-				dialog.ShowError(fmt.Errorf("неверное время для %s: %v", name, err), window)
+				dialog.ShowError(fmt.Errorf("неверное время начала для %s", name), window)
 				return
 			}
-			idx := -1
+
+			endStr := pair.EndTime.Text
+			if endStr == "" {
+				dialog.ShowError(fmt.Errorf("укажите время окончания для %s", name), window)
+				return
+			}
+			endTime, err := time.Parse("15:04", endStr)
+			if err != nil {
+				dialog.ShowError(fmt.Errorf("неверное время окончания для %s", name), window)
+				return
+			}
+
+			if endTime.Before(startTime) {
+				dialog.ShowError(fmt.Errorf("время окончания раньше начала для %s", name), window)
+				return
+			}
+
+			cinemaIdx := -1
 			for j, opt := range cinemaOptions {
 				if opt == name {
-					idx = j
+					cinemaIdx = j
 					break
 				}
 			}
-			if idx == -1 {
+			if cinemaIdx == -1 {
 				continue
 			}
-			cinemaID := cinemaIDs[idx]
+			cinemaID := cinemaIDs[cinemaIdx]
+
+			// Формируем полное время начала
+			tStart := time.Date(
+				selectedDate.Date.Year(),
+				selectedDate.Date.Month(),
+				selectedDate.Date.Day(),
+				startTime.Hour(),
+				startTime.Minute(),
+				0, 0,
+				time.Local, // или UTC — зависит от вашей логики
+			)
+
+			tEnd := time.Date(
+				selectedDate.Date.Year(),
+				selectedDate.Date.Month(),
+				selectedDate.Date.Day(),
+				endTime.Hour(),
+				endTime.Minute(),
+				0, 0,
+				time.Local,
+			)
+
 			payload := map[string]interface{}{
 				"film_id":    filmID,
 				"cinema_id":  cinemaID,
-				"start_time": t.Format("2006-01-02 15:04:05"),
+				"start_time": tStart.Format("2006-01-02 15:04:05"),
+				"end_time":   tEnd.Format("2006-01-02 15:04:05"),
 			}
+
 			body, _ := json.Marshal(payload)
-			req, _ := http.NewRequest("POST", "http://localhost:8080/admin/sessions", bytes.NewBuffer(body))
+			req, _ := http.NewRequest("POST", "http://localhost:8080/admin/film/sessions", bytes.NewBuffer(body))
 			req.Header.Set("Content-Type", "application/json")
-			resp, _ := client.Do(req)
-			if resp.StatusCode != 200 {
-				log.Printf("Ошибка сеанса: %d", resp.StatusCode)
+			resp, err := client.Do(req)
+			if err != nil || resp.StatusCode != http.StatusOK {
+				log.Printf("Ошибка создания сеанса для %s: %v %d", name, err, resp.StatusCode)
+			}
+			if resp != nil {
+				resp.Body.Close()
 			}
 		}
+
 		dialog.ShowInformation("Успех", "Сеансы созданы!", window)
 		goBack()
 	})
@@ -608,7 +728,8 @@ func showCreateFilmSessionForm() {
 			createBtn,
 		),
 	))
-	updateTimes() // Инициализация
+
+	updateTimes()
 }
 
 //	func showFilmsList() {
