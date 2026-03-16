@@ -12,9 +12,10 @@ func main() {
 	//
 	//fmt.Println(res)
 
-	s := "MCMXCIV"
-	res := romanToInt(s)
-
+	//s := "MCMXCIV"
+	//res := romanToInt(s)
+	strs := []string{"eat", "tea", "tan", "ate", "nat", "bat"}
+	res := groupAnagrams(strs)
 	fmt.Println(res)
 }
 
