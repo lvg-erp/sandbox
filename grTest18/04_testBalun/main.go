@@ -6,17 +6,17 @@ import (
 )
 
 func main() {
-	//sIn := "foo"
-	//tIn := "bar"
-	//res := isIsomorphic(sIn, tIn)
-	//
-	//fmt.Println(res)
+	sIn := "foo"
+	tIn := "bar"
+	res := isIsomorphic(sIn, tIn)
+
+	fmt.Println(res)
 
 	//s := "MCMXCIV"
 	//res := romanToInt(s)
-	strs := []string{"eat", "tea", "tan", "ate", "nat", "bat"}
-	res := groupAnagrams(strs)
-	fmt.Println(res)
+	//strs := []string{"eat", "tea", "tan", "ate", "nat", "bat"}
+	//res := groupAnagrams(strs)
+	//fmt.Println(res)
 }
 
 // 1
