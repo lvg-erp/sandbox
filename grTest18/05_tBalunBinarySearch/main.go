@@ -230,3 +230,74 @@ func searchMatrix(matrix [][]int, target int) bool {
 	}
 	return false
 }
+
+// 7
+func findPeakElement(nums []int) int {
+	if len(nums) == 0 {
+		return 0
+	}
+
+	left, right := 0, len(nums)-1
+
+	for left < right {
+		mid := left + (right-left)/2
+
+		if nums[mid] < nums[mid+1] {
+			left = mid + 1
+		} else {
+			right = mid
+		}
+	}
+
+	return left
+
+}
+
+// 8
+func shipWithinDays(weights []int, days int) int {
+	// result := 0
+	low := 0
+	hight := 0
+	for _, w := range weights {
+		low = max(low, w)
+		hight += w
+	}
+
+	for low < hight {
+		mid := low + (hight-low)/2
+		if canShip(weights, mid, days) {
+			hight = mid
+		} else {
+			low = mid + 1
+		}
+
+	}
+	return low
+}
+
+func canShip(weights []int, capacity int, days int) bool {
+	currentDayWeight := 0 // вес который загрузили в текущий день
+	needDays := 1         // сколько дней нужно
+
+	for _, w := range weights {
+		if currentDayWeight+w > capacity {
+			currentDayWeight = w
+			needDays++
+			if needDays > days {
+				return false
+			}
+
+		} else {
+			currentDayWeight += w
+		}
+	}
+
+	return true
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}

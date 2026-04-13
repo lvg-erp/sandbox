@@ -115,3 +115,72 @@ func sortedSquares(nums []int) []int {
 	return result
 
 }
+
+// 6
+func removeDuplicates(nums []int) int {
+	if len(nums) == 0 {
+		return -1
+	}
+
+	k := 1
+
+	for i := 1; i < len(nums); i++ {
+		if nums[i] != nums[i-1] {
+			nums[k] = nums[i]
+			k++
+		}
+	}
+
+	return k
+}
+
+// 7
+func moveZeroes(nums []int) {
+	k := 0
+	for i := 0; i < len(nums); i++ {
+		if nums[i] != 0 {
+			nums[k] = nums[i]
+			nums[i] = 0
+			k++
+		}
+	}
+}
+
+// 8
+func threeSum(nums []int) [][]int {
+	sort.Ints(nums)
+	var result [][]int
+
+	// Пропускаем дубликаты первого числа
+	for i := 0; i < len(nums)-1; i++ {
+		if i > 0 && nums[i] == nums[i-1] {
+			continue
+		}
+
+		left := i + 1
+		right := len(nums) - 1
+
+		for left < right {
+			sum := nums[i] + nums[left] + nums[right]
+			if sum == 0 {
+				result = append(result, []int{nums[i], nums[left], nums[right]})
+				// Пропускаем дубликаты для left
+				if left < right && nums[left] == nums[left+1] {
+					left++
+				}
+				// Пропускаем дубликаты для right
+				if left < right && nums[right] == nums[right-1] {
+					right--
+				}
+				left++
+				right--
+			} else if sum < 0 {
+				left++
+			} else {
+				right--
+			}
+		}
+	}
+
+	return result
+}
