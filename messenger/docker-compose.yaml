@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: messenger-postgres
+    environment:
+      POSTGRES_USER: messenger
+      POSTGRES_PASSWORD: messenger123
+      POSTGRES_DB: messenger
+    ports:
+      - "5474:5432"  # Проброс на хост: 5474, внутри контейнера: 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    networks:
+      - messenger-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U messenger -d messenger"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  server:
+    build: .
+    container_name: messenger-server
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres           # Имя сервиса в сети Docker
+      DB_PORT: 5432               # ВНУТРЕННИЙ порт контейнера, НЕ 5474!
+      DB_USER: messenger
+      DB_PASSWORD: messenger123
+      DB_NAME: messenger
+      DB_SSLMODE: disable
+      SERVER_PORT: 8080
+    networks:
+      - messenger-network
+    volumes:
+      - ./web:/app/web
+    restart: on-failure
+
+networks:
+  messenger-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

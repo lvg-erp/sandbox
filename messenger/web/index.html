@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messenger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #111;
+            color: #ddd;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #top {
+            padding: 10px;
+            background: #222;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        input, button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        input {
+            flex: 1;
+            background: #333;
+            color: white;
+            border: 1px solid #444;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #006C4F;
+        }
+
+        button {
+            background: #006C4F;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #00855F;
+        }
+
+        #main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        #chats {
+            width: 300px;
+            background: #1a1a1a;
+            overflow-y: auto;
+            border-right: 1px solid #333;
+        }
+
+        .chat {
+            padding: 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #333;
+            transition: background 0.2s;
+        }
+
+        .chat:hover {
+            background: #252525;
+        }
+
+        .chat.active {
+            background: #006C4F;
+        }
+
+        .chat-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .chat-last-message {
+            font-size: 12px;
+            color: #888;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #0f0f0f;
+        }
+
+        #chat-header {
+            padding: 15px;
+            background: #222;
+            border-bottom: 1px solid #333;
+            font-weight: 600;
+        }
+
+        #messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            word-wrap: break-word;
+        }
+
+        .message.self {
+            align-self: flex-end;
+            background: #006C4F;
+            color: white;
+        }
+
+        .message.other {
+            align-self: flex-start;
+            background: #333;
+        }
+
+        .message .sender {
+            font-size: 11px;
+            margin-bottom: 4px;
+            opacity: 0.7;
+        }
+
+        .message .time {
+            font-size: 10px;
+            margin-top: 4px;
+            opacity: 0.5;
+        }
+
+        #input-area {
+            padding: 15px;
+            background: #222;
+            display: flex;
+            gap: 8px;
+            border-top: 1px solid #333;
+        }
+
+        textarea {
+            flex: 1;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            resize: none;
+            height: 44px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        textarea:focus {
+            outline: none;
+            background: #3a3a3a;
+        }
+
+        .status {
+            padding: 5px 10px;
+            font-size: 12px;
+            background: #222;
+            text-align: center;
+        }
+
+        .status.connected {
+            background: #006C4F;
+        }
+
+        .status.disconnected {
+            background: #8B0000;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+
+<div id="top">
+    <input type="text" id="username" placeholder="Username" value="user1">
+    <input type="text" id="target-user" placeholder="Chat with (username)" value="user2">
+    <button onclick="connect()">Connect</button>
+    <button onclick="disconnect()">Disconnect</button>
+</div>
+
+<div id="main">
+    <div id="chats"></div>
+
+    <div id="chat-area">
+        <div id="chat-header">Select a chat</div>
+        <div id="messages"></div>
+        <div id="input-area" style="display: none;">
+            <textarea id="message-input" placeholder="Type a message..." onkeypress="handleKeyPress(event)"></textarea>
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+</div>
+
+<div id="status" class="status disconnected">Disconnected</div>
+
+<script>
+    let ws = null;
+    let currentUser = null;
+    let currentChat = null;
+    let chats = new Map();
+    let pendingRequests = new Map();
+    let requestIdCounter = 0;
+
+    function getRequestId() {
+        return `req_${++requestIdCounter}_${Date.now()}`;
+    }
+
+    function connect() {
+        const username = document.getElementById('username').value.trim();
+        if (!username) {
+            alert('Enter username');
+            return;
+        }
+
+        currentUser = username;
+        const wsUrl = `ws://localhost:8080/ws?AccountUUID=${encodeURIComponent(username)}`;
+
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+            updateStatus(true);
+            document.getElementById('input-area').style.display = 'flex';
+            loadChats();
+            startHeartbeat();
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            handleMessage(data);
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            updateStatus(false);
+        };
+
+        ws.onclose = () => {
+            updateStatus(false);
+            document.getElementById('input-area').style.display = 'none';
+            if (heartbeatInterval) {
+                clearInterval(heartbeatInterval);
+            }
+        };
+    }
+
+    function disconnect() {
+        if (ws) {
+            ws.close();
+            ws = null;
+        }
+    }
+
+    let heartbeatInterval = null;
+
+    function startHeartbeat() {
+        if (heartbeatInterval) {
+            clearInterval(heartbeatInterval);
+        }
+        heartbeatInterval = setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                send('user.update_last_seen', {});
+            }
+        }, 30000);
+    }
+
+    function send(type, payload, callback) {
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+            console.error('Not connected');
+            return;
+        }
+
+        const requestId = getRequestId();
+        if (callback) {
+            pendingRequests.set(requestId, callback);
+        }
+
+        ws.send(JSON.stringify({
+            type: type,
+            request_id: requestId,
+            payload: payload
+        }));
+    }
+
+    function handleMessage(data) {
+        if (data.type === 'response' && data.request_id) {
+            const callback = pendingRequests.get(data.request_id);
+            if (callback) {
+                callback(data.payload);
+                pendingRequests.delete(data.request_id);
+            }
+        } else if (data.type === 'error') {
+            console.error('Server error:', data.payload.error);
+            alert('Error: ' + data.payload.error);
+        } else if (data.type === 'message.new') {
+            const message = data.payload;
+            if (currentChat && message.chat_uuid === currentChat) {
+                addMessageToChat(message);
+            }
+            updateChatLastMessage(message.chat_uuid, message);
+        }
+    }
+
+    function loadChats() {
+        send('chat.list', {}, (chatsList) => {
+            renderChats(chatsList);
+        });
+    }
+
+    function createPersonalChat() {
+        const targetUser = document.getElementById('target-user').value.trim();
+        if (!targetUser) {
+            alert('Enter target username');
+            return;
+        }
+
+        send('chat.create.personal', { receiver_uuid: targetUser }, (response) => {
+            loadChats();
+            selectChat(response.chat_uuid);
+        });
+    }
+
+    function renderChats(chatsList) {
+        const container = document.getElementById('chats');
+        container.innerHTML = '<div class="chat" onclick="createPersonalChat()" style="background:#006C4F;">➕ New Chat</div>';
+
+        chatsList.forEach(chat => {
+            const chatDiv = document.createElement('div');
+            chatDiv.className = 'chat';
+            if (currentChat === chat.uuid) {
+                chatDiv.classList.add('active');
+            }
+
+            let chatName = chat.name || 'Chat';
+            if (chat.type === 'personal') {
+                chatName = chat.participants?.find(p => p.username !== currentUser)?.username || 'Unknown';
+            }
+
+            chatDiv.innerHTML = `
+                <div class="chat-name">${escapeHtml(chatName)}</div>
+                <div class="chat-last-message">${chat.last_message ? escapeHtml(chat.last_message.body) : 'No messages'}</div>
+            `;
+
+            chatDiv.onclick = () => selectChat(chat.uuid);
+            container.appendChild(chatDiv);
+            chats.set(chat.uuid, chat);
+        });
+    }
+
+    function selectChat(chatUUID) {
+        currentChat = chatUUID;
+        document.getElementById('messages').innerHTML = '';
+
+        send('chat.get', { chat_uuid: chatUUID }, (chatData) => {
+            const chat = chatData.chat;
+            let chatName = chat.name || 'Chat';
+            if (chat.type === 'personal') {
+                const otherUser = chatData.participants?.find(p => p.username !== currentUser);
+                chatName = otherUser ? otherUser.username : 'Unknown';
+            }
+            document.getElementById('chat-header').textContent = chatName;
+
+            // Load message history
+            send('message.history', { chat_uuid: chatUUID, limit: 50, offset: 0 }, (messages) => {
+                messages.reverse().forEach(msg => addMessageToChat(msg));
+            });
+        });
+
+        // Update UI
+        document.querySelectorAll('.chat').forEach(chat => {
+            chat.classList.remove('active');
+            if (chat.querySelector(`[data-chat-uuid="${chatUUID}"]`)) {
+                chat.classList.add('active');
+            }
+        });
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('message-input');
+        const body = input.value.trim();
+
+        if (!body || !currentChat) return;
+
+        send('message.send', {
+            chat_uuid: currentChat,
+            body: body
+        }, (response) => {
+            input.value = '';
+        });
+    }
+
+    function addMessageToChat(message) {
+        const messagesContainer = document.getElementById('messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${message.sender_uuid === currentUser ? 'self' : 'other'}`;
+
+        const time = new Date(message.created_at).toLocaleTimeString();
+
+        messageDiv.innerHTML = `
+            ${message.sender_uuid !== currentUser ? `<div class="sender">${escapeHtml(message.sender_uuid)}</div>` : ''}
+            <div class="text">${escapeHtml(message.body)}</div>
+            <div class="time">${time}</div>
+        `;
+
+        messagesContainer.appendChild(messageDiv);
+        messageDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function updateChatLastMessage(chatUUID, message) {
+        const chat = chats.get(chatUUID);
+        if (chat) {
+            chat.last_message = message;
+            renderChats(Array.from(chats.values()));
+        }
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
+
+    function updateStatus(connected) {
+        const statusDiv = document.getElementById('status');
+        if (connected) {
+            statusDiv.textContent = 'Connected';
+            statusDiv.className = 'status connected';
+        } else {
+            statusDiv.textContent = 'Disconnected';
+            statusDiv.className = 'status disconnected';
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
+</body>
+</html>
