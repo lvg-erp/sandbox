@@ -1,0 +1,4 @@
+USECASE: 2026/03/11 11:24:32 FuelGive: TID=TID_20260311112432, OneJarActive=true, TwoJarActive=false
+USECASE: 2026/03/11 11:24:32 Selected jarNumber=1
+USECASE: 2026/03/11 11:24:55 FuelGet: TID=TID_20260311112455, OneJarActive=false, TwoJarActive=true
+USECASE: 2026/03/11 11:24:55 Selected jarNumber=2
