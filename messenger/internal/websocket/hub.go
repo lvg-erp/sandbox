@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"log"
 	"sync"
+	"time"
 
-	"github.com/google/uuid"
 	"messanger/internal/domain/entity"
 	"messanger/internal/domain/service"
+
+	"github.com/google/uuid"
 )
 
 type Hub struct {
@@ -90,15 +92,34 @@ func (h *Hub) HandleMessage(client *Client, msg *ClientMessage) {
 	case "chat.create.personal":
 		var payload struct {
 			ReceiverUUID string `json:"receiver_uuid"`
+			ReceiverName string `json:"receiver_name"`
 		}
 		if err := json.Unmarshal(msg.Payload, &payload); err != nil {
 			h.sendError(client, msg.RequestID, "Invalid payload")
 			return
 		}
 
-		receiverUUID, err := uuid.Parse(payload.ReceiverUUID)
-		if err != nil {
-			h.sendError(client, msg.RequestID, "Invalid receiver UUID")
+		ctx := context.Background()
+		var receiverUUID uuid.UUID
+		var err error
+
+		if payload.ReceiverName != "" {
+			// Ищем по username
+			user, err := h.userService.GetUserByUsername(ctx, payload.ReceiverName)
+			if err != nil || user == nil {
+				h.sendError(client, msg.RequestID, "User not found: "+payload.ReceiverName)
+				return
+			}
+			receiverUUID = user.UUID
+		} else if payload.ReceiverUUID != "" {
+			// Ищем по UUID
+			receiverUUID, err = uuid.Parse(payload.ReceiverUUID)
+			if err != nil {
+				h.sendError(client, msg.RequestID, "Invalid receiver UUID")
+				return
+			}
+		} else {
+			h.sendError(client, msg.RequestID, "receiver_name or receiver_uuid required")
 			return
 		}
 
@@ -129,17 +150,22 @@ func (h *Hub) HandleMessage(client *Client, msg *ClientMessage) {
 			return
 		}
 
+		// Отправляем сообщение
 		message, err := h.messageService.SendMessage(ctx, chatUUID, client.UserUUID, payload.Body)
 		if err != nil {
 			h.sendError(client, msg.RequestID, err.Error())
 			return
 		}
 
+		log.Printf("✅ Message sent: %s from %s", message.UUID, client.Username)
+
+		// Ответ отправителю
 		h.sendResponse(client, msg.RequestID, map[string]interface{}{
 			"message_uuid": message.UUID.String(),
-			"created_at":   message.CreatedAt,
+			"created_at":   message.CreatedAt.Format(time.RFC3339),
 		})
 
+		// Рассылка всем участникам
 		h.broadcastToChat(ctx, chatUUID, message, client.UserUUID)
 
 	case "chat.list":
@@ -206,18 +232,33 @@ func (h *Hub) HandleMessage(client *Client, msg *ClientMessage) {
 }
 
 func (h *Hub) broadcastToChat(ctx context.Context, chatUUID uuid.UUID, message *entity.Message, senderUUID uuid.UUID) {
+	// Получаем имя отправителя
+	sender, err := h.userService.GetUser(ctx, senderUUID)
+	senderUsername := ""
+	if err == nil && sender != nil {
+		senderUsername = sender.Username
+	}
+
+	log.Printf("📤 Broadcasting to chat %s: sender=%s (UUID=%s), body=%s",
+		chatUUID, senderUsername, senderUUID, message.Body)
+
 	data := map[string]interface{}{
 		"type": "message.new",
 		"payload": map[string]interface{}{
-			"message_uuid": message.UUID.String(),
-			"chat_uuid":    message.ChatUUID.String(),
-			"sender_uuid":  message.SenderUUID.String(),
-			"body":         message.Body,
-			"created_at":   message.CreatedAt,
+			"message_uuid":    message.UUID.String(),
+			"chat_uuid":       message.ChatUUID.String(),
+			"sender_uuid":     message.SenderUUID.String(),
+			"sender_username": senderUsername, // ЭТО КЛЮЧЕВОЕ ПОЛЕ!
+			"body":            message.Body,
+			"created_at":      message.CreatedAt.Format(time.RFC3339),
 		},
 	}
 
-	bytes, _ := json.Marshal(data)
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		log.Printf("❌ Failed to marshal message: %v", err)
+		return
+	}
 
 	h.Broadcast <- &BroadcastMessage{
 		ChatUUID:   chatUUID,

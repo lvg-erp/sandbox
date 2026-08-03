@@ -19,10 +19,19 @@ func NewMessageRepository(db *sql.DB) repository.MessageRepository {
 
 func (r *MessageRepository) Create(ctx context.Context, message *entity.Message) error {
 	query := `
-        INSERT INTO messages (uuid, chat_uuid, sender_uuid, body, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO messages (uuid, chat_uuid, sender_uuid, body, created_at, updated_at, deleted, edited)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     `
-	_, err := r.db.ExecContext(ctx, query, message.UUID, message.ChatUUID, message.SenderUUID, message.Body, message.CreatedAt, message.UpdatedAt)
+	_, err := r.db.ExecContext(ctx, query,
+		message.UUID,
+		message.ChatUUID,
+		message.SenderUUID,
+		message.Body,
+		message.CreatedAt, // Убедитесь, что это не nil
+		message.UpdatedAt,
+		message.Deleted,
+		message.Edited,
+	)
 	return err
 }
 

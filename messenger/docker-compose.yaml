@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: messenger123
       POSTGRES_DB: messenger
     ports:
-      - "5474:5432"  # Проброс на хост: 5474, внутри контейнера: 5432
+      - "5474:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./migrations:/docker-entrypoint-initdb.d

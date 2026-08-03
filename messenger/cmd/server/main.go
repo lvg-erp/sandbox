@@ -2,8 +2,10 @@ package main
 
 import (
 	"log"
+	"messanger/internal/auth"
 	"messanger/internal/domain/service"
 	"messanger/internal/handler"
+	"messanger/internal/middleware"
 	"messanger/internal/repository"
 	postgresRepo "messanger/internal/repository/postgres"
 
@@ -14,7 +16,6 @@ import (
 )
 
 func main() {
-	// Загрузка .env файла
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
 	}
@@ -26,6 +27,8 @@ func main() {
 	}
 	defer db.Close()
 
+	log.Println("Connected to database")
+
 	// Инициализация репозиториев
 	userRepo := postgresRepo.NewUserRepository(db.DB)
 	chatRepo := postgresRepo.NewChatRepository(db.DB)
@@ -36,12 +39,27 @@ func main() {
 	chatService := service.NewChatService(chatRepo, userRepo, messageRepo)
 	messageService := service.NewMessageService(messageRepo, chatRepo, userRepo)
 
-	// Инициализация WebSocket хендлера
-	wsHandler := handler.NewWebSocketHandler(userService, chatService, messageService)
+	// Инициализация JWT
+	jwtConfig := auth.NewJWTConfig("your-secret-key-change-in-production")
+
+	// Инициализация хендлеров
+	wsHandler := handler.NewWebSocketHandler(userService, chatService, messageService, jwtConfig)
+	authHandler := handler.NewAuthHandler(jwtConfig, userService)
 
 	// Настройка маршрутов
 	http.HandleFunc("/ws", wsHandler.HandleWebSocket)
 	http.HandleFunc("/", serveIndex)
+
+	// REST API - АВТОРИЗАЦИЯ
+	http.HandleFunc("/api/auth/register", authHandler.Register) // ДОБАВЬТЕ ЭТУ СТРОКУ!
+	http.HandleFunc("/api/auth/login", authHandler.Login)
+	http.HandleFunc("/api/auth/refresh", authHandler.Refresh)
+
+	// Защищенные API эндпоинты (пример)
+	http.Handle("/api/protected", middleware.JWTAuth(jwtConfig)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		claims := middleware.GetUserFromContext(r.Context())
+		w.Write([]byte("Hello " + claims.Username + "!"))
+	})))
 
 	port := os.Getenv("SERVER_PORT")
 	if port == "" {
@@ -49,6 +67,9 @@ func main() {
 	}
 
 	log.Printf("Server starting on :%s", port)
+	log.Printf("Login endpoint: http://localhost:%s/api/auth/login", port)
+	log.Printf("WebSocket endpoint: ws://localhost:%s/ws?token=<jwt_token>", port)
+
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal(err)
 	}

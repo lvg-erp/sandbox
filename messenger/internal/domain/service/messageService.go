@@ -3,9 +3,11 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/google/uuid"
 	"messanger/internal/domain/entity"
 	"messanger/internal/domain/repository"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type MessageService struct {
@@ -28,8 +30,8 @@ func (s *MessageService) SendMessage(ctx context.Context, chatUUID, senderUUID u
 	}
 
 	// Проверяем существование чата
-	_, err := s.chatRepo.GetByUUID(ctx, chatUUID)
-	if err != nil {
+	chat, err := s.chatRepo.GetByUUID(ctx, chatUUID)
+	if err != nil || chat == nil {
 		return nil, errors.New("chat not found")
 	}
 
@@ -51,11 +53,17 @@ func (s *MessageService) SendMessage(ctx context.Context, chatUUID, senderUUID u
 		return nil, errors.New("sender is not a participant of this chat")
 	}
 
+	now := time.Now() // ВАЖНО: сохраняем текущее время
+
 	message := &entity.Message{
 		UUID:       uuid.New(),
 		ChatUUID:   chatUUID,
 		SenderUUID: senderUUID,
 		Body:       body,
+		CreatedAt:  now, // Устанавливаем время
+		UpdatedAt:  now,
+		Deleted:    false,
+		Edited:     false,
 	}
 
 	if err := s.messageRepo.Create(ctx, message); err != nil {

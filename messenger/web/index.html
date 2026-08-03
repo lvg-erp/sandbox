@@ -120,39 +120,204 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 4px;
+            background: #0f0f0f;
         }
 
         .message {
             max-width: 70%;
-            padding: 10px 14px;
+            padding: 8px 12px;
             border-radius: 12px;
             word-wrap: break-word;
+            position: relative;
+            margin-bottom: 2px;
         }
 
+        /* Свои сообщения (справа) */
         .message.self {
             align-self: flex-end;
             background: #006C4F;
             color: white;
+            border-bottom-right-radius: 4px;
         }
 
+        /* Чужие сообщения (слева) */
         .message.other {
             align-self: flex-start;
-            background: #333;
+            background: #2d2d2d;
+            color: #ddd;
+            border-bottom-left-radius: 4px;
+        }
+
+        /* Имя отправителя */
+        .message .sender {
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 2px;
+            color: #4CAF50;
+        }
+
+        .message.self .sender {
+            color: #81C784;
+            text-align: right;
+        }
+
+        /* Текст сообщения */
+        .message .text {
+            font-size: 14px;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        /* Время */
+        .message .time {
+            font-size: 10px;
+            margin-top: 3px;
+            opacity: 0.6;
+            text-align: right;
+        }
+
+        .message.self .time {
+            color: #a0d8b0;
+        }
+
+        .message.other .time {
+            color: #888;
+        }
+
+        /* Группировка сообщений от одного пользователя */
+        .message:not(:last-child) {
+            margin-bottom: 2px;
+        }
+
+        /* Отступ между разными пользователями */
+        .message.other:not(:first-child) {
+            margin-top: 8px;
+        }
+
+        .message.self:not(:first-child) {
+            margin-top: 8px;
+        }
+
+        /* Добавьте в CSS */
+        .message .avatar {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #3d3d3d;
+            margin-right: 8px;
+            text-align: center;
+            line-height: 32px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .message .message-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .message {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            max-width: 70%;
+            padding: 8px 12px;
+            border-radius: 12px;
+            word-wrap: break-word;
+            margin-bottom: 2px;
+        }
+
+        /* Цвета аватаров */
+        .message .avatar.color-1 { background: #e74c3c; }
+        .message .avatar.color-2 { background: #3498db; }
+        .message .avatar.color-3 { background: #2ecc71; }
+        .message .avatar.color-4 { background: #f39c12; }
+        .message .avatar.color-5 { background: #9b59b6; }
+        .message .avatar.color-6 { background: #1abc9c; }
+        .message .avatar.color-7 { background: #e67e22; }
+        .message .avatar.color-8 { background: #2c3e50; }
+
+        /* Свои сообщения (справа) */
+        .message.self {
+            align-self: flex-end;
+            background: #006C4F;
+            color: white;
+            border-bottom-right-radius: 4px;
+            flex-direction: row-reverse;
+        }
+
+        .message.self .avatar {
+            margin-right: 0;
+            margin-left: 8px;
+        }
+
+        .message.self .sender {
+            text-align: right;
+            color: #81C784;
+        }
+
+        /* Чужие сообщения (слева) */
+        .message.other {
+            align-self: flex-start;
+            background: #2d2d2d;
+            color: #ddd;
+            border-bottom-left-radius: 4px;
         }
 
         .message .sender {
             font-size: 11px;
-            margin-bottom: 4px;
-            opacity: 0.7;
+            font-weight: 600;
+            margin-bottom: 2px;
+            color: #4CAF50;
+            width: 100%;
+        }
+
+        .message .text {
+            font-size: 14px;
+            line-height: 1.4;
+            word-break: break-word;
         }
 
         .message .time {
             font-size: 10px;
-            margin-top: 4px;
-            opacity: 0.5;
+            margin-top: 3px;
+            opacity: 0.6;
+            text-align: right;
         }
 
+        .message.self .time {
+            color: #a0d8b0;
+        }
+
+        .message.other .time {
+            color: #888;
+        }
+
+        /* Группировка сообщений */
+        .message:not(:last-child) {
+            margin-bottom: 2px;
+        }
+
+        .message.other:not(:first-child) {
+            margin-top: 4px;
+        }
+
+        .message.self:not(:first-child) {
+            margin-top: 4px;
+        }
+
+        /* Отступ между разными пользователями */
+        .message.other + .message.self {
+            margin-top: 8px;
+        }
+
+        .message.self + .message.other {
+            margin-top: 8px;
+        }
         #input-area {
             padding: 15px;
             background: #222;
@@ -237,17 +402,50 @@
 <div id="status" class="status disconnected">Disconnected</div>
 
 <script>
+    // Конфигурация
+    const API_URL = 'http://localhost:8080/api';
     let ws = null;
     let currentUser = null;
     let currentChat = null;
     let chats = new Map();
     let pendingRequests = new Map();
     let requestIdCounter = 0;
+    let accessToken = localStorage.getItem('access_token');
+    let refreshToken = localStorage.getItem('refresh_token');
+    let lastMessageSender = null;
 
-    function getRequestId() {
-        return `req_${++requestIdCounter}_${Date.now()}`;
+    async function login(username) {
+        try {
+            const response = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username: username })
+            });
+
+            if (!response.ok) {
+                throw new Error('Login failed');
+            }
+
+            const data = await response.json();
+            accessToken = data.access_token;
+            refreshToken = data.refresh_token;
+
+            localStorage.setItem('access_token', accessToken);
+            localStorage.setItem('refresh_token', refreshToken);
+
+            currentUser = username; // ВАЖНО: устанавливаем currentUser
+            console.log('✅ Current user set to:', currentUser);
+
+            return data;
+        } catch (error) {
+            console.error('Login error:', error);
+            throw error;
+        }
     }
 
+    // Подключение WebSocket
     function connect() {
         const username = document.getElementById('username').value.trim();
         if (!username) {
@@ -255,35 +453,124 @@
             return;
         }
 
-        currentUser = username;
-        const wsUrl = `ws://localhost:8080/ws?AccountUUID=${encodeURIComponent(username)}`;
+        // Сначала логинимся
+        login(username)
+            .then(() => {
+                // Подключаем WebSocket с токеном
+                const wsUrl = `ws://localhost:8080/ws?token=${accessToken}`;
+                console.log('Connecting to:', wsUrl);
 
-        ws = new WebSocket(wsUrl);
+                ws = new WebSocket(wsUrl);
 
-        ws.onopen = () => {
-            updateStatus(true);
-            document.getElementById('input-area').style.display = 'flex';
-            loadChats();
-            startHeartbeat();
-        };
+                ws.onopen = () => {
+                    updateStatus(true);
+                    document.getElementById('input-area').style.display = 'flex';
+                    loadChats();
+                    startHeartbeat();
+                    console.log('Connected as:', username);
+                };
 
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            handleMessage(data);
-        };
+                ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    console.log('📨 Received from server:', data);
 
-        ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
-            updateStatus(false);
-        };
+                    // Проверяем тип сообщения
+                    if (data.type === 'message.new') {
+                        const message = data.payload;
+                        console.log('📨 New message received:', message);
 
-        ws.onclose = () => {
-            updateStatus(false);
-            document.getElementById('input-area').style.display = 'none';
-            if (heartbeatInterval) {
-                clearInterval(heartbeatInterval);
+                        // Добавляем сообщение в чат (если это текущий чат)
+                        if (currentChat && message.chat_uuid === currentChat) {
+                            addMessageToChat(message);
+                            // Отмечаем как прочитанное
+                            send('message.read', { chat_uuid: currentChat });
+                        } else {
+                            // Если чат не текущий - обновляем список чатов
+                            loadChats();
+                        }
+
+                        // Обновляем последнее сообщение в списке чатов
+                        updateChatLastMessage(message.chat_uuid, message);
+
+                        // Уведомление
+                        if (!isSelfMessage(message)) {
+                            showNotification('New message from ' + (message.sender_username || message.sender_uuid));
+                        }
+                    } else {
+                        handleMessage(data);
+                    }
+                };
+
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    updateStatus(false);
+                };
+
+                ws.onclose = () => {
+                    updateStatus(false);
+                    document.getElementById('input-area').style.display = 'none';
+                    if (heartbeatInterval) {
+                        clearInterval(heartbeatInterval);
+                    }
+                    console.log('Disconnected');
+                };
+            })
+            .catch(error => {
+                alert('Failed to login: ' + error.message);
+            });
+    }
+
+    // Обновление токена
+    async function refreshAccessToken() {
+        try {
+            const response = await fetch(`${API_URL}/auth/refresh`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ refresh_token: refreshToken })
+            });
+
+            if (!response.ok) {
+                throw new Error('Refresh failed');
             }
-        };
+
+            const data = await response.json();
+            accessToken = data.access_token;
+            localStorage.setItem('access_token', accessToken);
+            console.log('Token refreshed');
+        } catch (error) {
+            console.error('Refresh error:', error);
+            // Токен истек - нужно перелогиниться
+            alert('Session expired. Please login again.');
+            disconnect();
+        }
+    }
+
+    // Отправка сообщения с токеном
+    function send(type, payload, callback) {
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+            console.error('Not connected');
+            if (callback) {
+                callback(null);
+            }
+            return;
+        }
+
+        const requestId = getRequestId();
+        if (callback) {
+            pendingRequests.set(requestId, callback);
+        }
+
+        ws.send(JSON.stringify({
+            type: type,
+            request_id: requestId,
+            payload: payload
+        }));
+    }
+
+    function getRequestId() {
+        return `req_${++requestIdCounter}_${Date.now()}`;
     }
 
     function disconnect() {
@@ -306,42 +593,6 @@
         }, 30000);
     }
 
-    function send(type, payload, callback) {
-        if (!ws || ws.readyState !== WebSocket.OPEN) {
-            console.error('Not connected');
-            return;
-        }
-
-        const requestId = getRequestId();
-        if (callback) {
-            pendingRequests.set(requestId, callback);
-        }
-
-        ws.send(JSON.stringify({
-            type: type,
-            request_id: requestId,
-            payload: payload
-        }));
-    }
-
-    function handleMessage(data) {
-        if (data.type === 'response' && data.request_id) {
-            const callback = pendingRequests.get(data.request_id);
-            if (callback) {
-                callback(data.payload);
-                pendingRequests.delete(data.request_id);
-            }
-        } else if (data.type === 'error') {
-            console.error('Server error:', data.payload.error);
-            alert('Error: ' + data.payload.error);
-        } else if (data.type === 'message.new') {
-            const message = data.payload;
-            if (currentChat && message.chat_uuid === currentChat) {
-                addMessageToChat(message);
-            }
-            updateChatLastMessage(message.chat_uuid, message);
-        }
-    }
 
     function loadChats() {
         send('chat.list', {}, (chatsList) => {
@@ -356,15 +607,39 @@
             return;
         }
 
-        send('chat.create.personal', { receiver_uuid: targetUser }, (response) => {
+        // Отправляем username как receiver_name
+        send('chat.create.personal', {
+            receiver_name: targetUser
+        }, (response) => {
+            console.log('Chat created:', response);
             loadChats();
             selectChat(response.chat_uuid);
         });
     }
 
+    // Рендеринг списка чатов с проверкой
     function renderChats(chatsList) {
         const container = document.getElementById('chats');
-        container.innerHTML = '<div class="chat" onclick="createPersonalChat()" style="background:#006C4F;">➕ New Chat</div>';
+        if (!container) {
+            console.error('Chats container not found');
+            return;
+        }
+
+        container.innerHTML = '';
+
+        // Кнопка создания чата
+        const newChatBtn = document.createElement('div');
+        newChatBtn.className = 'chat';
+        newChatBtn.style.background = '#006C4F';
+        newChatBtn.textContent = '➕ New Chat';
+        newChatBtn.onclick = createPersonalChat;
+        container.appendChild(newChatBtn);
+
+        // Проверка на null/undefined
+        if (!chatsList || !Array.isArray(chatsList)) {
+            console.log('No chats to display');
+            return;
+        }
 
         chatsList.forEach(chat => {
             const chatDiv = document.createElement('div');
@@ -375,13 +650,14 @@
 
             let chatName = chat.name || 'Chat';
             if (chat.type === 'personal') {
-                chatName = chat.participants?.find(p => p.username !== currentUser)?.username || 'Unknown';
+                const otherUser = chat.participants?.find(p => p.username !== currentUser);
+                chatName = otherUser ? otherUser.username : 'Unknown';
             }
 
             chatDiv.innerHTML = `
-                <div class="chat-name">${escapeHtml(chatName)}</div>
-                <div class="chat-last-message">${chat.last_message ? escapeHtml(chat.last_message.body) : 'No messages'}</div>
-            `;
+            <div class="chat-name">${escapeHtml(chatName)}</div>
+            <div class="chat-last-message">${chat.last_message ? escapeHtml(chat.last_message.body) : 'No messages'}</div>
+        `;
 
             chatDiv.onclick = () => selectChat(chat.uuid);
             container.appendChild(chatDiv);
@@ -423,29 +699,31 @@
 
         if (!body || !currentChat) return;
 
+        // Отправляем сообщение
         send('message.send', {
             chat_uuid: currentChat,
             body: body
         }, (response) => {
+            // После успешной отправки очищаем поле
             input.value = '';
+
+            // Создаем локальное сообщение для немедленного отображения
+            const tempMessage = {
+                message_uuid: response.message_uuid || 'temp_' + Date.now(),
+                chat_uuid: currentChat,
+                sender_uuid: currentUser,
+                sender_username: currentUser,
+                body: body,
+                created_at: new Date().toISOString()
+            };
+
+            // Добавляем сообщение сразу
+            addMessageToChat(tempMessage);
+
+            // Прокручиваем вниз
+            const messagesContainer = document.getElementById('messages');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         });
-    }
-
-    function addMessageToChat(message) {
-        const messagesContainer = document.getElementById('messages');
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${message.sender_uuid === currentUser ? 'self' : 'other'}`;
-
-        const time = new Date(message.created_at).toLocaleTimeString();
-
-        messageDiv.innerHTML = `
-            ${message.sender_uuid !== currentUser ? `<div class="sender">${escapeHtml(message.sender_uuid)}</div>` : ''}
-            <div class="text">${escapeHtml(message.body)}</div>
-            <div class="time">${time}</div>
-        `;
-
-        messagesContainer.appendChild(messageDiv);
-        messageDiv.scrollIntoView({ behavior: 'smooth' });
     }
 
     function updateChatLastMessage(chatUUID, message) {
@@ -478,6 +756,179 @@
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    async function fetchWithAuth(url, options = {}) {
+        if (!accessToken) {
+            throw new Error('No access token');
+        }
+
+        const response = await fetch(url, {
+            ...options,
+            headers: {
+                ...options.headers,
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+
+        if (response.status === 401) {
+            // Токен истек - обновляем
+            await refreshAccessToken();
+            // Повторяем запрос с новым токеном
+            return fetch(url, {
+                ...options,
+                headers: {
+                    ...options.headers,
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+        }
+
+        return response;
+    }
+    function addMessageToChat(message) {
+        const messagesContainer = document.getElementById('messages');
+        const messageDiv = document.createElement('div');
+
+        // Определяем свои/чужие
+        const isSelf = isSelfMessage(message);
+        const senderName = message.sender_username || message.sender_uuid || 'Unknown';
+
+        // Форматируем время
+        let timeStr = '';
+        if (message.created_at && message.created_at !== '0001-01-01T00:00:00Z') {
+            const time = new Date(message.created_at);
+            if (!isNaN(time.getTime())) {
+                timeStr = time.toLocaleTimeString();
+            }
+        }
+        if (!timeStr) {
+            timeStr = new Date().toLocaleTimeString();
+        }
+
+        // Проверяем, нужно ли показывать имя отправителя
+        const lastChild = messagesContainer.lastChild;
+        const showSender = !isSelf && (!lastChild || lastChild.dataset.sender !== senderName);
+
+        messageDiv.className = `message ${isSelf ? 'self' : 'other'}`;
+        messageDiv.dataset.sender = senderName;
+        messageDiv.dataset.messageId = message.message_uuid || message.uuid;
+
+        let html = '';
+
+        // Имя отправителя (только для чужих и если нужно показать)
+        if (showSender && !isSelf) {
+            html += `<div class="sender">${escapeHtml(senderName)}</div>`;
+        }
+
+        // Аватар (только для чужих)
+        if (!isSelf) {
+            const avatarColor = getAvatarColor(senderName);
+            html += `<div class="avatar ${avatarColor}">${senderName.charAt(0).toUpperCase()}</div>`;
+        }
+
+        // Содержимое
+        html += `<div class="message-content">`;
+        html += `<div class="text">${escapeHtml(message.body)}</div>`;
+        html += `<div class="time">${timeStr}</div>`;
+        html += `</div>`;
+
+        messageDiv.innerHTML = html;
+        messagesContainer.appendChild(messageDiv);
+
+        // Прокручиваем вниз
+        messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+        // Запоминаем последнего отправителя
+        lastMessageSender = senderName;
+    }
+
+
+    // Функция для выбора цвета аватара
+    function getAvatarColor(username) {
+        const colors = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5'];
+        let hash = 0;
+        for (let i = 0; i < username.length; i++) {
+            hash = username.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return colors[Math.abs(hash) % colors.length];
+    }
+
+    // Уведомления о новых сообщениях
+    function showNotification(message) {
+        // Если страница активна - не показываем уведомление
+        if (document.hasFocus()) return;
+
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('📩 New message', {
+                body: message,
+                icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">💬</text></svg>'
+            });
+        }
+    }
+
+    // Запрашиваем разрешение на уведомления при загрузке
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+    // Обработка входящих сообщений
+    function handleMessage(data) {
+        console.log('📨 Received:', data);
+
+        if (data.type === 'response' && data.request_id) {
+            const callback = pendingRequests.get(data.request_id);
+            if (callback) {
+                callback(data.payload);
+                pendingRequests.delete(data.request_id);
+            }
+        } else if (data.type === 'error') {
+            console.error('Server error:', data.payload.error);
+            // Показываем только важные ошибки
+            if (data.payload.error.includes('User not found')) {
+                alert('Error: ' + data.payload.error);
+            }
+        } else if (data.type === 'message.new') {
+            const message = data.payload;
+            console.log('📨 New message:', message);
+
+            // Добавляем в чат, если это текущий чат
+            if (currentChat && message.chat_uuid === currentChat) {
+                addMessageToChat(message);
+                // Отправляем подтверждение о прочтении
+                send('message.read', { chat_uuid: currentChat });
+            }
+
+            // Обновляем последнее сообщение в списке чатов
+            updateChatLastMessage(message.chat_uuid, message);
+
+            // Показываем уведомление (если не от себя)
+            if (!isSelfMessage(message)) {
+                showNotification(message.sender_username + ': ' + message.body);
+            }
+        }
+    }
+
+    function isSelfMessage(message) {
+        // Проверяем по username
+        if (message.sender_username) {
+            return message.sender_username === currentUser;
+        }
+        // Если нет username - проверяем по UUID
+        if (message.sender_uuid) {
+            return message.sender_uuid === currentUser;
+        }
+        return false;
+    }
+
+    // Функция отключения
+    function disconnect() {
+        if (ws) {
+            ws.close();
+            ws = null;
+        }
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        updateStatus(false);
     }
 </script>
 </body>
