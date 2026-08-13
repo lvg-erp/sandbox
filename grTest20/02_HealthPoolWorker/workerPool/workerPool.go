@@ -469,3 +469,17 @@ func generateID() int64 {
 	counter := atomic.AddUint64(&workerCounter, 1)
 	return (timestamp << 23) | int64(counter&((1<<23)-1))
 }
+
+// Tasks - возвращает канал задач (только для чтения)
+func (wp *WorkerPool) Tasks() <-chan Task {
+	return wp.task
+}
+
+// QueueCapacity - возвращает емкость очереди
+func (wp *WorkerPool) QueueCapacity() int {
+	return cap(wp.task)
+}
+
+func (wp *WorkerPool) IsShuttingDown() bool {
+	return wp.isShuttingDown.Load()
+}

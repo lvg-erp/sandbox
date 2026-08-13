@@ -14,6 +14,7 @@ import (
 	"workerpool/metrics"
 	"workerpool/pkg"
 	"workerpool/task"
+	"workerpool/web" // ← ДОБАВИТЬ ИМПОРТ
 	"workerpool/workerPool"
 )
 
@@ -31,6 +32,7 @@ func main() {
 		TaskInterval    = 100 * time.Millisecond
 		MaxTasks        = 0 // 0 - бесконечно
 		MetricsInterval = 5 * time.Second
+		WebPort         = "8080" // ← ДОБАВИТЬ ПОРТ
 	)
 
 	// ===== ИНИЦИАЛИЗАЦИЯ =====
@@ -54,6 +56,27 @@ func main() {
 	// Командный интерфейс
 	cmdHandler := commandHandler.NewCommandHandler(pool, metrics)
 	cmdHandler.Start()
+
+	// ===== ЗАПУСК ВЕБ-СЕРВЕРА =====
+	// Создаем конфигурацию веб-сервера
+	webConfig := web.Config{
+		Port: WebPort,
+	}
+
+	// Создаем веб-сервер
+	webServer := web.NewServer(pool, metrics, webConfig)
+
+	// Запускаем веб-сервер в отдельной горутине
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := webServer.Start(); err != nil {
+			log.Printf("❌ Web server error: %v", err)
+		}
+	}()
+
+	log.Printf("🌐 Web interface: http://localhost:%s", WebPort)
+	log.Printf("📊 API: http://localhost:%s/api/status", WebPort)
 
 	// Producer
 	wg.Add(1)
@@ -80,6 +103,12 @@ func main() {
 
 	// ===== GRACEFUL SHUTDOWN =====
 	log.Println("\n🛑 Starting graceful shutdown...")
+
+	// Останавливаем веб-сервер
+	log.Println("🛑 Stopping web server...")
+	if err := webServer.Stop(); err != nil {
+		log.Printf("Error stopping web server: %v", err)
+	}
 
 	// Останавливаем командный интерфейс
 	cmdHandler.Stop()
@@ -123,7 +152,7 @@ func main() {
 	log.Println("\n👋 Application exited successfully")
 }
 
-// ===== PRODUCER =====
+// ===== PRODUCER (без изменений) =====
 
 func producer(
 	ctx context.Context,
@@ -142,7 +171,6 @@ func producer(
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
-	// Иногда создаем всплески нагрузки
 	burstMode := false
 	burstCounter := 0
 
@@ -159,16 +187,13 @@ func producer(
 
 			taskID++
 
-			// Создаем всплеск нагрузки каждые 30 задач
 			if taskID%30 == 0 {
 				burstMode = true
 				burstCounter = 10
 				log.Printf("💥 BURST MODE: generating %d tasks quickly", burstCounter)
 			}
 
-			// В режиме всплеска отправляем задачи быстрее
 			if burstMode && burstCounter > 0 {
-				// Отправляем несколько задач подряд
 				for i := 0; i < 3 && burstCounter > 0; i++ {
 					tasks := createTask(taskID, &taskID)
 					if err := pool.AddTask(tasks); err == nil {
@@ -182,7 +207,6 @@ func producer(
 				continue
 			}
 
-			// Обычная задача
 			tasks := createTask(taskID, &taskID)
 
 			if err := pool.AddTask(tasks); err != nil {
@@ -200,8 +224,7 @@ func producer(
 }
 
 func createTask(id int, counter *int) workerPool.Task {
-	// Используем counter для дополнительной информации
-	*counter++ // увеличиваем счетчик
+	*counter++
 
 	taskType := id % 3
 	switch taskType {
@@ -224,7 +247,7 @@ func createTask(id int, counter *int) workerPool.Task {
 	}
 }
 
-// ===== METRICS COLLECTOR =====
+// ===== METRICS COLLECTOR (без изменений) =====
 
 func metricsCollector(
 	ctx context.Context,
@@ -251,7 +274,7 @@ func metricsCollector(
 	}
 }
 
-// ===== GOROUTINE MONITOR =====
+// ===== GOROUTINE MONITOR (без изменений) =====
 
 func goroutineMonitor(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()

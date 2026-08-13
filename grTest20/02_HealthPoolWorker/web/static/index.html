@@ -1,0 +1,261 @@
+<!-- internal/web/static/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worker Pool Monitor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0e17;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 1px solid #1a2332;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #00d4ff, #7b2ffc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header p { color: #8892b0; margin-top: 10px; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: #111927;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #1a2332;
+            transition: all 0.3s;
+        }
+        .card:hover { border-color: #2d3b52; transform: translateY(-2px); }
+        .card-title {
+            color: #8892b0;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .card-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .card-value.green { color: #4ade80; }
+        .card-value.blue { color: #60a5fa; }
+        .card-value.yellow { color: #fbbf24; }
+        .card-value.red { color: #f87171; }
+        .card-value.purple { color: #a78bfa; }
+
+        .controls {
+            background: #111927;
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #1a2332;
+            margin-bottom: 30px;
+        }
+        .controls h2 {
+            color: #e0e0e0;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        .controls-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .controls-row input {
+            flex: 1;
+            min-width: 150px;
+            padding: 10px 15px;
+            background: #0a0e17;
+            border: 1px solid #1a2332;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 1em;
+        }
+        .controls-row input:focus {
+            outline: none;
+            border-color: #60a5fa;
+        }
+        .btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #7b2ffc);
+            color: white;
+        }
+        .btn-primary:hover { transform: scale(1.02); opacity: 0.9; }
+        .btn-success { background: #22c55e; color: white; }
+        .btn-success:hover { background: #16a34a; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+
+        .log-container {
+            background: #0a0e17;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #1a2332;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .log-container h2 {
+            color: #e0e0e0;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        .log-entry {
+            padding: 4px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #8892b0;
+            border-bottom: 1px solid #0d1520;
+        }
+        .log-entry .time { color: #4a5568; }
+        .log-entry .info { color: #60a5fa; }
+        .log-entry .warn { color: #fbbf24; }
+        .log-entry .error { color: #f87171; }
+
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-dot.green { background: #4ade80; }
+        .status-dot.yellow { background: #fbbf24; }
+        .status-dot.red { background: #f87171; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>⚡ Worker Pool Monitor</h1>
+        <p>Real-time monitoring and control</p>
+    </div>
+
+    <div class="grid" id="stats">
+        <div class="card">
+            <div class="card-title">Active Workers</div>
+            <div class="card-value blue" id="workers">-</div>
+            <div style="font-size:0.85em;color:#8892b0;margin-top:5px;">
+                Target: <span id="target">-</span> | Min: <span id="min">-</span> | Max: <span id="max">-</span>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">Queue Size</div>
+            <div class="card-value yellow" id="queue">-</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Submitted</div>
+            <div class="card-value" id="submitted">-</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Completed</div>
+            <div class="card-value green" id="completed">-</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Failed</div>
+            <div class="card-value red" id="failed">-</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Panicked</div>
+            <div class="card-value purple" id="panicked">-</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <h2>🎮 Control Panel</h2>
+        <div class="controls-row">
+            <input type="number" id="workerCount" placeholder="Number of workers" value="5" min="1">
+            <button class="btn btn-primary" onclick="setWorkers()">Set Workers</button>
+            <button class="btn btn-success" onclick="setWorkers(10)">+ Add</button>
+            <button class="btn btn-danger" onclick="setWorkers(1)">- Remove</button>
+        </div>
+    </div>
+
+    <div class="log-container" id="logs">
+        <h2>📋 Live Logs</h2>
+        <div id="logEntries"></div>
+    </div>
+</div>
+
+<script>
+    function updateStats() {
+        fetch('/api/status')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('workers').textContent = data.workers.current;
+                document.getElementById('target').textContent = data.workers.target;
+                document.getElementById('min').textContent = data.workers.min;
+                document.getElementById('max').textContent = data.workers.max;
+                document.getElementById('queue').textContent = data.queue;
+                document.getElementById('submitted').textContent = data.metrics.submitted;
+                document.getElementById('completed').textContent = data.metrics.completed;
+                document.getElementById('failed').textContent = data.metrics.failed;
+                document.getElementById('panicked').textContent = data.metrics.panicked;
+            })
+            .catch(err => console.error('Error:', err));
+    }
+
+    function setWorkers(count) {
+        if (count === undefined) {
+            count = document.getElementById('workerCount').value;
+        }
+
+        fetch('/api/workers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ count: parseInt(count) })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    addLog('info', 'Workers set to ' + count);
+                    updateStats();
+                }
+            })
+            .catch(err => addLog('error', 'Failed: ' + err));
+    }
+
+    function addLog(level, message) {
+        const container = document.getElementById('logEntries');
+        const time = new Date().toLocaleTimeString();
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.innerHTML = `<span class="time">[${time}]</span> <span class="${level}">${message}</span>`;
+        container.prepend(entry);
+
+        while (container.children.length > 50) {
+            container.removeChild(container.lastChild);
+        }
+    }
+
+    updateStats();
+    setInterval(updateStats, 1000);
+    setTimeout(() => addLog('info', 'Worker pool monitor started'), 100);
+</script>
+</body>
+</html>

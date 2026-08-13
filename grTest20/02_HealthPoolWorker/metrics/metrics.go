@@ -18,12 +18,12 @@ type Metrics struct {
 	ActiveWorkers    atomic.Int64
 	queueSize        atomic.Int64
 	mu               sync.RWMutex
-	startTime        time.Time
+	StartTime        time.Time
 }
 
 func NewMetrics() *Metrics {
 	return &Metrics{
-		startTime: time.Now(),
+		StartTime: time.Now(),
 	}
 }
 
@@ -31,7 +31,7 @@ func (m *Metrics) String() string {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	uptime := time.Since(m.startTime)
+	uptime := time.Since(m.StartTime)
 
 	return fmt.Sprintf(pkg.BannerForMetrics(),
 		formatDuration(uptime),
