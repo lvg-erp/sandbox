@@ -104,6 +104,13 @@ func (r *ChatRepository) GetParticipants(ctx context.Context, chatUUID uuid.UUID
 	return users, nil
 }
 
+func (r *ChatRepository) IsParticipant(ctx context.Context, chatUUID, userUUID uuid.UUID) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM chat_participants WHERE chat_uuid = $1 AND user_uuid = $2)`
+	var exists bool
+	err := r.db.QueryRowContext(ctx, query, chatUUID, userUUID).Scan(&exists)
+	return exists, err
+}
+
 func (r *ChatRepository) GetPersonalChat(ctx context.Context, user1UUID, user2UUID uuid.UUID) (*entity.Chat, error) {
 	query := `
         SELECT c.uuid, c.name, c.type, c.created_at, c.updated_at

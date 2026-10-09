@@ -1,22 +1,37 @@
 package handler
 
 import (
-	"context"
-	"messanger/internal/auth"
-	"net/http"
-
 	"log"
+	"messanger/internal/auth"
 	"messanger/internal/domain/service"
 	ws "messanger/internal/websocket"
+	"net/http"
+	"net/url"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
+// sameOriginOrLocal разрешает соединения с того же хоста и localhost
+// (удобно для разработки), остальное отклоняет.
+func sameOriginOrLocal(r *http.Request) bool {
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		return true // не браузерный клиент
+	}
+	u, err := url.Parse(origin)
+	if err != nil {
+		return false
+	}
+	if u.Host == r.Host {
 		return true
-	},
+	}
+	h := u.Hostname()
+	return h == "localhost" || h == "127.0.0.1" || h == "::1"
+}
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin:     sameOriginOrLocal,
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
@@ -60,7 +75,7 @@ func (h *WebSocketHandler) HandleWebSocket(w http.ResponseWriter, r *http.Reques
 
 	log.Printf("🔥 WebSocket connection for user: %s (UUID: %s)", claims.Username, claims.UserUUID)
 
-	ctx := context.Background()
+	ctx := r.Context()
 	userUUID, err := uuid.Parse(claims.UserUUID)
 	if err != nil {
 		log.Printf("❌ Invalid user UUID: %v", err)
@@ -87,6 +102,7 @@ func (h *WebSocketHandler) HandleWebSocket(w http.ResponseWriter, r *http.Reques
 		Hub:      h.hub,
 		Conn:     conn,
 		Send:     make(chan []byte, 256),
+		Done:     make(chan struct{}),
 		Username: user.Username, // ПЕРЕДАЕМ USERNAME!
 		UserUUID: user.UUID,
 	}

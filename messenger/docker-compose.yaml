@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15-alpine
@@ -26,7 +24,7 @@ services:
     build: .
     container_name: messenger-server
     ports:
-      - "8080:8080"
+      - "8080:8085"
     depends_on:
       postgres:
         condition: service_healthy
@@ -37,7 +35,9 @@ services:
       DB_PASSWORD: messenger123
       DB_NAME: messenger
       DB_SSLMODE: disable
-      SERVER_PORT: 8080
+      SERVER_PORT: 8085
+      # Берётся из .env в корне проекта (docker compose подставляет автоматически)
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
     networks:
       - messenger-network
     volumes:

@@ -4,932 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messenger</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: #111;
-            color: #ddd;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        #top {
-            padding: 10px;
-            background: #222;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            border-bottom: 1px solid #333;
-        }
-
-        input, button {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        input {
-            flex: 1;
-            background: #333;
-            color: white;
-            border: 1px solid #444;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: #006C4F;
-        }
-
-        button {
-            background: #006C4F;
-            color: white;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        button:hover {
-            background: #00855F;
-        }
-
-        #main {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
-        }
-
-        #chats {
-            width: 300px;
-            background: #1a1a1a;
-            overflow-y: auto;
-            border-right: 1px solid #333;
-        }
-
-        .chat {
-            padding: 15px;
-            cursor: pointer;
-            border-bottom: 1px solid #333;
-            transition: background 0.2s;
-        }
-
-        .chat:hover {
-            background: #252525;
-        }
-
-        .chat.active {
-            background: #006C4F;
-        }
-
-        .chat-name {
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .chat-last-message {
-            font-size: 12px;
-            color: #888;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        #chat-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: #0f0f0f;
-        }
-
-        #chat-header {
-            padding: 15px;
-            background: #222;
-            border-bottom: 1px solid #333;
-            font-weight: 600;
-        }
-
-        #messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            background: #0f0f0f;
-        }
-
-        .message {
-            max-width: 70%;
-            padding: 8px 12px;
-            border-radius: 12px;
-            word-wrap: break-word;
-            position: relative;
-            margin-bottom: 2px;
-        }
-
-        /* Свои сообщения (справа) */
-        .message.self {
-            align-self: flex-end;
-            background: #006C4F;
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-
-        /* Чужие сообщения (слева) */
-        .message.other {
-            align-self: flex-start;
-            background: #2d2d2d;
-            color: #ddd;
-            border-bottom-left-radius: 4px;
-        }
-
-        /* Имя отправителя */
-        .message .sender {
-            font-size: 11px;
-            font-weight: 600;
-            margin-bottom: 2px;
-            color: #4CAF50;
-        }
-
-        .message.self .sender {
-            color: #81C784;
-            text-align: right;
-        }
-
-        /* Текст сообщения */
-        .message .text {
-            font-size: 14px;
-            line-height: 1.4;
-            word-break: break-word;
-        }
-
-        /* Время */
-        .message .time {
-            font-size: 10px;
-            margin-top: 3px;
-            opacity: 0.6;
-            text-align: right;
-        }
-
-        .message.self .time {
-            color: #a0d8b0;
-        }
-
-        .message.other .time {
-            color: #888;
-        }
-
-        /* Группировка сообщений от одного пользователя */
-        .message:not(:last-child) {
-            margin-bottom: 2px;
-        }
-
-        /* Отступ между разными пользователями */
-        .message.other:not(:first-child) {
-            margin-top: 8px;
-        }
-
-        .message.self:not(:first-child) {
-            margin-top: 8px;
-        }
-
-        /* Добавьте в CSS */
-        .message .avatar {
-            display: inline-block;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #3d3d3d;
-            margin-right: 8px;
-            text-align: center;
-            line-height: 32px;
-            font-size: 14px;
-            font-weight: bold;
-            color: white;
-            flex-shrink: 0;
-        }
-
-        .message .message-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .message {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            max-width: 70%;
-            padding: 8px 12px;
-            border-radius: 12px;
-            word-wrap: break-word;
-            margin-bottom: 2px;
-        }
-
-        /* Цвета аватаров */
-        .message .avatar.color-1 { background: #e74c3c; }
-        .message .avatar.color-2 { background: #3498db; }
-        .message .avatar.color-3 { background: #2ecc71; }
-        .message .avatar.color-4 { background: #f39c12; }
-        .message .avatar.color-5 { background: #9b59b6; }
-        .message .avatar.color-6 { background: #1abc9c; }
-        .message .avatar.color-7 { background: #e67e22; }
-        .message .avatar.color-8 { background: #2c3e50; }
-
-        /* Свои сообщения (справа) */
-        .message.self {
-            align-self: flex-end;
-            background: #006C4F;
-            color: white;
-            border-bottom-right-radius: 4px;
-            flex-direction: row-reverse;
-        }
-
-        .message.self .avatar {
-            margin-right: 0;
-            margin-left: 8px;
-        }
-
-        .message.self .sender {
-            text-align: right;
-            color: #81C784;
-        }
-
-        /* Чужие сообщения (слева) */
-        .message.other {
-            align-self: flex-start;
-            background: #2d2d2d;
-            color: #ddd;
-            border-bottom-left-radius: 4px;
-        }
-
-        .message .sender {
-            font-size: 11px;
-            font-weight: 600;
-            margin-bottom: 2px;
-            color: #4CAF50;
-            width: 100%;
-        }
-
-        .message .text {
-            font-size: 14px;
-            line-height: 1.4;
-            word-break: break-word;
-        }
-
-        .message .time {
-            font-size: 10px;
-            margin-top: 3px;
-            opacity: 0.6;
-            text-align: right;
-        }
-
-        .message.self .time {
-            color: #a0d8b0;
-        }
-
-        .message.other .time {
-            color: #888;
-        }
-
-        /* Группировка сообщений */
-        .message:not(:last-child) {
-            margin-bottom: 2px;
-        }
-
-        .message.other:not(:first-child) {
-            margin-top: 4px;
-        }
-
-        .message.self:not(:first-child) {
-            margin-top: 4px;
-        }
-
-        /* Отступ между разными пользователями */
-        .message.other + .message.self {
-            margin-top: 8px;
-        }
-
-        .message.self + .message.other {
-            margin-top: 8px;
-        }
-        #input-area {
-            padding: 15px;
-            background: #222;
-            display: flex;
-            gap: 8px;
-            border-top: 1px solid #333;
-        }
-
-        textarea {
-            flex: 1;
-            background: #333;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 10px;
-            resize: none;
-            height: 44px;
-            font-family: inherit;
-            font-size: 14px;
-        }
-
-        textarea:focus {
-            outline: none;
-            background: #3a3a3a;
-        }
-
-        .status {
-            padding: 5px 10px;
-            font-size: 12px;
-            background: #222;
-            text-align: center;
-        }
-
-        .status.connected {
-            background: #006C4F;
-        }
-
-        .status.disconnected {
-            background: #8B0000;
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #1a1a1a;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #444;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="container">
+        <!-- Auth pages -->
+        <div id="auth-page" class="auth-page">
+            <!-- Login form -->
+            <div id="login-form" class="auth-card">
+                <h1 class="auth-title">Вход в Messenger</h1>
+                <p class="auth-subtitle">Добро пожаловать обратно!</p>
+                <form class="auth-form" onsubmit="handleLogin(event)">
+                    <div>
+                        <label for="login-username">Имя пользователя</label>
+                        <input type="text" id="login-username" name="username" required placeholder="Введите имя пользователя">
+                        <div class="error-message" id="login-username-error"></div>
+                    </div>
+                    <div>
+                        <label for="login-password">Пароль</label>
+                        <input type="password" id="login-password" name="password" required placeholder="Введите пароль">
+                        <div class="error-message" id="login-password-error"></div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="login-btn">
+                        <span class="btn-text">Войти</span>
+                    </button>
+                </form>
+                <p class="auth-form-footer">
+                    Нет аккаунта? <a href="#" onclick="showRegister()">Зарегистрироваться</a>
+                </p>
+            </div>
 
-<div id="top">
-    <input type="text" id="username" placeholder="Username" value="user1">
-    <input type="text" id="target-user" placeholder="Chat with (username)" value="user2">
-    <button onclick="connect()">Connect</button>
-    <button onclick="disconnect()">Disconnect</button>
-</div>
+            <!-- Register form -->
+            <div id="register-form" class="auth-card hidden">
+                <h1 class="auth-title">Регистрация</h1>
+                <p class="auth-subtitle">Создайте новый аккаунт</p>
+                <form class="auth-form" onsubmit="handleRegister(event)">
+                    <div>
+                        <label for="register-username">Имя пользователя</label>
+                        <input type="text" id="register-username" name="username" required placeholder="Придумайте имя пользователя">
+                        <div class="error-message" id="register-username-error"></div>
+                    </div>
+                    <div>
+                        <label for="register-password">Пароль</label>
+                        <input type="password" id="register-password" name="password" required placeholder="Минимум 8 символов">
+                        <div class="error-message" id="register-password-error"></div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="register-btn">
+                        <span class="btn-text">Зарегистрироваться</span>
+                    </button>
+                </form>
+                <p class="auth-form-footer">
+                    Уже есть аккаунт? <a href="#" onclick="showLogin()">Войти</a>
+                </p>
+            </div>
+        </div>
 
-<div id="main">
-    <div id="chats"></div>
+        <!-- Main chat interface -->
+        <div id="main-page" class="main-page hidden">
+            <header class="header">
+                <h1>Messenger</h1>
+                <div class="header-actions">
+                    <div class="status-badge" id="status-badge">
+                        <div class="status-dot" id="status-dot"></div>
+                        <span id="status-text">Отключено</span>
+                    </div>
+                    <button class="btn btn-secondary" onclick="openCreateChatModal()">+ Новый чат</button>
+                    <button class="btn btn-danger" onclick="handleLogout()">Выйти</button>
+                </div>
+            </header>
 
-    <div id="chat-area">
-        <div id="chat-header">Select a chat</div>
-        <div id="messages"></div>
-        <div id="input-area" style="display: none;">
-            <textarea id="message-input" placeholder="Type a message..." onkeypress="handleKeyPress(event)"></textarea>
-            <button onclick="sendMessage()">Send</button>
+            <div class="main-content">
+                <div class="chat-list" id="chat-list">
+                    <!-- Chat items will be rendered here -->
+                </div>
+
+                <div class="chat-area" id="chat-area">
+                    <div class="empty-state" id="empty-state">
+                        <div class="empty-state-icon">💬</div>
+                        <div class="empty-state-title">Выберите чат</div>
+                        <div class="empty-state-text">Нажмите "+ Новый чат" для начала общения</div>
+                    </div>
+
+                    <div class="chat-container hidden" id="chat-container">
+                        <div class="chat-header" id="chat-header">Выберите чат</div>
+                        <div class="messages" id="messages"></div>
+                        <div class="input-area">
+                            <textarea id="message-input" placeholder="Напишите сообщение..." onkeypress="handleKeyPress(event)"></textarea>
+                            <button class="btn btn-primary" onclick="sendMessage()">Отправить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
 
-<div id="status" class="status disconnected">Disconnected</div>
-
-<script>
-    // Конфигурация
-    const API_URL = 'http://localhost:8080/api';
-    let ws = null;
-    let currentUser = null;
-    let currentChat = null;
-    let chats = new Map();
-    let pendingRequests = new Map();
-    let requestIdCounter = 0;
-    let accessToken = localStorage.getItem('access_token');
-    let refreshToken = localStorage.getItem('refresh_token');
-    let lastMessageSender = null;
-
-    async function login(username) {
-        try {
-            const response = await fetch(`${API_URL}/auth/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username: username })
-            });
-
-            if (!response.ok) {
-                throw new Error('Login failed');
-            }
-
-            const data = await response.json();
-            accessToken = data.access_token;
-            refreshToken = data.refresh_token;
-
-            localStorage.setItem('access_token', accessToken);
-            localStorage.setItem('refresh_token', refreshToken);
-
-            currentUser = username; // ВАЖНО: устанавливаем currentUser
-            console.log('✅ Current user set to:', currentUser);
-
-            return data;
-        } catch (error) {
-            console.error('Login error:', error);
-            throw error;
-        }
-    }
-
-    // Подключение WebSocket
-    function connect() {
-        const username = document.getElementById('username').value.trim();
-        if (!username) {
-            alert('Enter username');
-            return;
-        }
-
-        // Сначала логинимся
-        login(username)
-            .then(() => {
-                // Подключаем WebSocket с токеном
-                const wsUrl = `ws://localhost:8080/ws?token=${accessToken}`;
-                console.log('Connecting to:', wsUrl);
-
-                ws = new WebSocket(wsUrl);
-
-                ws.onopen = () => {
-                    updateStatus(true);
-                    document.getElementById('input-area').style.display = 'flex';
-                    loadChats();
-                    startHeartbeat();
-                    console.log('Connected as:', username);
-                };
-
-                ws.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
-                    console.log('📨 Received from server:', data);
-
-                    // Проверяем тип сообщения
-                    if (data.type === 'message.new') {
-                        const message = data.payload;
-                        console.log('📨 New message received:', message);
-
-                        // Добавляем сообщение в чат (если это текущий чат)
-                        if (currentChat && message.chat_uuid === currentChat) {
-                            addMessageToChat(message);
-                            // Отмечаем как прочитанное
-                            send('message.read', { chat_uuid: currentChat });
-                        } else {
-                            // Если чат не текущий - обновляем список чатов
-                            loadChats();
-                        }
-
-                        // Обновляем последнее сообщение в списке чатов
-                        updateChatLastMessage(message.chat_uuid, message);
-
-                        // Уведомление
-                        if (!isSelfMessage(message)) {
-                            showNotification('New message from ' + (message.sender_username || message.sender_uuid));
-                        }
-                    } else {
-                        handleMessage(data);
-                    }
-                };
-
-                ws.onerror = (error) => {
-                    console.error('WebSocket error:', error);
-                    updateStatus(false);
-                };
-
-                ws.onclose = () => {
-                    updateStatus(false);
-                    document.getElementById('input-area').style.display = 'none';
-                    if (heartbeatInterval) {
-                        clearInterval(heartbeatInterval);
-                    }
-                    console.log('Disconnected');
-                };
-            })
-            .catch(error => {
-                alert('Failed to login: ' + error.message);
-            });
-    }
-
-    // Обновление токена
-    async function refreshAccessToken() {
-        try {
-            const response = await fetch(`${API_URL}/auth/refresh`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ refresh_token: refreshToken })
-            });
-
-            if (!response.ok) {
-                throw new Error('Refresh failed');
-            }
-
-            const data = await response.json();
-            accessToken = data.access_token;
-            localStorage.setItem('access_token', accessToken);
-            console.log('Token refreshed');
-        } catch (error) {
-            console.error('Refresh error:', error);
-            // Токен истек - нужно перелогиниться
-            alert('Session expired. Please login again.');
-            disconnect();
-        }
-    }
-
-    // Отправка сообщения с токеном
-    function send(type, payload, callback) {
-        if (!ws || ws.readyState !== WebSocket.OPEN) {
-            console.error('Not connected');
-            if (callback) {
-                callback(null);
-            }
-            return;
-        }
-
-        const requestId = getRequestId();
-        if (callback) {
-            pendingRequests.set(requestId, callback);
-        }
-
-        ws.send(JSON.stringify({
-            type: type,
-            request_id: requestId,
-            payload: payload
-        }));
-    }
-
-    function getRequestId() {
-        return `req_${++requestIdCounter}_${Date.now()}`;
-    }
-
-    function disconnect() {
-        if (ws) {
-            ws.close();
-            ws = null;
-        }
-    }
-
-    let heartbeatInterval = null;
-
-    function startHeartbeat() {
-        if (heartbeatInterval) {
-            clearInterval(heartbeatInterval);
-        }
-        heartbeatInterval = setInterval(() => {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                send('user.update_last_seen', {});
-            }
-        }, 30000);
-    }
-
-
-    function loadChats() {
-        send('chat.list', {}, (chatsList) => {
-            renderChats(chatsList);
-        });
-    }
-
-    function createPersonalChat() {
-        const targetUser = document.getElementById('target-user').value.trim();
-        if (!targetUser) {
-            alert('Enter target username');
-            return;
-        }
-
-        // Отправляем username как receiver_name
-        send('chat.create.personal', {
-            receiver_name: targetUser
-        }, (response) => {
-            console.log('Chat created:', response);
-            loadChats();
-            selectChat(response.chat_uuid);
-        });
-    }
-
-    // Рендеринг списка чатов с проверкой
-    function renderChats(chatsList) {
-        const container = document.getElementById('chats');
-        if (!container) {
-            console.error('Chats container not found');
-            return;
-        }
-
-        container.innerHTML = '';
-
-        // Кнопка создания чата
-        const newChatBtn = document.createElement('div');
-        newChatBtn.className = 'chat';
-        newChatBtn.style.background = '#006C4F';
-        newChatBtn.textContent = '➕ New Chat';
-        newChatBtn.onclick = createPersonalChat;
-        container.appendChild(newChatBtn);
-
-        // Проверка на null/undefined
-        if (!chatsList || !Array.isArray(chatsList)) {
-            console.log('No chats to display');
-            return;
-        }
-
-        chatsList.forEach(chat => {
-            const chatDiv = document.createElement('div');
-            chatDiv.className = 'chat';
-            if (currentChat === chat.uuid) {
-                chatDiv.classList.add('active');
-            }
-
-            let chatName = chat.name || 'Chat';
-            if (chat.type === 'personal') {
-                const otherUser = chat.participants?.find(p => p.username !== currentUser);
-                chatName = otherUser ? otherUser.username : 'Unknown';
-            }
-
-            chatDiv.innerHTML = `
-            <div class="chat-name">${escapeHtml(chatName)}</div>
-            <div class="chat-last-message">${chat.last_message ? escapeHtml(chat.last_message.body) : 'No messages'}</div>
-        `;
-
-            chatDiv.onclick = () => selectChat(chat.uuid);
-            container.appendChild(chatDiv);
-            chats.set(chat.uuid, chat);
-        });
-    }
-
-    function selectChat(chatUUID) {
-        currentChat = chatUUID;
-        document.getElementById('messages').innerHTML = '';
-
-        send('chat.get', { chat_uuid: chatUUID }, (chatData) => {
-            const chat = chatData.chat;
-            let chatName = chat.name || 'Chat';
-            if (chat.type === 'personal') {
-                const otherUser = chatData.participants?.find(p => p.username !== currentUser);
-                chatName = otherUser ? otherUser.username : 'Unknown';
-            }
-            document.getElementById('chat-header').textContent = chatName;
-
-            // Load message history
-            send('message.history', { chat_uuid: chatUUID, limit: 50, offset: 0 }, (messages) => {
-                messages.reverse().forEach(msg => addMessageToChat(msg));
-            });
-        });
-
-        // Update UI
-        document.querySelectorAll('.chat').forEach(chat => {
-            chat.classList.remove('active');
-            if (chat.querySelector(`[data-chat-uuid="${chatUUID}"]`)) {
-                chat.classList.add('active');
-            }
-        });
-    }
-
-    function sendMessage() {
-        const input = document.getElementById('message-input');
-        const body = input.value.trim();
-
-        if (!body || !currentChat) return;
-
-        // Отправляем сообщение
-        send('message.send', {
-            chat_uuid: currentChat,
-            body: body
-        }, (response) => {
-            // После успешной отправки очищаем поле
-            input.value = '';
-
-            // Создаем локальное сообщение для немедленного отображения
-            const tempMessage = {
-                message_uuid: response.message_uuid || 'temp_' + Date.now(),
-                chat_uuid: currentChat,
-                sender_uuid: currentUser,
-                sender_username: currentUser,
-                body: body,
-                created_at: new Date().toISOString()
-            };
-
-            // Добавляем сообщение сразу
-            addMessageToChat(tempMessage);
-
-            // Прокручиваем вниз
-            const messagesContainer = document.getElementById('messages');
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        });
-    }
-
-    function updateChatLastMessage(chatUUID, message) {
-        const chat = chats.get(chatUUID);
-        if (chat) {
-            chat.last_message = message;
-            renderChats(Array.from(chats.values()));
-        }
-    }
-
-    function handleKeyPress(event) {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            sendMessage();
-        }
-    }
-
-    function updateStatus(connected) {
-        const statusDiv = document.getElementById('status');
-        if (connected) {
-            statusDiv.textContent = 'Connected';
-            statusDiv.className = 'status connected';
-        } else {
-            statusDiv.textContent = 'Disconnected';
-            statusDiv.className = 'status disconnected';
-        }
-    }
-
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    async function fetchWithAuth(url, options = {}) {
-        if (!accessToken) {
-            throw new Error('No access token');
-        }
-
-        const response = await fetch(url, {
-            ...options,
-            headers: {
-                ...options.headers,
-                'Authorization': `Bearer ${accessToken}`
-            }
-        });
-
-        if (response.status === 401) {
-            // Токен истек - обновляем
-            await refreshAccessToken();
-            // Повторяем запрос с новым токеном
-            return fetch(url, {
-                ...options,
-                headers: {
-                    ...options.headers,
-                    'Authorization': `Bearer ${accessToken}`
-                }
-            });
-        }
-
-        return response;
-    }
-    function addMessageToChat(message) {
-        const messagesContainer = document.getElementById('messages');
-        const messageDiv = document.createElement('div');
-
-        // Определяем свои/чужие
-        const isSelf = isSelfMessage(message);
-        const senderName = message.sender_username || message.sender_uuid || 'Unknown';
-
-        // Форматируем время
-        let timeStr = '';
-        if (message.created_at && message.created_at !== '0001-01-01T00:00:00Z') {
-            const time = new Date(message.created_at);
-            if (!isNaN(time.getTime())) {
-                timeStr = time.toLocaleTimeString();
-            }
-        }
-        if (!timeStr) {
-            timeStr = new Date().toLocaleTimeString();
-        }
-
-        // Проверяем, нужно ли показывать имя отправителя
-        const lastChild = messagesContainer.lastChild;
-        const showSender = !isSelf && (!lastChild || lastChild.dataset.sender !== senderName);
-
-        messageDiv.className = `message ${isSelf ? 'self' : 'other'}`;
-        messageDiv.dataset.sender = senderName;
-        messageDiv.dataset.messageId = message.message_uuid || message.uuid;
-
-        let html = '';
-
-        // Имя отправителя (только для чужих и если нужно показать)
-        if (showSender && !isSelf) {
-            html += `<div class="sender">${escapeHtml(senderName)}</div>`;
-        }
-
-        // Аватар (только для чужих)
-        if (!isSelf) {
-            const avatarColor = getAvatarColor(senderName);
-            html += `<div class="avatar ${avatarColor}">${senderName.charAt(0).toUpperCase()}</div>`;
-        }
-
-        // Содержимое
-        html += `<div class="message-content">`;
-        html += `<div class="text">${escapeHtml(message.body)}</div>`;
-        html += `<div class="time">${timeStr}</div>`;
-        html += `</div>`;
-
-        messageDiv.innerHTML = html;
-        messagesContainer.appendChild(messageDiv);
-
-        // Прокручиваем вниз
-        messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
-
-        // Запоминаем последнего отправителя
-        lastMessageSender = senderName;
-    }
-
-
-    // Функция для выбора цвета аватара
-    function getAvatarColor(username) {
-        const colors = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5'];
-        let hash = 0;
-        for (let i = 0; i < username.length; i++) {
-            hash = username.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        return colors[Math.abs(hash) % colors.length];
-    }
-
-    // Уведомления о новых сообщениях
-    function showNotification(message) {
-        // Если страница активна - не показываем уведомление
-        if (document.hasFocus()) return;
-
-        if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('📩 New message', {
-                body: message,
-                icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">💬</text></svg>'
-            });
-        }
-    }
-
-    // Запрашиваем разрешение на уведомления при загрузке
-    if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-    }
-    // Обработка входящих сообщений
-    function handleMessage(data) {
-        console.log('📨 Received:', data);
-
-        if (data.type === 'response' && data.request_id) {
-            const callback = pendingRequests.get(data.request_id);
-            if (callback) {
-                callback(data.payload);
-                pendingRequests.delete(data.request_id);
-            }
-        } else if (data.type === 'error') {
-            console.error('Server error:', data.payload.error);
-            // Показываем только важные ошибки
-            if (data.payload.error.includes('User not found')) {
-                alert('Error: ' + data.payload.error);
-            }
-        } else if (data.type === 'message.new') {
-            const message = data.payload;
-            console.log('📨 New message:', message);
-
-            // Добавляем в чат, если это текущий чат
-            if (currentChat && message.chat_uuid === currentChat) {
-                addMessageToChat(message);
-                // Отправляем подтверждение о прочтении
-                send('message.read', { chat_uuid: currentChat });
-            }
-
-            // Обновляем последнее сообщение в списке чатов
-            updateChatLastMessage(message.chat_uuid, message);
-
-            // Показываем уведомление (если не от себя)
-            if (!isSelfMessage(message)) {
-                showNotification(message.sender_username + ': ' + message.body);
-            }
-        }
-    }
-
-    function isSelfMessage(message) {
-        // Проверяем по username
-        if (message.sender_username) {
-            return message.sender_username === currentUser;
-        }
-        // Если нет username - проверяем по UUID
-        if (message.sender_uuid) {
-            return message.sender_uuid === currentUser;
-        }
-        return false;
-    }
-
-    // Функция отключения
-    function disconnect() {
-        if (ws) {
-            ws.close();
-            ws = null;
-        }
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        updateStatus(false);
-    }
-</script>
+    <!-- Toast notifications -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Create chat modal -->
+    <div class="modal-overlay" id="create-chat-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Новый чат</h2>
+                <button class="modal-close" onclick="closeCreateChatModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <label for="chat-participant-username">Имя пользователя для чата</label>
+                    <input type="text" id="chat-participant-username" placeholder="Введите имя пользователя">
+                    <div class="error-message" id="chat-participant-error"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCreateChatModal()">Отмена</button>
+                <button class="btn btn-primary" onclick="createChat()">Создать чат</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 </html>

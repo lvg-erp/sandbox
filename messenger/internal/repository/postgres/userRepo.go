@@ -18,18 +18,18 @@ func NewUserRepository(db *sql.DB) repository.UserRepository {
 
 func (r *UserRepository) Create(ctx context.Context, user *entity.User) error {
 	query := `
-        INSERT INTO users (uuid, username, created_at, updated_at, last_seen)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO users (uuid, username, password_hash, created_at, updated_at, last_seen)
+        VALUES ($1, $2, $3, $4, $5, $6)
     `
-	_, err := r.db.ExecContext(ctx, query, user.UUID, user.Username, user.CreatedAt, user.UpdatedAt, user.LastSeen)
+	_, err := r.db.ExecContext(ctx, query, user.UUID, user.Username, user.PasswordHash, user.CreatedAt, user.UpdatedAt, user.LastSeen)
 	return err
 }
 
 func (r *UserRepository) GetByUUID(ctx context.Context, uuid uuid.UUID) (*entity.User, error) {
-	query := `SELECT uuid, username, created_at, updated_at, last_seen FROM users WHERE uuid = $1`
+	query := `SELECT uuid, username, password_hash, created_at, updated_at, last_seen FROM users WHERE uuid = $1`
 	var user entity.User
 	err := r.db.QueryRowContext(ctx, query, uuid).Scan(
-		&user.UUID, &user.Username, &user.CreatedAt, &user.UpdatedAt, &user.LastSeen,
+		&user.UUID, &user.Username, &user.PasswordHash, &user.CreatedAt, &user.UpdatedAt, &user.LastSeen,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -38,10 +38,10 @@ func (r *UserRepository) GetByUUID(ctx context.Context, uuid uuid.UUID) (*entity
 }
 
 func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*entity.User, error) {
-	query := `SELECT uuid, username, created_at, updated_at, last_seen FROM users WHERE username = $1`
+	query := `SELECT uuid, username, password_hash, created_at, updated_at, last_seen FROM users WHERE username = $1`
 	var user entity.User
 	err := r.db.QueryRowContext(ctx, query, username).Scan(
-		&user.UUID, &user.Username, &user.CreatedAt, &user.UpdatedAt, &user.LastSeen,
+		&user.UUID, &user.Username, &user.PasswordHash, &user.CreatedAt, &user.UpdatedAt, &user.LastSeen,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -62,7 +62,7 @@ func (r *UserRepository) UpdateLastSeen(ctx context.Context, uuid uuid.UUID) err
 }
 
 func (r *UserRepository) GetAll(ctx context.Context) ([]*entity.User, error) {
-	query := `SELECT uuid, username, created_at, updated_at, last_seen FROM users ORDER BY username`
+	query := `SELECT uuid, username, password_hash, created_at, updated_at, last_seen FROM users ORDER BY username`
 	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func (r *UserRepository) GetAll(ctx context.Context) ([]*entity.User, error) {
 	var users []*entity.User
 	for rows.Next() {
 		var user entity.User
-		if err := rows.Scan(&user.UUID, &user.Username, &user.CreatedAt, &user.UpdatedAt, &user.LastSeen); err != nil {
+		if err := rows.Scan(&user.UUID, &user.Username, &user.PasswordHash, &user.CreatedAt, &user.UpdatedAt, &user.LastSeen); err != nil {
 			return nil, err
 		}
 		users = append(users, &user)

@@ -6,9 +6,10 @@ import (
 )
 
 type User struct {
-	UUID      uuid.UUID `json:"uuid"`
-	Username  string    `json:"username"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	LastSeen  time.Time `json:"last_seen"`
+	UUID         uuid.UUID `json:"uuid"`
+	Username     string    `json:"username"`
+	PasswordHash string    `json:"-"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	LastSeen     time.Time `json:"last_seen"`
 }

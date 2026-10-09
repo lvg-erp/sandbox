@@ -48,6 +48,10 @@ func (s *ChatService) GetUserChats(ctx context.Context, userUUID uuid.UUID) ([]*
 	return s.chatRepo.GetUserChats(ctx, userUUID)
 }
 
+func (s *ChatService) GetParticipants(ctx context.Context, chatUUID uuid.UUID) ([]*entity.User, error) {
+	return s.chatRepo.GetParticipants(ctx, chatUUID)
+}
+
 func (s *ChatService) GetChatWithLastMessage(ctx context.Context, chatUUID uuid.UUID, userUUID uuid.UUID) (map[string]interface{}, error) {
 	chat, err := s.chatRepo.GetByUUID(ctx, chatUUID)
 	if err != nil {
@@ -56,6 +60,14 @@ func (s *ChatService) GetChatWithLastMessage(ctx context.Context, chatUUID uuid.
 
 	if chat == nil {
 		return nil, errors.New("chat not found")
+	}
+
+	isParticipant, err := s.chatRepo.IsParticipant(ctx, chatUUID, userUUID)
+	if err != nil {
+		return nil, err
+	}
+	if !isParticipant {
+		return nil, errors.New("access denied")
 	}
 
 	messages, err := s.messageRepo.GetLastMessages(ctx, chatUUID, 1)

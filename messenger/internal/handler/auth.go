@@ -2,24 +2,26 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 
 	"log"
 	"messanger/internal/auth"
 	"messanger/internal/domain/service"
-
-	"github.com/google/uuid"
 )
 
 type AuthHandler struct {
 	jwtConfig   *auth.JWTConfig
 	userService *service.UserService
+	authService *service.AuthService
 }
 
-func NewAuthHandler(jwtConfig *auth.JWTConfig, userService *service.UserService) *AuthHandler {
+func NewAuthHandler(jwtConfig *auth.JWTConfig, userService *service.UserService, authService *service.AuthService) *AuthHandler {
 	return &AuthHandler{
 		jwtConfig:   jwtConfig,
 		userService: userService,
+		authService: authService,
 	}
 }
 
@@ -52,8 +54,13 @@ type RefreshRequest struct {
 }
 
 type RefreshResponse struct {
-	AccessToken string `json:"access_token"`
-	ExpiresIn   int64  `json:"expires_in"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int64  `json:"expires_in"`
+}
+
+type LogoutRequest struct {
+	RefreshToken string `json:"refresh_token"`
 }
 
 // Register - регистрация нового пользователя
@@ -74,6 +81,11 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(req.Password) < service.MinPasswordLength {
+		http.Error(w, fmt.Sprintf("Password must be at least %d characters", service.MinPasswordLength), http.StatusBadRequest)
+		return
+	}
+
 	log.Printf("📝 Register request for user: %s", req.Username)
 
 	ctx := r.Context()
@@ -86,7 +98,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Создаем пользователя
-	user, err := h.userService.CreateUser(ctx, req.Username)
+	user, err := h.userService.CreateUser(ctx, req.Username, req.Password)
 	if err != nil {
 		log.Printf("❌ Failed to create user: %v", err)
 		http.Error(w, "Failed to create user", http.StatusInternalServerError)
@@ -124,19 +136,27 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.Password == "" {
+		http.Error(w, "Password is required", http.StatusBadRequest)
+		return
+	}
+
 	log.Printf("🔐 Login request for user: %s", req.Username)
 
 	ctx := r.Context()
 
-	// Находим пользователя
-	user, err := h.userService.GetUserByUsername(ctx, req.Username)
-	if err != nil || user == nil {
-		log.Printf("❌ User not found: %s", req.Username)
-		http.Error(w, "User not found. Please register first.", http.StatusUnauthorized)
+	// Проверяем имя пользователя и пароль
+	user, err := h.userService.Authenticate(ctx, req.Username, req.Password)
+	if err != nil {
+		if errors.Is(err, service.ErrInvalidCredentials) {
+			log.Printf("❌ Login failed for user: %s", req.Username)
+			http.Error(w, "Invalid username or password", http.StatusUnauthorized)
+			return
+		}
+		log.Printf("❌ Login error for user %s: %v", req.Username, err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
-
-	log.Printf("✅ User found: %s", user.Username)
 
 	// Генерируем токены
 	accessToken, err := h.jwtConfig.GenerateAccessToken(user.UUID, user.Username)
@@ -146,7 +166,12 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	refreshToken := uuid.New().String()
+	refreshToken, err := h.authService.IssueRefreshToken(ctx, user.UUID)
+	if err != nil {
+		log.Printf("❌ Failed to issue refresh token: %v", err)
+		http.Error(w, "Failed to issue refresh token", http.StatusInternalServerError)
+		return
+	}
 
 	resp := LoginResponse{
 		AccessToken:  accessToken,
@@ -162,7 +187,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-// Refresh - обновление access токена
+// Refresh - обновление access токена по refresh токену (с ротацией)
 func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -180,32 +205,59 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// В упрощенной версии считаем, что refresh token - это UUID пользователя
-	userUUID, err := uuid.Parse(req.RefreshToken)
-	if err != nil {
-		http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
-		return
-	}
-
 	ctx := r.Context()
-	user, err := h.userService.GetUser(ctx, userUUID)
-	if err != nil || user == nil {
-		http.Error(w, "User not found", http.StatusUnauthorized)
+
+	user, newRefreshToken, err := h.authService.RefreshTokens(ctx, req.RefreshToken)
+	if err != nil {
+		if errors.Is(err, service.ErrInvalidRefreshToken) {
+			http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
+			return
+		}
+		log.Printf("❌ Refresh error: %v", err)
+		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
 
-	// Генерируем новый access токен
 	accessToken, err := h.jwtConfig.GenerateAccessToken(user.UUID, user.Username)
 	if err != nil {
+		log.Printf("❌ Failed to generate access token: %v", err)
 		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
 		return
 	}
 
 	resp := RefreshResponse{
-		AccessToken: accessToken,
-		ExpiresIn:   int64(h.jwtConfig.AccessExpiry.Seconds()),
+		AccessToken:  accessToken,
+		RefreshToken: newRefreshToken,
+		ExpiresIn:    int64(h.jwtConfig.AccessExpiry.Seconds()),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
+}
+
+// Logout отзывает refresh токен. Ответ всегда успешный, чтобы не раскрывать
+// валидность переданного токена.
+func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req LogoutRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.RefreshToken == "" {
+		http.Error(w, "Refresh token is required", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.authService.RevokeToken(r.Context(), req.RefreshToken); err != nil {
+		log.Printf("❌ Logout error: %v", err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "logged out"})
 }

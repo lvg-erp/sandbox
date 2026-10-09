@@ -19,31 +19,24 @@ type Client struct {
 	Hub      *Hub
 	Conn     *websocket.Conn
 	Send     chan []byte
+	Done     chan struct{} // закрывается хабом при отключении клиента; Send не закрывается никогда
 	Username string
 	UserUUID uuid.UUID
 }
 
-// ReadPump - экспортируемый метод (с большой буквы)
+// ReadPump читает сообщения от клиента до закрытия соединения.
 func (c *Client) ReadPump() {
 	defer func() {
 		c.Hub.Unregister <- c
-		err := c.Conn.Close()
-		if err != nil {
-			return
-		}
+		_ = c.Conn.Close()
 	}()
 
 	c.Conn.SetReadLimit(maxMessageSize)
-	err := c.Conn.SetReadDeadline(time.Now().Add(pongWait))
-	if err != nil {
+	if err := c.Conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
 		return
 	}
 	c.Conn.SetPongHandler(func(string) error {
-		err := c.Conn.SetReadDeadline(time.Now().Add(pongWait))
-		if err != nil {
-			return err
-		}
-		return nil
+		return c.Conn.SetReadDeadline(time.Now().Add(pongWait))
 	})
 
 	for {
@@ -60,39 +53,32 @@ func (c *Client) ReadPump() {
 	}
 }
 
-// WritePump - экспортируемый метод (с большой буквы)
+// WritePump пишет сообщения клиенту и держит соединение живым пингами.
 func (c *Client) WritePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
-		err := c.Conn.Close()
-		if err != nil {
-			return
-		}
+		_ = c.Conn.Close()
 	}()
 
 	for {
 		select {
-		case message, ok := <-c.Send:
-			err := c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
-			if err != nil {
-				return
+		case <-c.Done:
+			if err := c.Conn.SetWriteDeadline(time.Now().Add(writeWait)); err == nil {
+				_ = c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
 			}
-			if !ok {
-				err := c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
-				if err != nil {
-					return
-				}
-				return
-			}
+			return
 
+		case message := <-c.Send:
+			if err := c.Conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
+				return
+			}
 			if err := c.Conn.WriteMessage(websocket.TextMessage, message); err != nil {
 				return
 			}
 
 		case <-ticker.C:
-			err := c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
-			if err != nil {
+			if err := c.Conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
 				return
 			}
 			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {

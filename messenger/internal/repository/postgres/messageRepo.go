@@ -36,10 +36,15 @@ func (r *MessageRepository) Create(ctx context.Context, message *entity.Message)
 }
 
 func (r *MessageRepository) GetByUUID(ctx context.Context, uuid uuid.UUID) (*entity.Message, error) {
-	query := `SELECT uuid, chat_uuid, sender_uuid, body, created_at, updated_at, deleted FROM messages WHERE uuid = $1`
+	query := `
+        SELECT m.uuid, m.chat_uuid, m.sender_uuid, u.username, m.body, m.created_at, m.updated_at, m.deleted
+        FROM messages m
+        JOIN users u ON u.uuid = m.sender_uuid
+        WHERE m.uuid = $1
+    `
 	var message entity.Message
 	err := r.db.QueryRowContext(ctx, query, uuid).Scan(
-		&message.UUID, &message.ChatUUID, &message.SenderUUID, &message.Body, &message.CreatedAt, &message.UpdatedAt, &message.Deleted,
+		&message.UUID, &message.ChatUUID, &message.SenderUUID, &message.SenderUsername, &message.Body, &message.CreatedAt, &message.UpdatedAt, &message.Deleted,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -49,10 +54,11 @@ func (r *MessageRepository) GetByUUID(ctx context.Context, uuid uuid.UUID) (*ent
 
 func (r *MessageRepository) GetChatMessages(ctx context.Context, chatUUID uuid.UUID, limit, offset int) ([]*entity.Message, error) {
 	query := `
-        SELECT uuid, chat_uuid, sender_uuid, body, created_at, updated_at, deleted
-        FROM messages
-        WHERE chat_uuid = $1 AND deleted = false
-        ORDER BY created_at DESC
+        SELECT m.uuid, m.chat_uuid, m.sender_uuid, u.username, m.body, m.created_at, m.updated_at, m.deleted
+        FROM messages m
+        JOIN users u ON u.uuid = m.sender_uuid
+        WHERE m.chat_uuid = $1 AND m.deleted = false
+        ORDER BY m.created_at DESC
         LIMIT $2 OFFSET $3
     `
 	rows, err := r.db.QueryContext(ctx, query, chatUUID, limit, offset)
@@ -64,7 +70,7 @@ func (r *MessageRepository) GetChatMessages(ctx context.Context, chatUUID uuid.U
 	var messages []*entity.Message
 	for rows.Next() {
 		var message entity.Message
-		if err := rows.Scan(&message.UUID, &message.ChatUUID, &message.SenderUUID, &message.Body, &message.CreatedAt, &message.UpdatedAt, &message.Deleted); err != nil {
+		if err := rows.Scan(&message.UUID, &message.ChatUUID, &message.SenderUUID, &message.SenderUsername, &message.Body, &message.CreatedAt, &message.UpdatedAt, &message.Deleted); err != nil {
 			return nil, err
 		}
 		messages = append(messages, &message)
@@ -80,10 +86,11 @@ func (r *MessageRepository) Delete(ctx context.Context, uuid uuid.UUID) error {
 
 func (r *MessageRepository) GetLastMessages(ctx context.Context, chatUUID uuid.UUID, limit int) ([]*entity.Message, error) {
 	query := `
-        SELECT uuid, chat_uuid, sender_uuid, body, created_at, updated_at, deleted
-        FROM messages
-        WHERE chat_uuid = $1 AND deleted = false
-        ORDER BY created_at DESC
+        SELECT m.uuid, m.chat_uuid, m.sender_uuid, u.username, m.body, m.created_at, m.updated_at, m.deleted
+        FROM messages m
+        JOIN users u ON u.uuid = m.sender_uuid
+        WHERE m.chat_uuid = $1 AND m.deleted = false
+        ORDER BY m.created_at DESC
         LIMIT $2
     `
 	rows, err := r.db.QueryContext(ctx, query, chatUUID, limit)
@@ -95,7 +102,7 @@ func (r *MessageRepository) GetLastMessages(ctx context.Context, chatUUID uuid.U
 	var messages []*entity.Message
 	for rows.Next() {
 		var message entity.Message
-		if err := rows.Scan(&message.UUID, &message.ChatUUID, &message.SenderUUID, &message.Body, &message.CreatedAt, &message.UpdatedAt, &message.Deleted); err != nil {
+		if err := rows.Scan(&message.UUID, &message.ChatUUID, &message.SenderUUID, &message.SenderUsername, &message.Body, &message.CreatedAt, &message.UpdatedAt, &message.Deleted); err != nil {
 			return nil, err
 		}
 		messages = append(messages, &message)

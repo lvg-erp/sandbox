@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"sync"
 	"time"
 
 	"messanger/internal/domain/entity"
@@ -13,15 +12,14 @@ import (
 	"github.com/google/uuid"
 )
 
+// Hub управляет всеми WS-соединениями. Карта clients доступна только из
+// горутины Run (владелец), поэтому мьютекс не нужен.
 type Hub struct {
-	// Экспортируемые поля (с большой буквы)
 	Register   chan *Client
 	Unregister chan *Client
 	Broadcast  chan *BroadcastMessage
 
-	// Приватные поля (с маленькой буквы)
-	clients        map[uuid.UUID]*Client
-	mu             sync.RWMutex
+	clients        map[uuid.UUID]map[*Client]struct{}
 	userService    *service.UserService
 	chatService    *service.ChatService
 	messageService *service.MessageService
@@ -29,6 +27,7 @@ type Hub struct {
 
 type BroadcastMessage struct {
 	ChatUUID   uuid.UUID
+	Recipients map[uuid.UUID]struct{}
 	Message    []byte
 	ExcludeUID uuid.UUID
 }
@@ -42,7 +41,7 @@ func NewHub(
 		Register:       make(chan *Client),
 		Unregister:     make(chan *Client),
 		Broadcast:      make(chan *BroadcastMessage, 256),
-		clients:        make(map[uuid.UUID]*Client),
+		clients:        make(map[uuid.UUID]map[*Client]struct{}),
 		userService:    userService,
 		chatService:    chatService,
 		messageService: messageService,
@@ -53,33 +52,57 @@ func (h *Hub) Run() {
 	for {
 		select {
 		case client := <-h.Register:
-			h.mu.Lock()
-			h.clients[client.UserUUID] = client
-			h.mu.Unlock()
-			log.Printf("Client registered: %s", client.UserUUID)
+			h.register(client)
 
 		case client := <-h.Unregister:
-			h.mu.Lock()
-			if _, ok := h.clients[client.UserUUID]; ok {
-				delete(h.clients, client.UserUUID)
-				close(client.Send)
-			}
-			h.mu.Unlock()
-			log.Printf("Client unregistered: %s", client.UserUUID)
+			h.unregister(client)
 
 		case message := <-h.Broadcast:
-			h.mu.RLock()
-			for _, client := range h.clients {
-				if client.UserUUID != message.ExcludeUID {
-					select {
-					case client.Send <- message.Message:
-					default:
-						close(client.Send)
-						delete(h.clients, client.UserUUID)
-					}
-				}
+			h.deliver(message)
+		}
+	}
+}
+
+func (h *Hub) register(client *Client) {
+	set, ok := h.clients[client.UserUUID]
+	if !ok {
+		set = make(map[*Client]struct{})
+		h.clients[client.UserUUID] = set
+	}
+	set[client] = struct{}{}
+	log.Printf("Client registered: %s (%d connections)", client.UserUUID, len(set))
+}
+
+// unregister убирает конкретное соединение; другие соединения того же
+// пользователя (вторая вкладка, телефон) продолжают работать.
+func (h *Hub) unregister(client *Client) {
+	set, ok := h.clients[client.UserUUID]
+	if !ok {
+		return
+	}
+	if _, ok := set[client]; !ok {
+		return
+	}
+	delete(set, client)
+	if len(set) == 0 {
+		delete(h.clients, client.UserUUID)
+	}
+	close(client.Done)
+	log.Printf("Client unregistered: %s", client.UserUUID)
+}
+
+func (h *Hub) deliver(message *BroadcastMessage) {
+	for userUUID := range message.Recipients {
+		for client := range h.clients[userUUID] {
+			if client.UserUUID == message.ExcludeUID {
+				continue
 			}
-			h.mu.RUnlock()
+			select {
+			case client.Send <- message.Message:
+			default:
+				// Клиент не успевает забирать сообщения — отключаем его
+				h.unregister(client)
+			}
 		}
 	}
 }
@@ -99,7 +122,6 @@ func (h *Hub) HandleMessage(client *Client, msg *ClientMessage) {
 			return
 		}
 
-		ctx := context.Background()
 		var receiverUUID uuid.UUID
 		var err error
 
@@ -165,7 +187,7 @@ func (h *Hub) HandleMessage(client *Client, msg *ClientMessage) {
 			"created_at":   message.CreatedAt.Format(time.RFC3339),
 		})
 
-		// Рассылка всем участникам
+		// Рассылка только участникам чата
 		h.broadcastToChat(ctx, chatUUID, message, client.UserUUID)
 
 	case "chat.list":
@@ -174,7 +196,26 @@ func (h *Hub) HandleMessage(client *Client, msg *ClientMessage) {
 			h.sendError(client, msg.RequestID, err.Error())
 			return
 		}
-		h.sendResponse(client, msg.RequestID, chats)
+		if chats == nil {
+			chats = []*entity.Chat{}
+		}
+		// Для личных чатов фронтенд показывает собеседника, поэтому прикладываем участников
+		result := make([]map[string]interface{}, 0, len(chats))
+		for _, c := range chats {
+			participants, err := h.chatService.GetParticipants(ctx, c.UUID)
+			if err != nil {
+				participants = nil
+			}
+			result = append(result, map[string]interface{}{
+				"uuid":         c.UUID.String(),
+				"name":         c.Name,
+				"type":         c.Type,
+				"created_at":   c.CreatedAt.Format(time.RFC3339),
+				"updated_at":   c.UpdatedAt.Format(time.RFC3339),
+				"participants": participants,
+			})
+		}
+		h.sendResponse(client, msg.RequestID, result)
 
 	case "chat.get":
 		var payload struct {
@@ -219,12 +260,18 @@ func (h *Hub) HandleMessage(client *Client, msg *ClientMessage) {
 			payload.Limit = 50
 		}
 
-		messages, err := h.messageService.GetChatMessages(ctx, chatUUID, payload.Limit, payload.Offset)
+		messages, err := h.messageService.GetChatMessages(ctx, chatUUID, client.UserUUID, payload.Limit, payload.Offset)
 		if err != nil {
 			h.sendError(client, msg.RequestID, err.Error())
 			return
 		}
+		if messages == nil {
+			messages = []*entity.Message{}
+		}
 		h.sendResponse(client, msg.RequestID, messages)
+
+	case "message.read":
+		// Прочитанность сообщений пока не реализована
 
 	case "user.update_last_seen":
 		_ = h.userService.UpdateLastSeen(ctx, client.UserUUID)
@@ -239,8 +286,16 @@ func (h *Hub) broadcastToChat(ctx context.Context, chatUUID uuid.UUID, message *
 		senderUsername = sender.Username
 	}
 
-	log.Printf("📤 Broadcasting to chat %s: sender=%s (UUID=%s), body=%s",
-		chatUUID, senderUsername, senderUUID, message.Body)
+	// Рассылаем только участникам чата
+	participants, err := h.chatService.GetParticipants(ctx, chatUUID)
+	if err != nil {
+		log.Printf("❌ Failed to get participants of chat %s: %v", chatUUID, err)
+		return
+	}
+	recipients := make(map[uuid.UUID]struct{}, len(participants))
+	for _, p := range participants {
+		recipients[p.UUID] = struct{}{}
+	}
 
 	data := map[string]interface{}{
 		"type": "message.new",
@@ -248,7 +303,7 @@ func (h *Hub) broadcastToChat(ctx context.Context, chatUUID uuid.UUID, message *
 			"message_uuid":    message.UUID.String(),
 			"chat_uuid":       message.ChatUUID.String(),
 			"sender_uuid":     message.SenderUUID.String(),
-			"sender_username": senderUsername, // ЭТО КЛЮЧЕВОЕ ПОЛЕ!
+			"sender_username": senderUsername,
 			"body":            message.Body,
 			"created_at":      message.CreatedAt.Format(time.RFC3339),
 		},
@@ -262,6 +317,7 @@ func (h *Hub) broadcastToChat(ctx context.Context, chatUUID uuid.UUID, message *
 
 	h.Broadcast <- &BroadcastMessage{
 		ChatUUID:   chatUUID,
+		Recipients: recipients,
 		Message:    bytes,
 		ExcludeUID: senderUUID,
 	}

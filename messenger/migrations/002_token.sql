@@ -27,12 +27,8 @@ CREATE INDEX IF NOT EXISTS idx_refresh_tokens_expires ON refresh_tokens(expires_
 CREATE INDEX IF NOT EXISTS idx_api_keys_key ON api_keys(key);
 CREATE INDEX IF NOT EXISTS idx_api_keys_active ON api_keys(is_active) WHERE is_active = true;
 
--- Создаем тестовый API ключ
-INSERT INTO api_keys (uuid, key, name, is_active)
-VALUES (uuid_generate_v4(), 'pfujkjdrf', 'test-key', true)
-ON CONFLICT (key) DO NOTHING;
-
--- Создаем тестового пользователя если его нет
+-- Создаем тестового пользователя если его нет.
+-- Пароль назначается миграцией 004 (password_hash).
 INSERT INTO users (username) VALUES ('admin')
 ON CONFLICT (username) DO NOTHING;
 

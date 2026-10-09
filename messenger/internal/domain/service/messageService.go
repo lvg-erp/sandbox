@@ -36,19 +36,10 @@ func (s *MessageService) SendMessage(ctx context.Context, chatUUID, senderUUID u
 	}
 
 	// Проверяем, что отправитель участник чата
-	participants, err := s.chatRepo.GetParticipants(ctx, chatUUID)
+	isParticipant, err := s.chatRepo.IsParticipant(ctx, chatUUID, senderUUID)
 	if err != nil {
 		return nil, err
 	}
-
-	isParticipant := false
-	for _, p := range participants {
-		if p.UUID == senderUUID {
-			isParticipant = true
-			break
-		}
-	}
-
 	if !isParticipant {
 		return nil, errors.New("sender is not a participant of this chat")
 	}
@@ -73,7 +64,16 @@ func (s *MessageService) SendMessage(ctx context.Context, chatUUID, senderUUID u
 	return message, nil
 }
 
-func (s *MessageService) GetChatMessages(ctx context.Context, chatUUID uuid.UUID, limit, offset int) ([]*entity.Message, error) {
+func (s *MessageService) GetChatMessages(ctx context.Context, chatUUID, userUUID uuid.UUID, limit, offset int) ([]*entity.Message, error) {
+	// Читать историю может только участник чата
+	isParticipant, err := s.chatRepo.IsParticipant(ctx, chatUUID, userUUID)
+	if err != nil {
+		return nil, err
+	}
+	if !isParticipant {
+		return nil, errors.New("access denied")
+	}
+
 	return s.messageRepo.GetChatMessages(ctx, chatUUID, limit, offset)
 }
 

@@ -12,6 +12,7 @@ type ChatRepository interface {
 	GetUserChats(ctx context.Context, userUUID uuid.UUID) ([]*entity.Chat, error)
 	AddParticipant(ctx context.Context, chatUUID, userUUID uuid.UUID) error
 	GetParticipants(ctx context.Context, chatUUID uuid.UUID) ([]*entity.User, error)
+	IsParticipant(ctx context.Context, chatUUID, userUUID uuid.UUID) (bool, error)
 	GetPersonalChat(ctx context.Context, user1UUID, user2UUID uuid.UUID) (*entity.Chat, error)
 	CreatePersonalChat(ctx context.Context, user1UUID, user2UUID uuid.UUID) (*entity.Chat, error)
 }
